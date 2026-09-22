@@ -1,0 +1,154 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #f4f1ea;
+  --color-ink: #000000;
+  --color-lime: #d2de38;
+  --color-magenta: #ec268f;
+  --color-orange: #fa8d2e;
+  --color-leaf: #6dc06e;
+  --color-pin: #3dadff;
+
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+
+  --breakpoint-desk: 900px;
+
+  --radius-blob-sm: 88px;
+  --radius-blob-lg: 150px;
+
+  --animate-poster-scroll: poster-scroll 50s linear infinite;
+  --animate-poster-scroll-x: poster-scroll-x 38s linear infinite;
+  --animate-partners-marquee: partners-marquee 30s linear infinite;
+
+  @keyframes poster-scroll {
+    to {
+      transform: translateY(-50%);
+    }
+  }
+
+  @keyframes poster-scroll-x {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes partners-marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Shared width of the hero squares; the pavilion morph starts from this. */
+:root {
+  --column-w: min(92vw, 440px);
+}
+
+@media (min-width: 900px) {
+  :root {
+    --column-w: min(54vw, 640px);
+  }
+}
+
+body {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-weight: 400;
+}
+
+/* The mask stretches to fit, so each square count needs its own image; Hero.tsx supplies both. */
+.hero-stack {
+  -webkit-mask-image: var(--hero-mask-sm);
+  mask-image: var(--hero-mask-sm);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+@media (min-width: 900px) {
+  .hero-stack {
+    -webkit-mask-image: var(--hero-mask-lg);
+    mask-image: var(--hero-mask-lg);
+  }
+}
+
+@utility gradient-brand {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-magenta) 0%,
+    var(--color-orange) 100%
+  );
+}
+
+@utility text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.32);
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility eyebrow {
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Youth ambassador page is authored at the 1690px Figma frame. */
+.apply-canvas {
+  width: 100%;
+}
+
+@media (min-width: 900px) {
+  .apply-canvas {
+    width: 1690px;
+    zoom: calc(100vw / 1690px);
+  }
+}
+
+/* Sized vs the globe so only the seal's rim kisses the sphere. */
+.platform-soon-badge {
+  position: absolute;
+  left: 72%;
+  top: calc(2% + 28px);
+  z-index: 21;
+  width: 17%;
+  filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.35));
+}
+
+@media (min-width: 900px) {
+  .platform-soon-badge {
+    left: 86.8%;
+    top: calc(-2.85% + 50px);
+    width: min(124px, 19.7%);
+  }
+}
+
+/* Soft snap for full-viewport sections; proximity releases once you keep scrolling. */
+@media (min-width: 900px) {
+  html {
+    scroll-snap-type: y proximity;
+  }
+
+  .snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-snap-type: none;
+  }
+}

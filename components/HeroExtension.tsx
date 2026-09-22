@@ -1,0 +1,72 @@
+"use client";
+
+import Image from "next/image";
+import { SectionReveal } from "./SectionReveal";
+import { useCopy } from "./LanguageProvider";
+
+function CaretDown() {
+  return (
+    <svg
+      viewBox="0 0 48 48"
+      className="size-[36px] desk:size-[48px]"
+      fill="none"
+      aria-hidden
+    >
+      <path
+        d="M14 20l10 10 10-10"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function HeroExtension() {
+  const copy = useCopy();
+  return (
+    <section
+      // Card shares the hero's width and 0.28 corner radius so the column reads as one.
+      className="relative bg-cream [--card-w:var(--column-w)]"
+      style={
+        {
+          ["--card-r" as string]: "calc(var(--card-w) * 0.28)",
+        } as React.CSSProperties
+      }
+    >
+      <div
+        className="mx-auto -mt-px flex flex-col items-center"
+        style={{ width: "var(--card-w)" }}
+      >
+        <div
+          className="relative -mt-px flex aspect-square w-full items-center justify-center overflow-hidden bg-cream"
+          data-nav-tone="dark"
+          style={{ borderRadius: "var(--card-r)" }}
+        >
+          <Image
+            src="/images/signal-field.jpg"
+            alt={copy.heroExtension.photoAlt}
+            fill
+            sizes="(min-width: 900px) 640px, 92vw"
+            className="object-cover"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-black/25 to-black/55" />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 z-[1] h-[42%] bg-gradient-to-b from-black from-0% via-black/55 via-35% to-transparent to-100%"
+          />
+          <SectionReveal className="relative z-10 flex flex-col items-center gap-[12px] px-8 text-center text-white">
+            <h2 className="text-[clamp(26px,7.2vw,48px)] font-normal leading-[0.9] tracking-[-0.04em] drop-shadow-[0_2px_18px_rgba(0,0,0,0.35)]">
+              {copy.heroExtension.title}
+            </h2>
+            <p className="text-[clamp(14px,3.6vw,24px)] font-normal leading-[0.9] tracking-[-0.04em] text-white/90">
+              {copy.heroExtension.subtitle}
+            </p>
+            <CaretDown />
+          </SectionReveal>
+        </div>
+      </div>
+    </section>
+  );
+}

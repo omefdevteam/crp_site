@@ -1,0 +1,57 @@
+"use client";
+
+import Link from "next/link";
+import { footerHref } from "@/lib/nav";
+import { t } from "@/lib/messages";
+import { Logo } from "./Logo";
+import { useCopy } from "./LanguageProvider";
+
+export function Footer() {
+  const copy = useCopy();
+  const year = new Date().getFullYear();
+
+  return (
+    <footer
+      id="contact"
+      className="relative z-10 -mt-16 rounded-t-[56px] bg-cream px-5 pb-16 pt-12 desk:-mt-24 desk:rounded-t-[96px] desk:px-8 desk:pb-20 desk:pt-16"
+    >
+      <div className="mx-auto max-w-[1240px]">
+        <div className="flex flex-col items-center gap-10 desk:flex-row desk:items-start desk:justify-between">
+          <Logo size="lg" tone="color" />
+          <div className="flex justify-center gap-8 desk:gap-16">
+            {copy.footer.columns.map((col) => (
+              <div key={col.title}>
+                <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] desk:text-[11px]">
+                  {col.title}
+                </h3>
+                <ul className="mt-3 flex flex-col gap-2 text-[14px] text-black/60 desk:text-[13px]">
+                  {col.links.map((link) => {
+                    const href = footerHref(link);
+                    const className = "transition-colors hover:text-black";
+                    return (
+                      <li key={link}>
+                        {href === "#" ? (
+                          <a href="#" className={className}>
+                            {link}
+                          </a>
+                        ) : (
+                          <Link href={href} className={className}>
+                            {link}
+                          </Link>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-12 border-t border-black/15 pt-5 text-[11px] text-black/55">
+          <p>{t(copy.footer.copyright, { year })}</p>
+        </div>
+      </div>
+    </footer>
+  );
+}

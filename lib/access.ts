@@ -1,0 +1,48 @@
+import { createHash, randomBytes } from "crypto";
+import { and, eq, gt, isNull, lt } from "drizzle-orm";
+import { accessTokens, type Store } from "@/lib/db";
+
+export type TokenPurpose = "resume";
+
+export const RESUME_TOKEN_TTL_SECONDS = 60 * 30;
+
+export function hashToken(raw: string): string {
+  return createHash("sha256").update(raw).digest("hex");
+}
+
+// Mints a short-lived, single-use token and stores only its hash. The raw value
+// travels once, in the email link, and is never persisted.
+export async function issueAccessToken(
+  tx: Store,
+  applicantId: string,
+  purpose: TokenPurpose,
+  ttlSeconds: number,
+): Promise<{ raw: string; hash: string; expiresAt: Date }> {
+  const raw = randomBytes(32).toString("base64url");
+  const hash = hashToken(raw);
+  const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
+  await tx.insert(accessTokens).values({ hash, applicantId, purpose, expiresAt });
+  return { raw, hash, expiresAt };
+}
+
+// Marks the token used and returns its applicant, or null if it is unknown,
+// expired, for another purpose, or already spent. The conditional update is
+// atomic, so two clicks on the same link cannot both succeed.
+export async function consumeAccessToken(tx: Store, raw: string, purpose: TokenPurpose): Promise<string | null> {
+  if (!raw || raw.length > 200) return null;
+  const [row] = await tx
+    .update(accessTokens)
+    .set({ usedAt: new Date() })
+    .where(and(
+      eq(accessTokens.hash, hashToken(raw)),
+      eq(accessTokens.purpose, purpose),
+      isNull(accessTokens.usedAt),
+      gt(accessTokens.expiresAt, new Date()),
+    ))
+    .returning({ applicantId: accessTokens.applicantId });
+  return row?.applicantId ?? null;
+}
+
+export async function purgeExpiredTokens(db: Store): Promise<void> {
+  await db.delete(accessTokens).where(lt(accessTokens.expiresAt, new Date(Date.now() - 24 * 3600 * 1000)));
+}

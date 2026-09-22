@@ -1,0 +1,275 @@
+import {
+  pgEnum,
+  pgTable,
+  uuid,
+  text,
+  date,
+  integer,
+  timestamp,
+  uniqueIndex,
+  index,
+  jsonb,
+  bigint,
+  boolean,
+} from "drizzle-orm/pg-core";
+
+// One source of truth for every closed set. These names match the Excel mirror
+// and the Lists tab exactly, so a value never means two things in two places.
+export const applicantStatus = pgEnum("applicant_status", [
+  "submitted",
+  "round1_complete",
+  "accepted",
+  "rejected",
+  "interview_yes",
+  "interview_no",
+  "docs_submitted",
+  "onboarding",
+  "online",
+  "ineligible",
+  // Identity check sits after Round 1; appended so existing enum order is kept.
+  "id_verified",
+  "id_failed",
+]);
+// The identity/KYC check outcome, tracked apart from the pipeline status so the
+// team sees where a check stands even before it moves the applicant on.
+export const identityStatus = pgEnum("identity_status", [
+  "pending",
+  "verified",
+  "failed",
+  "review",
+]);
+export const track = pgEnum("track", ["in_person", "online"]);
+// The language the applicant chose at the pre-application popup. It decides which
+// French/English VideoAsk they were sent to, and which the Round 2 email links to.
+export const appLanguage = pgEnum("app_language", ["en", "fr"]);
+export const ageGroup = pgEnum("age_group", ["under_19", "19_plus"]);
+export const reviewDecision = pgEnum("review_decision", ["accept", "reject"]);
+export const interviewOutcome = pgEnum("interview_outcome", ["yes", "no"]);
+export const waitlistStatus = pgEnum("waitlist_status", [
+  "subscribed",
+  "unsubscribed",
+]);
+export const nominationStatus = pgEnum("nomination_status", [
+  "new",
+  "invited",
+  "applied",
+  "declined",
+]);
+
+const id = () => uuid("id").primaryKey().defaultRandom();
+const createdAt = () =>
+  timestamp("created_at", { withTimezone: true }).defaultNow().notNull();
+const updatedAt = () =>
+  timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull()
+    .$onUpdate(() => new Date());
+
+// The application pipeline. System columns are written by the app; the six
+// decision columns are written back from the Excel review sheet.
+export const applicants = pgTable(
+  "applicants",
+  {
+    id: id(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+    fullName: text("full_name").notNull(),
+    email: text("email").notNull(),
+    dob: date("dob").notNull(),
+    age: integer("age").notNull(),
+    track: track("track").notNull(),
+    // Collected on the "More about you" form.
+    phone: text("phone"),
+    nationality: text("nationality"),
+    basedIn: text("based_in"),
+    skills: jsonb("skills").$type<string[]>().notNull().default([]),
+    canTravel: boolean("can_travel"),
+    hasValidPassport: boolean("has_valid_passport"),
+    language: appLanguage("language").notNull().default("en"),
+    status: applicantStatus("status").notNull().default("submitted"),
+    round1Link: text("round1_link"),
+    round1CompletedAt: timestamp("round1_completed_at", { withTimezone: true }),
+    // Identity check (provider-agnostic): the hosted link, its session id, and
+    // the outcome the provider's webhook writes back.
+    identityStatus: identityStatus("identity_status"),
+    identitySessionId: text("identity_session_id"),
+    identityLink: text("identity_link"),
+    identityCheckedAt: timestamp("identity_checked_at", { withTimezone: true }),
+    interviewAt: timestamp("interview_at", { withTimezone: true }),
+    docsStatus: text("docs_status"),
+    version: integer("version").notNull().default(0),
+    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    identityEventAt: timestamp("identity_event_at", { withTimezone: true }),
+    // Decision columns (team-owned, synced back from Excel).
+    reviewDecision: reviewDecision("review_decision"),
+    reviewNotes: text("review_notes"),
+    reviewer: text("reviewer"),
+    reviewDate: timestamp("review_date", { withTimezone: true }),
+    interviewOutcome: interviewOutcome("interview_outcome"),
+    interviewNotes: text("interview_notes"),
+    interviewDate: timestamp("interview_date", { withTimezone: true }),
+  },
+  (t) => [uniqueIndex("applicants_email_key").on(t.email)],
+);
+
+// Append-only lawful-basis record: one row per consent given, never updated.
+export const consentLog = pgTable("consent_log", {
+  id: id(),
+  createdAt: createdAt(),
+  applicantId: uuid("applicant_id")
+    .notNull()
+    .references(() => applicants.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(),
+  version: text("version").notNull(),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+});
+
+// Email sign-ups for updates. Not an application.
+export const waitlist = pgTable(
+  "waitlist",
+  {
+    id: id(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+    email: text("email").notNull(),
+    name: text("name"),
+    source: text("source"),
+    status: waitlistStatus("status").notNull().default("subscribed"),
+  },
+  (t) => [uniqueIndex("waitlist_email_key").on(t.email)],
+);
+
+// "Express interest" from the age page, tagged by which group and track.
+export const interest = pgTable(
+  "interest",
+  {
+    id: id(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+    email: text("email").notNull(),
+    name: text("name"),
+    ageGroup: ageGroup("age_group").notNull(),
+    track: track("track"),
+    source: text("source"),
+  },
+  (t) => [uniqueIndex("interest_email_key").on(t.email)],
+);
+
+// Someone nominating another person. Deduped per nominator+nominee pair.
+export const nominations = pgTable(
+  "nominations",
+  {
+    id: id(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+    nominatorName: text("nominator_name").notNull(),
+    nominatorEmail: text("nominator_email").notNull(),
+    nominatorPhone: text("nominator_phone"),
+    nominatorOrganization: text("nominator_organization"),
+    nominatorRelation: text("nominator_relation"),
+    nomineeName: text("nominee_name").notNull(),
+    nomineeEmail: text("nominee_email").notNull(),
+    nomineeDob: date("nominee_dob"),
+    nomineePhone: text("nominee_phone"),
+    nomineeNationality: text("nominee_nationality"),
+    nomineeBasedIn: text("nominee_based_in"),
+    // Kept for older syncs; new forms also write nomineeBasedIn.
+    nomineeLocation: text("nominee_location"),
+    track: track("track"),
+    videoaskLink: text("videoask_link"),
+    status: nominationStatus("status").notNull().default("new"),
+  },
+  (t) => [
+    uniqueIndex("nominations_pair_key").on(t.nominatorEmail, t.nomineeEmail),
+  ],
+);
+
+// Types derive from the schema, so the DB shape and the TS shape can't drift.
+export type Applicant = typeof applicants.$inferSelect;
+export type NewApplicant = typeof applicants.$inferInsert;
+export type Waitlist = typeof waitlist.$inferSelect;
+export type NewWaitlist = typeof waitlist.$inferInsert;
+export type Interest = typeof interest.$inferSelect;
+export type NewInterest = typeof interest.$inferInsert;
+export type Nomination = typeof nominations.$inferSelect;
+export type NewNomination = typeof nominations.$inferInsert;
+export type ConsentLog = typeof consentLog.$inferSelect;
+export type NewConsentLog = typeof consentLog.$inferInsert;
+
+export const applicationEvents = pgTable("application_events", {
+  id: id(), createdAt: createdAt(),
+  applicantId: uuid("applicant_id").references(() => applicants.id, { onDelete: "cascade" }),
+  fromStatus: text("from_status"), toStatus: text("to_status"),
+  actor: text("actor").notNull(), reason: text("reason").notNull(),
+  version: integer("version"),
+}, (t) => [index("application_events_applicant_idx").on(t.applicantId, t.createdAt)]);
+
+export type JobPayload = Record<string, unknown>;
+export const jobs = pgTable("jobs", {
+  id: id(), createdAt: createdAt(), updatedAt: updatedAt(),
+  kind: text("kind").notNull(), dedupeKey: text("dedupe_key").notNull().unique(),
+  applicantId: uuid("applicant_id").references(() => applicants.id, { onDelete: "cascade" }),
+  payload: jsonb("payload").$type<JobPayload>().notNull(),
+  status: text("status").notNull().default("pending"),
+  attempts: integer("attempts").notNull().default(0),
+  availableAt: timestamp("available_at", { withTimezone: true }).notNull().defaultNow(),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }), lockToken: uuid("lock_token"),
+  firstAttemptAt: timestamp("first_attempt_at", { withTimezone: true }),
+  lastError: text("last_error"), providerId: text("provider_id"), deliveryStatus: text("delivery_status"),
+  deliveryEventAt: timestamp("delivery_event_at", { withTimezone: true }),
+}, (t) => [index("jobs_due_idx").on(t.status, t.availableAt), index("jobs_applicant_idx").on(t.applicantId), index("jobs_provider_idx").on(t.providerId)]);
+
+export const webhookEvents = pgTable("webhook_events", {
+  id: id(), createdAt: createdAt(),
+  provider: text("provider").notNull(), eventKey: text("event_key").notNull(),
+  payload: jsonb("payload").$type<JobPayload>().notNull(),
+  processedAt: timestamp("processed_at", { withTimezone: true }), outcome: text("outcome"),
+}, (t) => [uniqueIndex("webhook_events_provider_key").on(t.provider, t.eventKey)]);
+
+export const accessTokens = pgTable("access_tokens", {
+  hash: text("hash").primaryKey(), createdAt: createdAt(),
+  applicantId: uuid("applicant_id").notNull().references(() => applicants.id, { onDelete: "cascade" }),
+  purpose: text("purpose").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+}, (t) => [index("access_tokens_expiry_idx").on(t.expiresAt)]);
+
+export const rateLimits = pgTable("rate_limits", {
+  key: text("key").primaryKey(), count: integer("count").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, (t) => [index("rate_limits_expiry_idx").on(t.expiresAt)]);
+
+export const decisionReceipts = pgTable("decision_receipts", {
+  id: uuid("id").primaryKey(), createdAt: createdAt(),
+  applicantId: uuid("applicant_id").notNull().references(() => applicants.id, { onDelete: "cascade" }),
+  requestHash: text("request_hash").notNull(),
+  result: jsonb("result").$type<{ version: number; status: string }>().notNull(),
+});
+
+// A transactional clock (rather than a sequence) serializes revision allocation
+// until commit, so consumers cannot skip a lower revision committed later.
+export const syncClock = pgTable("sync_clock", {
+  singleton: boolean("singleton").primaryKey().default(true),
+  revision: bigint("revision", { mode: "bigint" }).notNull().default(BigInt(0)),
+});
+export const syncChanges = pgTable("sync_changes", {
+  revision: bigint("revision", { mode: "bigint" }).primaryKey(),
+  tableName: text("table_name").notNull(), recordId: uuid("record_id").notNull(),
+  operation: text("operation").notNull(), payload: jsonb("payload").notNull(), createdAt: createdAt(),
+}, (t) => [index("sync_changes_table_revision_idx").on(t.tableName, t.revision)]);
+
+// One lock for the Excel cron so a second tick cannot write the workbook while
+// the first is still inside its function budget. Cursors live here, not in the
+// sheet, so a reviewer cannot rewind the feed by editing Config.after.
+export const excelSyncState = pgTable("excel_sync_state", {
+  singleton: boolean("singleton").primaryKey().default(true),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
+  lastError: text("last_error"),
+  lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+});
+export const excelCursors = pgTable("excel_cursors", {
+  tableName: text("table_name").primaryKey(),
+  cursor: bigint("cursor", { mode: "bigint" }).notNull().default(BigInt(0)),
+});

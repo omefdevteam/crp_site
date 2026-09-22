@@ -1,0 +1,197 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { FIELD, LABEL } from "./fieldStyles";
+
+const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const pad = (n: number) => String(n).padStart(2, "0");
+const iso = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
+
+// Calendar date picker matching Figma 2184:3924: month/year header with
+// prev/next, S-M-T-W-T-F-S row, a 6-week grid with greyed adjacent months and a
+// cream circle on the selected day. The month/year caret opens a year list.
+export function DateField({
+  value,
+  onChange,
+  className = "",
+}: {
+  value: string; // YYYY-MM-DD
+  onChange: (v: string) => void;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [yearPicker, setYearPicker] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  const today = useMemo(() => new Date(), []);
+  const selected = value ? new Date(`${value}T00:00:00`) : null;
+  const [view, setView] = useState(() => ({
+    y: selected?.getFullYear() ?? today.getFullYear() - 18,
+    m: selected?.getMonth() ?? today.getMonth(),
+  }));
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!(e.target instanceof Node)) return;
+      if (!wrapRef.current?.contains(e.target)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const cells = useMemo(() => {
+    const first = new Date(view.y, view.m, 1).getDay(); // 0=Sun
+    const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
+    const prevDays = new Date(view.y, view.m, 0).getDate();
+    const out: { d: number; cur: boolean; y: number; m: number }[] = [];
+    for (let i = first - 1; i >= 0; i--) {
+      const m = view.m === 0 ? 11 : view.m - 1;
+      const y = view.m === 0 ? view.y - 1 : view.y;
+      out.push({ d: prevDays - i, cur: false, y, m });
+    }
+    for (let d = 1; d <= daysInMonth; d++) out.push({ d, cur: true, y: view.y, m: view.m });
+    while (out.length % 7 !== 0) {
+      const idx = out.length - (first + daysInMonth) + 1;
+      const m = view.m === 11 ? 0 : view.m + 1;
+      const y = view.m === 11 ? view.y + 1 : view.y;
+      out.push({ d: idx, cur: false, y, m });
+    }
+    return out;
+  }, [view]);
+
+  const shift = (delta: number) => {
+    setView((v) => {
+      const m = v.m + delta;
+      if (m < 0) return { y: v.y - 1, m: 11 };
+      if (m > 11) return { y: v.y + 1, m: 0 };
+      return { y: v.y, m };
+    });
+  };
+
+  const years = useMemo(() => {
+    const end = today.getFullYear();
+    return Array.from({ length: end - 1940 + 1 }, (_, i) => end - i);
+  }, [today]);
+
+  const display = selected
+    ? `${pad(selected.getDate())} ${MONTHS[selected.getMonth()].slice(0, 3)} ${selected.getFullYear()}`
+    : null;
+
+  return (
+    <div ref={wrapRef} className={`relative ${className}`}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className={`${FIELD} w-full justify-center gap-2.5 px-4`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/icons/calendar-blank.svg" alt="" width={20} height={20} className="size-5 opacity-60" />
+        {display ? (
+          <span className="text-[16px] text-black">{display}</span>
+        ) : (
+          <span className={LABEL}>*D.O.B</span>
+        )}
+      </button>
+
+      {open ? (
+        <div className="absolute left-0 top-[calc(100%+8px)] z-50 w-[312px] max-w-[calc(100vw-2rem)] rounded-[24px] border border-black/12 bg-white p-4 shadow-[0_8px_28px_rgba(0,0,0,0.12)]">
+          <div className="mb-2 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => setYearPicker((v) => !v)}
+              className="flex items-center gap-1.5 text-[20px] tracking-[-0.8px] text-black"
+            >
+              {MONTHS[view.m]} {view.y}
+              <svg viewBox="0 0 12 12" className="size-3 text-black/60" fill="none" aria-hidden>
+                <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            {!yearPicker ? (
+              <div className="flex items-center gap-1">
+                <button type="button" onClick={() => shift(-1)} aria-label="Previous month" className="grid size-7 place-items-center text-black/70">
+                  <svg viewBox="0 0 12 12" className="size-3.5" fill="none" aria-hidden>
+                    <path d="M7.5 2.5L4 6l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+                <button type="button" onClick={() => shift(1)} aria-label="Next month" className="grid size-7 place-items-center text-black/70">
+                  <svg viewBox="0 0 12 12" className="size-3.5" fill="none" aria-hidden>
+                    <path d="M4.5 2.5L8 6l-3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          {yearPicker ? (
+            <div className="grid max-h-[240px] grid-cols-4 gap-1 overflow-y-auto">
+              {years.map((y) => (
+                <button
+                  key={y}
+                  type="button"
+                  onClick={() => {
+                    setView((v) => ({ ...v, y }));
+                    setYearPicker(false);
+                  }}
+                  className={`h-9 rounded-full text-[15px] ${y === view.y ? "bg-[rgba(244,241,234,0.9)] text-black" : "text-black/70"}`}
+                >
+                  {y}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-7 text-center text-[12px] text-black/40">
+                {WEEKDAYS.map((w, i) => (
+                  <span key={i} className="py-1">{w}</span>
+                ))}
+              </div>
+              <div className="grid grid-cols-7">
+                {cells.map((c, i) => {
+                  const isSel =
+                    selected != null &&
+                    c.cur &&
+                    selected.getFullYear() === c.y &&
+                    selected.getMonth() === c.m &&
+                    selected.getDate() === c.d;
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        onChange(iso(c.y, c.m, c.d));
+                        setOpen(false);
+                      }}
+                      className={`grid aspect-square place-items-center text-[15px] ${
+                        c.cur ? "text-black" : "text-black/25"
+                      }`}
+                    >
+                      <span
+                        className={`grid size-9 place-items-center rounded-full ${isSel ? "bg-[rgba(244,241,234,0.9)]" : ""}`}
+                      >
+                        {c.d}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
