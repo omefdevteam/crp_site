@@ -1,0 +1,36 @@
+export const aboutImages = {
+  hero: "/images/about/hero.jpg",
+  ellipseConnect: "/images/about/ellipse-connect.svg",
+  ellipseStories: "/images/about/ellipse-stories.svg",
+  ellipseChange: "/images/about/ellipse-change.svg",
+  youth: "/images/about/youth.jpg",
+  youthBg: "/images/about/youth-bg.png",
+  partnerCard: "/images/about/partner-card.png",
+  partnersGlow: "/images/about/partners-glow.svg",
+  arrowUp: "/images/about/arrow-up.svg",
+  featured: "/images/about/team-02.jpg",
+} as const;
+
+// Portrait tiles from Figma 2191:207 — placeholders labeled Jane Doe / Manager.
+export const aboutTeamPhotos = [
+  "/images/about/team-01.jpg",
+  "/images/about/team-03.jpg",
+  "/images/about/team-04.jpg",
+  "/images/about/team-05.jpg",
+  "/images/about/team-06.jpg",
+  "/images/about/team-07.jpg",
+  "/images/about/team-08.jpg",
+  "/images/about/team-09.jpg",
+  "/images/about/team-10.jpg",
+  "/images/about/team-11.jpg",
+  "/images/about/team-12.jpg",
+  "/images/about/team-13.jpg",
+  "/images/about/team-14.jpg",
+  "/images/about/team-15.jpg",
+  "/images/about/team-16.jpg",
+  "/images/about/team-17.jpg",
+  "/images/about/team-18.jpg",
+  "/images/about/team-19.jpg",
+  "/images/about/team-20.jpg",
+  "/images/about/team-21.jpg",
+] as const;
