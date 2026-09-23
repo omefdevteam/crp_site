@@ -1,6 +1,9 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
 import { useEffect, useRef, useState } from "react";
+import { useLanguage } from "../LanguageProvider";
 import { COUNTRIES, type Country } from "@/lib/countries";
 import { FIELD, LABEL } from "./fieldStyles";
 
@@ -27,6 +30,12 @@ export function CountryDropdown({
   value: Country | null;
   onChange: (c: Country) => void;
 }) {
+  const tr = useText();
+  const { locale } = useLanguage();
+  const countryName = (country: Country) => {
+    const code = [...country.flag].map((character) => String.fromCharCode(character.codePointAt(0)! - 0x1f1e6 + 65)).join("");
+    return /^[A-Z]{2}$/.test(code) ? new Intl.DisplayNames([locale], { type: "region" }).of(code) ?? country.name : country.name;
+  };
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -59,7 +68,7 @@ export function CountryDropdown({
           {value ? (
             <span className="flex min-w-0 flex-1 items-center gap-3 text-left">
               <span className="text-[20px] leading-none">{value.flag}</span>
-              <span className="truncate text-[16px] text-black">{value.name}</span>
+              <span className="truncate text-[16px] text-black">{countryName(value)}</span>
             </span>
           ) : (
             <span className={`flex-1 text-left ${LABEL}`}>{label}</span>
@@ -71,7 +80,7 @@ export function CountryDropdown({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          aria-label="Country code"
+          aria-label={tr("Country code")}
           className="flex h-11 items-center gap-2 border-r border-black/8 pr-2"
         >
           <span className="text-[18px] leading-none">{value?.flag ?? "🌍"}</span>
@@ -88,7 +97,7 @@ export function CountryDropdown({
             const selected = value?.name === c.name;
             return (
               <button
-                key={c.name}
+                key={countryName(c)}
                 type="button"
                 onClick={() => {
                   onChange(c);
@@ -98,7 +107,7 @@ export function CountryDropdown({
               >
                 <span className="text-[20px] leading-none">{c.flag}</span>
                 <span className="flex-1 truncate text-[20px] leading-[1.2] tracking-[-0.8px] text-black">
-                  {c.name}
+                  {countryName(c)}
                 </span>
                 {variant === "inline" ? (
                   <span className="text-[16px] text-black/48">{c.dial}</span>

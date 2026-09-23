@@ -1,5 +1,7 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
 import { APPLY_SKILLS } from "@/lib/apply-skills";
 import { useLanguage } from "../LanguageProvider";
 import { ContinueButton } from "./ContinueButton";
@@ -52,6 +54,7 @@ export function SkillsStep({
   onBack: () => void;
   onContinue: () => void;
 }) {
+  const tr = useText();
   const { locale } = useLanguage();
   const count = selected.length;
 
@@ -69,7 +72,7 @@ export function SkillsStep({
       onBack={onBack}
       footer={
         <ContinueButton
-          label="Continue"
+          label={tr("Continue")}
           selectedCount={count}
           disabled={count === 0}
           onClick={onContinue}
@@ -79,11 +82,9 @@ export function SkillsStep({
       <div className="flex min-h-0 flex-1 flex-col gap-5 desk:gap-8">
         <div className="shrink-0 text-center">
           <h1 className="text-[26px] leading-[0.9] tracking-[-1.04px] text-black desk:text-[48px] desk:tracking-[-1.92px]">
-            Got skills, experience, or genuine curiosity in any of these?
-          </h1>
+            {tr("Got skills, experience, or genuine curiosity in any of these?")}</h1>
           <p className="mt-4 text-[18px] leading-[0.9] tracking-[-0.72px] text-black/86 desk:mt-6 desk:text-[32px] desk:tracking-[-1.28px]">
-            Select the ones that apply
-          </p>
+            {tr("Select the ones that apply")}</p>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto pb-10">

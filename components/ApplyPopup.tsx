@@ -10,13 +10,13 @@ import {
 import { createPortal } from "react-dom";
 import { startApplication } from "@/lib/actions";
 import { Turnstile } from "./Turnstile";
-import type { Locale } from "@/lib/locale";
+import type { ApplicationLocale } from "@/lib/locale";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // The popup is where the applicant picks their language, so its own labels are
 // self-contained here (keyed by the toggle) rather than the site-wide copy.
-const T: Record<Locale, Record<string, string>> = {
+const T: Record<ApplicationLocale, Record<string, string>> = {
   en: {
     title: "Apply",
     language: "Language",
@@ -34,6 +34,7 @@ const T: Record<Locale, Record<string, string>> = {
     close: "Close",
     sent: "Check your email for the next step.",
   },
+  es: {"title": "Presentar solicitud", "language": "Idioma", "name": "Nombre completo", "email": "Correo electrónico", "dob": "Fecha de nacimiento", "submit": "Continuar", "sending": "Un momento…", "redirecting": "Abriendo tu solicitud…", "invalid": "Revisa tu nombre, correo y fecha de nacimiento.", "turnstile": "Completa la verificación de seguridad y vuelve a intentarlo.", "ineligible": "Debes tener entre 19 y 26 años para presentar una solicitud.", "error": "Se ha producido un error. Vuelve a intentarlo.", "existing": "Ya has presentado una solicitud. Solicita un enlace nuevo para continuar.", "close": "Cerrar", "sent": "Revisa tu correo para confirmar tu dirección."},
   fr: {
     title: "Postuler",
     language: "Langue",
@@ -57,7 +58,7 @@ type Phase = "idle" | "submitting" | "invalid" | "turnstile" | "ineligible" | "e
 
 type ApplyPopupProps = {
   // Mounted only while open, so each open starts from these fresh initializers.
-  initialLanguage: Locale;
+  initialLanguage: ApplicationLocale;
   onClose: () => void;
 };
 
@@ -68,10 +69,11 @@ export function ApplyPopup({ initialLanguage, onClose }: ApplyPopupProps) {
   const dobId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
 
-  const [language, setLanguage] = useState<Locale>(initialLanguage);
+  const [language, setLanguage] = useState<ApplicationLocale>(initialLanguage);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [dob, setDob] = useState("");
+  const [consent, setConsent] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
 
@@ -93,7 +95,7 @@ export function ApplyPopup({ initialLanguage, onClose }: ApplyPopupProps) {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (phase === "submitting") return;
+    if (phase === "submitting" || !consent) return;
     if (!fullName.trim() || !EMAIL_RE.test(email.trim()) || !/^\d{4}-\d{2}-\d{2}$/.test(dob)) {
       setPhase("invalid");
       return;
@@ -106,6 +108,7 @@ export function ApplyPopup({ initialLanguage, onClose }: ApplyPopupProps) {
         email: email.trim(),
         dob,
         language,
+        consent,
         turnstileToken,
       });
       if (!result.ok) {
@@ -120,12 +123,7 @@ export function ApplyPopup({ initialLanguage, onClose }: ApplyPopupProps) {
         );
         return;
       }
-      if (result.round1Url) {
-        // Leave the page for VideoAsk; applicant_id is already on the URL.
-        window.location.assign(result.round1Url);
-        return;
-      }
-      // No form URL configured: the confirmation email carries the next step.
+      // The mailbox owner must confirm before continuing to VideoAsk.
       setPhase("sent");
     } catch (err) {
       console.error("[apply] submit failed", err);
@@ -195,7 +193,7 @@ export function ApplyPopup({ initialLanguage, onClose }: ApplyPopupProps) {
                 {t.language}
               </span>
               <div className="flex gap-2" role="group" aria-label={t.language}>
-                {(["en", "fr"] as const).map((code) => (
+                {(["en", "fr", "es"] as const).map((code) => (
                   <button
                     key={code}
                     type="button"
@@ -259,6 +257,10 @@ export function ApplyPopup({ initialLanguage, onClose }: ApplyPopupProps) {
               />
             </label>
 
+            <label className="flex items-start gap-3 text-sm">
+              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} required />
+              {language === "es" ? "Acepto el tratamiento de mis datos para mi solicitud." : language === "fr" ? "J’accepte le traitement de mes données pour ma candidature." : "I consent to my data being processed for my application."}
+            </label>
             <Turnstile onToken={setTurnstileToken} />
 
             {notice ? (
@@ -269,7 +271,7 @@ export function ApplyPopup({ initialLanguage, onClose }: ApplyPopupProps) {
 
             <button
               type="submit"
-              disabled={busy}
+              disabled={busy || !consent}
               className="gradient-brand mt-1 flex h-12 items-center justify-center rounded-full text-[16px] font-semibold uppercase tracking-[0.06em] text-white disabled:opacity-70"
             >
               {busy ? t.sending : t.submit}

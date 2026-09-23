@@ -1,7 +1,10 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { locales } from "@/lib/locale";
 import { useLanguage } from "../LanguageProvider";
 
 // Full-screen cream shell shared by apply + nominate multi-step forms.
@@ -16,6 +19,7 @@ export function FormShell({
   footer?: ReactNode;
   fill?: boolean;
 }) {
+  const tr = useText();
   const { locale, setLocale } = useLanguage();
 
   useEffect(() => {
@@ -33,7 +37,7 @@ export function FormShell({
           <button
             type="button"
             onClick={onBack}
-            aria-label="Back"
+            aria-label={tr("Back")}
             className="grid size-9 place-items-center rounded-full bg-white shadow-sm"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -44,7 +48,7 @@ export function FormShell({
         )}
 
         <div className="flex items-center rounded-full bg-white p-1">
-          {(["en", "fr"] as const).map((code) => (
+          {locales.map((code) => (
             <button
               key={code}
               type="button"

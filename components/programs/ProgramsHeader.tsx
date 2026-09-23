@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { programIcons } from "@/lib/program-assets";
 import { LanguageSwitch } from "../LanguageSwitch";
 import { useCopy } from "../LanguageProvider";

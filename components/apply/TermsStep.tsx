@@ -1,5 +1,7 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -14,6 +16,7 @@ export function TermsStep({
   onAccept: () => void;
   onClose: () => void;
 }) {
+  const tr = useText();
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
   const [accepted, setAccepted] = useState(false);
@@ -36,7 +39,7 @@ export function TermsStep({
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
       <button
         type="button"
-        aria-label="Close"
+        aria-label={tr("Close")}
         className="absolute inset-0 bg-black/30 backdrop-blur-md"
         onClick={onClose}
       />
@@ -53,13 +56,12 @@ export function TermsStep({
             id={titleId}
             className="pointer-events-none absolute inset-x-0 text-center text-[26px] leading-[0.9] tracking-[-1.28px] text-black desk:text-[32px]"
           >
-            Terms of application
-          </h2>
+            {tr("Terms of application")}</h2>
           <button
             ref={closeRef}
             type="button"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={tr("Close")}
             className="relative grid size-12 shrink-0 place-items-center rounded-full text-black desk:size-[72px]"
           >
             <svg viewBox="0 0 24 24" className="size-6" aria-hidden>
@@ -77,33 +79,11 @@ export function TermsStep({
         <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 desk:px-8">
           <div className="space-y-3 text-[16px] leading-[1.2] tracking-[-0.8px] text-black/72 desk:text-[20px]">
             <p>
-              By signing this consent form, you are officially agreeing to
-              participate in an enriching program that delves deeply into the
-              significant and multifaceted theme of migration. This theme is not
-              just a topic of discussion; it serves as a lens through which we can
-              examine how various communities around the world adapt, evolve, and
-              flourish in the face of numerous challenges and adversities. Your
-              participation is not merely a formality; it is a vital contribution
-              that underscores the reality that individuals impacted by climate
-              change are not just faceless statistics. They are real people with
-              unique and compelling stories that deserve to be heard and
-              understood.
-            </p>
+              {tr("By accepting, I consent to my personal data being processed to assess my application and contact me about the program.")}</p>
             <p>
-              As part of this program, you will have the opportunity to engage
-              with thought-provoking content and discussions that aim to shed
-              light on the human experiences behind migration. We encourage you to
-              reflect on the narratives of resilience and hope that emerge from
-              these experiences. Furthermore, please take note that your
-              involvement will require you to respond to a series of questions
-              that will be posted on the VideoAsk platform. This interactive
-              component is designed to foster a deeper connection and
-              understanding of the issues at hand. By signing this consent form,
-              you are also acknowledging and accepting the terms and conditions
-              that govern your participation in this program. We appreciate your
-              commitment to this important cause and look forward to your valuable
-              insights.
-            </p>
+              {tr("By signing this consent form, you are officially agreeing to participate in an enriching program that delves deeply into the significant and multifaceted theme of migration. This theme is not just a topic of discussion; it serves as a lens through which we can examine how various communities around the world adapt, evolve, and flourish in the face of numerous challenges and adversities. Your participation is not merely a formality; it is a vital contribution that underscores the reality that individuals impacted by climate change are not just faceless statistics. They are real people with unique and compelling stories that deserve to be heard and understood.")}</p>
+            <p>
+              {tr("As part of this program, you will have the opportunity to engage with thought-provoking content and discussions that aim to shed light on the human experiences behind migration. We encourage you to reflect on the narratives of resilience and hope that emerge from these experiences. Furthermore, please take note that your involvement will require you to respond to a series of questions that will be posted on the VideoAsk platform. This interactive component is designed to foster a deeper connection and understanding of the issues at hand. By signing this consent form, you are also acknowledging and accepting the terms and conditions that govern your participation in this program. We appreciate your commitment to this important cause and look forward to your valuable insights.")}</p>
           </div>
         </div>
 
@@ -132,8 +112,7 @@ export function TermsStep({
               ) : null}
             </span>
             <span className="text-[16px] leading-[1.2] tracking-[-0.8px] text-black desk:text-[20px]">
-              Accept and continue
-            </span>
+              {tr("Accept and continue")}</span>
           </button>
 
           <button
@@ -143,8 +122,7 @@ export function TermsStep({
             className={`flex h-[68px] w-full items-center justify-center rounded-full desk:h-20 ${accepted ? "gradient-brand" : "bg-black opacity-[0.32]"}`}
           >
             <span className="text-[20px] font-semibold uppercase leading-[0.9] tracking-[0.8px] text-white mix-blend-hard-light">
-              Apply
-            </span>
+              {tr("Apply")}</span>
           </button>
         </div>
       </div>

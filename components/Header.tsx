@@ -4,7 +4,8 @@ import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { mobileNavLinks, navLinks } from "@/lib/nav";
 import { LanguageDropdown } from "./LanguageDropdown";
-import { useCopy } from "./LanguageProvider";
+import { localePath } from "@/lib/locale";
+import { useLanguage, useCopy } from "./LanguageProvider";
 import { Logo } from "./Logo";
 
 const TOP_LOCK_PX = 64;
@@ -44,6 +45,7 @@ function CloseIcon() {
 
 export function Header({ overMedia = false }: { overMedia?: boolean }) {
   const copy = useCopy();
+  const { locale } = useLanguage();
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [scrolledUp, setScrolledUp] = useState(false);
@@ -173,7 +175,7 @@ export function Header({ overMedia = false }: { overMedia?: boolean }) {
               {mobileNavLinks.map((link) => (
                 <li key={link.href}>
                   <a
-                    href={link.href}
+                    href={localePath(link.href, locale)}
                     onClick={() => setOpen(false)}
                     className="flex w-full items-center justify-center py-[24px] text-center text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.56px] text-white [text-shadow:0_0_4px_rgba(0,0,0,0.25)]"
                   >
@@ -203,7 +205,7 @@ export function Header({ overMedia = false }: { overMedia?: boolean }) {
             {navLinks.map((link) => (
               <a
                 key={link.href}
-                href={link.href}
+                href={localePath(link.href, locale)}
                 className={`whitespace-nowrap ${
                   showPill ? "hover:text-white/80" : "hover:text-black/70"
                 } ${instant ? "" : "transition-colors duration-300"}`}

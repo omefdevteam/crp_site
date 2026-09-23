@@ -1,6 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { LanguageLinks } from "@/components/LanguageLinks";
+
+import Link from "@/components/LocaleLink";
 import { footerHref } from "@/lib/nav";
 import { t } from "@/lib/messages";
 import { Logo } from "./Logo";
@@ -19,14 +21,14 @@ export function Footer() {
         <div className="flex flex-col items-center gap-10 desk:flex-row desk:items-start desk:justify-between">
           <Logo size="lg" tone="color" />
           <div className="flex justify-center gap-8 desk:gap-16">
-            {copy.footer.columns.map((col) => (
+            {copy.footer.columns.map((col, columnIndex) => (
               <div key={col.title}>
                 <h3 className="text-[12px] font-semibold uppercase tracking-[0.14em] desk:text-[11px]">
                   {col.title}
                 </h3>
                 <ul className="mt-3 flex flex-col gap-2 text-[14px] text-black/60 desk:text-[13px]">
-                  {col.links.map((link) => {
-                    const href = footerHref(link);
+                  {col.links.map((link, linkIndex) => {
+                    const href = footerHref(columnIndex, linkIndex);
                     const className = "transition-colors hover:text-black";
                     return (
                       <li key={link}>
@@ -50,6 +52,7 @@ export function Footer() {
 
         <div className="mt-12 border-t border-black/15 pt-5 text-[11px] text-black/55">
           <p>{t(copy.footer.copyright, { year })}</p>
+          <LanguageLinks />
         </div>
       </div>
     </footer>

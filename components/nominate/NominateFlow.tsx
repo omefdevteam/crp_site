@@ -1,5 +1,9 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
+import { useLanguage } from "../LanguageProvider";
+import { localePath } from "@/lib/locale";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { submitNomination } from "@/lib/actions";
@@ -11,7 +15,9 @@ type Step = "nominee" | "nominator" | "thanks";
 
 // Multi-step nomination: About the nominee → About you → Thank you.
 export function NominateFlow({ onClose }: { onClose: () => void }) {
+  const tr = useText();
   const router = useRouter();
+  const { locale } = useLanguage();
   const [step, setStep] = useState<Step>("nominee");
   const [nominee, setNominee] = useState<NomineeData | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -27,21 +33,21 @@ export function NominateFlow({ onClose }: { onClose: () => void }) {
         ...data,
       });
       if (!res.ok) {
-        setError("Please check your details and try again.");
+        setError(tr("Please check your details and try again."));
         setSubmitting(false);
         return;
       }
       setStep("thanks");
     } catch (err) {
       console.error("[nominate] submit failed", err);
-      setError("Something went wrong. Please try again.");
+      setError(tr("Something went wrong. Please try again."));
       setSubmitting(false);
     }
   };
 
   const handleExit = () => {
     onClose();
-    router.push("/");
+    router.push(localePath("/", locale));
   };
 
   if (step === "thanks") {

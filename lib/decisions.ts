@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { decisionReceipts, type Db } from "@/lib/db";
 import { lockApplicant, transition, updateApplicant } from "@/lib/lifecycle";
 import { queueDecisionEmail } from "@/lib/webhooks";
@@ -12,14 +12,16 @@ import {
 
 export type DecisionOutcome = {
   applicantId: string;
-  result: "applied" | "unchanged" | "stale" | "not_found" | "replayed" | "not_allowed";
+  result: "applied" | "unchanged" | "stale" | "not_found" | "replayed" | "not_allowed" | "conflict";
   status?: string;
   version?: number;
 };
 
-function requestHash(d: DecisionRow): string {
-  const { decisionId: _decisionId, ...rest } = d;
+export function decisionHash(d: DecisionRow): string {
+  // Version changes when the system columns refresh; it is not a reviewer edit.
+  const { decisionId: _decisionId, version: _version, ...rest } = d;
   void _decisionId;
+  void _version;
   return createHash("sha256").update(JSON.stringify(rest, Object.keys(rest).sort())).digest("hex");
 }
 
@@ -30,13 +32,19 @@ function requestHash(d: DecisionRow): string {
 export async function applyDecision(db: Db, d: DecisionRow): Promise<DecisionOutcome> {
   return db.transaction(async (tx) => {
     if (d.decisionId) {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${d.decisionId}, 0))`);
       const [receipt] = await tx.select().from(decisionReceipts).where(eq(decisionReceipts.id, d.decisionId));
-      if (receipt) return { applicantId: d.applicantId, result: "replayed", ...receipt.result };
+      if (receipt) {
+        if (receipt.applicantId !== d.applicantId || receipt.requestHash !== decisionHash(d)) {
+          return { applicantId: d.applicantId, result: "conflict" };
+        }
+        return { applicantId: d.applicantId, result: "replayed", ...receipt.result };
+      }
     }
 
     const current = await lockApplicant(tx, d.applicantId);
     if (!current) return { applicantId: d.applicantId, result: "not_found" };
-    if (d.version !== undefined && d.version < current.version) {
+    if (d.version !== undefined && d.version !== current.version) {
       return { applicantId: d.applicantId, result: "stale", status: current.status, version: current.version };
     }
 
@@ -79,7 +87,7 @@ export async function applyDecision(db: Db, d: DecisionRow): Promise<DecisionOut
       await tx.insert(decisionReceipts).values({
         id: d.decisionId,
         applicantId: current.id,
-        requestHash: requestHash(d),
+        requestHash: decisionHash(d),
         result: { status: outcome.status ?? current.status, version: outcome.version ?? current.version },
       }).onConflictDoNothing();
     }

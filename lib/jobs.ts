@@ -76,7 +76,7 @@ export async function claimJobs(db: Db, limit: number): Promise<Job[]> {
       .select({ id: jobs.id })
       .from(jobs)
       .where(and(
-        eq(jobs.status, "pending"),
+        inArray(jobs.status, ["pending", "running"]),
         lte(jobs.availableAt, now),
         or(isNull(jobs.lockedUntil), lte(jobs.lockedUntil, now)),
       ))
@@ -122,6 +122,10 @@ export async function settle(db: Store, job: Job, outcome: JobOutcome): Promise<
 }
 
 export async function runClaimedJob(job: Job, handlers: Partial<Record<JobKind, JobHandler>>, db: Db): Promise<JobOutcome> {
+  if (job.attempts > MAX_ATTEMPTS) return { status: "failed", error: "worker lease expired after final attempt" };
+  if (job.kind === "email" && job.firstAttemptAt && Date.now() - job.firstAttemptAt.getTime() >= 23 * 3600_000) {
+    return { status: "failed", error: "email delivery uncertain; reconcile with provider before sending again" };
+  }
   const handler = handlers[job.kind as JobKind];
   if (!handler) return { status: "failed", error: `no handler for job kind ${job.kind}` };
   try {
@@ -134,9 +138,12 @@ export async function runClaimedJob(job: Job, handlers: Partial<Record<JobKind, 
 export type RunSummary = { claimed: number; done: number; retried: number; failed: number };
 
 export async function runDueJobs(handlers: Partial<Record<JobKind, JobHandler>>, limit = 25, db = getDb()): Promise<RunSummary> {
-  const claimed = await claimJobs(db, limit);
-  const summary: RunSummary = { claimed: claimed.length, done: 0, retried: 0, failed: 0 };
-  for (const job of claimed) {
+  const summary: RunSummary = { claimed: 0, done: 0, retried: 0, failed: 0 };
+  for (let i = 0; i < limit; i++) {
+    // Start the lease only when this worker is ready to execute the job.
+    const [job] = await claimJobs(db, 1);
+    if (!job) break;
+    summary.claimed++;
     const outcome = await runClaimedJob(job, handlers, db);
     await settle(db, job, outcome);
     if (outcome.status === "done") summary.done++;

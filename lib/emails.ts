@@ -1,4 +1,5 @@
-import type { Locale } from "@/lib/locale";
+import emailCopy from "@/lib/translations/application-emails.json";
+import type { ApplicationLocale } from "@/lib/locale";
 
 // Branded transactional email shell, matching the Figma email design
 // (2141:2438): dark header with the wordmark, cream body, a pink→orange
@@ -20,7 +21,7 @@ function escapeHtml(value: string): string {
 }
 
 // Absolute so it resolves in an email client, not against a relative path.
-const SITE = process.env.APP_URL ?? "https://climaterefugeepavilion.vercel.app";
+const SITE = process.env.APP_URL ?? "https://www.climaterefugeepavilion.org";
 const LOGO = `${SITE}/CRP_iDentity_Monochromatic-HWhite.png`;
 const SWIRL = `${SITE}/images/sponsors-swirl.png`;
 // Exact Figma header banner (photo scallops + logo), committed at
@@ -34,18 +35,20 @@ const MAGENTA = "#EC268F";
 const ORANGE = "#FA8D2E";
 const FONT = "Arial, Helvetica, sans-serif";
 
-const pick = <T>(language: Locale, en: T, fr: T): T => (language === "fr" ? fr : en);
+const pick = <T>(language: ApplicationLocale, en: T, fr: T, es: T): T => language === "fr" ? fr : language === "es" ? es : en;
 
 // Email-client-safe: table layout, inline styles, gradient button with a solid
 // magenta fallback for clients that ignore CSS gradients (e.g. Outlook).
-function render(language: Locale, bodyParas: string[], cta: Cta | null): string {
+function render(language: ApplicationLocale, bodyParas: string[], cta: Cta | null): string {
   const year = new Date().getUTCFullYear();
   const signoff = pick(
     language,
     "Best regards,<br />The Climate Refugee Pavilion team",
     "Cordialement,<br />L'équipe du Climate Refugee Pavilion",
+    "Un cordial saludo,<br />El equipo del Climate Refugee Pavilion",
   );
-  const tagline = "Making climate mobility impossible to ignore";
+  const tagline = pick(language, "Making climate mobility impossible to ignore", "Rendre la mobilité climatique impossible à ignorer", "Hacer que la movilidad climática sea imposible de ignorar");
+  const rights = pick(language, "All rights reserved.", "Tous droits réservés.", "Todos los derechos reservados.");
 
   const paras = [...bodyParas, signoff]
     .map(
@@ -96,7 +99,7 @@ function render(language: Locale, bodyParas: string[], cta: Cta | null): string 
         ${button}
         <tr><td background="${SWIRL}" bgcolor="#000000" style="background:#000000;background-image:url('${SWIRL}');background-position:right center;background-repeat:no-repeat;background-size:auto 150%;padding:34px 32px;text-align:center" align="center">
           <p style="margin:0;font-family:${FONT};font-size:13px;line-height:1.4;letter-spacing:1px;text-transform:uppercase;color:#8a8a8a">${tagline}</p>
-          <p style="margin:12px 0 0;font-family:${FONT};font-size:11px;color:#666666">© ${year} Climate Refugee Pavilion. All rights reserved.</p>
+          <p style="margin:12px 0 0;font-family:${FONT};font-size:11px;color:#666666">© ${year} Climate Refugee Pavilion. ${rights}</p>
         </td></tr>
       </table>
     </td></tr>
@@ -137,129 +140,28 @@ export function nominationEmail(nomineeName: string): Email {
   };
 }
 
-export function applicationEmail(name: string, link: string | null, language: Locale): Email {
-  const intro = pick(
-    language,
-    `Dear ${escapeHtml(name)},`,
-    `Bonjour ${escapeHtml(name)},`,
-  );
-  const invite = pick(
-    language,
-    "Thanks for applying to the Youth Ambassador programme. Your first step is a short video interview.",
-    "Merci d'avoir postulé au programme Jeunes Ambassadeurs. Votre première étape est un court entretien vidéo.",
-  );
-  const noLink = pick(
-    language,
-    "We'll be in touch with your next step shortly.",
-    "Nous vous contacterons bientôt pour la prochaine étape.",
-  );
-  return {
-    subject: pick(language, "We got your application", "Nous avons reçu votre candidature"),
-    html: render(
-      language,
-      [intro, link ? invite : noLink],
-      link ? { label: pick(language, "Start Round 1", "Commencer le tour 1"), url: link } : null,
-    ),
-  };
+export function applicationEmail(name: string, link: string | null, language: ApplicationLocale): Email {
+  const copy = emailCopy[language];
+  return { subject: copy.applicationSubject, html: render(language, [copy.greeting.replace("{name}", escapeHtml(name)), link ? copy.confirm : copy.waiting], link ? { label: copy.confirmButton, url: link } : null) };
+}
+export function resumeEmail(name: string, link: string, language: ApplicationLocale): Email {
+  const copy = emailCopy[language];
+  return { subject: copy.resumeSubject, html: render(language, [copy.greeting.replace("{name}", escapeHtml(name)), copy.resume], { label: copy.continue, url: link }) };
+}
+export function identityEmail(name: string, link: string, language: ApplicationLocale): Email {
+  const copy = emailCopy[language];
+  return { subject: copy.identitySubject, html: render(language, [copy.greeting.replace("{name}", escapeHtml(name)), copy.identity], { label: copy.identityButton, url: link }) };
+}
+export function decisionEmail(status: "rejected" | "interview_no" | "interview_yes", link: string | null, language: ApplicationLocale): Email {
+  const copy = emailCopy[language];
+  if (status === "rejected") return { subject: copy.rejectedSubject, html: render(language, [copy.applicant, copy.rejected], null) };
+  if (status === "interview_no") return { subject: copy.onlineSubject, html: render(language, [copy.applicant, copy.online], null) };
+  return { subject: copy.nextSubject, html: render(language, [copy.congratulations, link ? copy.documents : copy.next], link ? { label: copy.continue, url: link } : null) };
 }
 
-// Sent on request to someone who already applied. The link carries a single-use
-// token that signs them in for a short while and returns their current step.
-export function resumeEmail(name: string, link: string, language: Locale): Email {
-  return {
-    subject: pick(language, "Continue your application", "Reprenez votre candidature"),
-    html: render(
-      language,
-      [
-        pick(language, `Dear ${escapeHtml(name)},`, `Bonjour ${escapeHtml(name)},`),
-        pick(
-          language,
-          "You asked for a link to continue your application. This link works once and expires in 30 minutes. If you did not request it, you can ignore this email.",
-          "Vous avez demandé un lien pour reprendre votre candidature. Ce lien ne fonctionne qu'une fois et expire dans 30 minutes. Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.",
-        ),
-      ],
-      { label: pick(language, "Continue application", "Reprendre ma candidature"), url: link },
-    ),
-  };
-}
-
-export function identityEmail(name: string, link: string, language: Locale): Email {
-  return {
-    subject: pick(language, "Verify your identity", "Vérifiez votre identité"),
-    html: render(
-      language,
-      [
-        pick(language, `Dear ${escapeHtml(name)},`, `Bonjour ${escapeHtml(name)},`),
-        pick(
-          language,
-          "One quick step: please verify your identity to continue your application. It takes about two minutes.",
-          "Une étape rapide : veuillez vérifier votre identité pour poursuivre votre candidature. Cela prend environ deux minutes.",
-        ),
-      ],
-      { label: pick(language, "Verify identity", "Vérifier mon identité"), url: link },
-    ),
-  };
-}
-
-export function decisionEmail(
-  status: "rejected" | "interview_no" | "interview_yes",
-  link: string | null,
-  language: Locale,
-): Email {
-  switch (status) {
-    case "rejected":
-      return {
-        subject: pick(language, "Update on your application", "Mise à jour de votre candidature"),
-        html: render(
-          language,
-          [
-            pick(language, "Dear applicant,", "Cher candidat,"),
-            pick(
-              language,
-              "Thank you for applying. After careful review we won't be moving forward this time, but there are other ways to stay involved and we hope you'll keep in touch.",
-              "Merci d'avoir postulé. Après un examen attentif, nous ne poursuivrons pas votre candidature cette fois-ci, mais il existe d'autres façons de rester impliqué et nous espérons garder le contact.",
-            ),
-          ],
-          null,
-        ),
-      };
-    case "interview_no":
-      return {
-        subject: pick(language, "Join us online", "Rejoignez-nous en ligne"),
-        html: render(
-          language,
-          [
-            pick(language, "Dear applicant,", "Cher candidat,"),
-            pick(
-              language,
-              "Thank you for interviewing with us. We'd love to have you take part in the programme online, and we'll share how to join shortly.",
-              "Merci d'avoir passé l'entretien. Nous serions ravis de vous compter parmi les participants en ligne, et nous vous expliquerons bientôt comment nous rejoindre.",
-            ),
-          ],
-          null,
-        ),
-      };
-    case "interview_yes":
-      return {
-        subject: pick(language, "You're through — next step", "Félicitations — prochaine étape"),
-        html: render(
-          language,
-          [
-            pick(language, "Congratulations!", "Félicitations !"),
-            link
-              ? pick(
-                  language,
-                  "You've progressed to the next stage. Please complete your travel documents to continue.",
-                  "Vous êtes passé à l'étape suivante. Veuillez compléter vos documents de voyage pour continuer.",
-                )
-              : pick(
-                  language,
-                  "You've progressed to the next stage. We'll email your next step shortly.",
-                  "Vous êtes passé à l'étape suivante. Nous vous enverrons bientôt la prochaine étape.",
-                ),
-          ],
-          link ? { label: pick(language, "Continue", "Continuer"), url: link } : null,
-        ),
-      };
-  }
+export function captureConfirmationEmail(link: string, kind: "waitlist" | "interest"): Email {
+  return { subject: "Confirm your email request", html: render("en", [
+    kind === "waitlist" ? "Confirm that you want to subscribe to Pavilion updates." : "Confirm that you want to save the interests you submitted to Pavilion.",
+    "The link expires in 30 minutes. If you did not request this change, ignore this email; your existing preferences will stay unchanged.",
+  ], { label: "Confirm request", url: link }) };
 }

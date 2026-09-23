@@ -101,8 +101,11 @@ export type OpsActionResult = { ok: boolean; detail: string };
 export async function performAction(db: Db, input: OpsAction, operator: string): Promise<OpsActionResult> {
   switch (input.action) {
     case "retry_job": {
-      const ok = await retryJob(db, input.jobId);
-      return { ok, detail: ok ? "job requeued" : "job not found" };
+      return db.transaction(async (tx) => {
+        const ok = await retryJob(tx, input.jobId);
+        if (ok) await tx.insert(applicationEvents).values({ actor: "ops", reason: `job ${input.jobId} requeued by ${operator}` });
+        return { ok, detail: ok ? "job requeued" : "job not found" };
+      });
     }
     case "provision_identity": {
       return db.transaction(async (tx) => {

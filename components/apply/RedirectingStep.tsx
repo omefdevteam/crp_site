@@ -1,12 +1,15 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
 // Full-screen "Redirecting you to …" screen shown while the application is
 // created and the browser hands off (to VideoAsk on success, or the homepage
 // when the applicant is not eligible).
-export function RedirectingStep({ message }: { message: string }) {
+export function RedirectingStep({ message, onClose }: { message: string; onClose?: () => void }) {
+  const tr = useText();
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -24,7 +27,7 @@ export function RedirectingStep({ message }: { message: string }) {
         >
           {message}
         </p>
-        <span className="flex gap-1.5" aria-hidden>
+        {onClose ? <button type="button" onClick={onClose} className="mt-4 rounded-full bg-black px-6 py-3 text-white">{tr("Close / Fermer")}</button> : <span className="flex gap-1.5" aria-hidden>
           {[0, 1, 2].map((i) => (
             <span
               key={i}
@@ -32,7 +35,7 @@ export function RedirectingStep({ message }: { message: string }) {
               style={{ animationDelay: `${i * 150}ms` }}
             />
           ))}
-        </span>
+        </span>}
       </div>
     </div>,
     document.body,

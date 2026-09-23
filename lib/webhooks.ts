@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { and, eq, isNull, lt, or } from "drizzle-orm";
 import { applicants, jobs, webhookEvents, type Db, type JobPayload } from "@/lib/db";
-import { withApplicantId, videoAskBase } from "@/lib/capture";
+import { videoaskLink } from "@/lib/videoask";
 import { decisionEmail } from "@/lib/emails";
 import { getIdentityProvider, type IdentityDecision } from "@/lib/identity";
 import { enqueue, enqueueEmail } from "@/lib/jobs";
@@ -111,28 +111,22 @@ async function dispatch(tx: Tx, event: WebhookEvent): Promise<ProcessOutcome> {
 
 // --- VideoAsk -----------------------------------------------------------------
 
-export type VideoaskPayload = { stage: string; applicantId: string; body: unknown };
+export type VideoaskPayload = { stage: string; applicantId: string; language: string; formId: string; eventId: string };
 
 const STAGE_STATUS = {
   round1: { to: "round1_complete", from: ["submitted"] },
   round2: { to: "docs_submitted", from: ["interview_yes"] },
 } as const;
 
-function inferVideoaskStage(status: string): keyof typeof STAGE_STATUS | null {
-  if (status === "submitted") return "round1";
-  if (status === "interview_yes") return "round2";
-  return null;
-}
-
 async function processVideoask(tx: Tx, payload: VideoaskPayload): Promise<ProcessOutcome> {
   const current = await lockApplicant(tx, payload.applicantId);
   if (!current) return { outcome: "unknown applicant" };
-  const stageKey =
-    payload.stage in STAGE_STATUS
-      ? (payload.stage as keyof typeof STAGE_STATUS)
-      : inferVideoaskStage(current.status);
-  const stage = stageKey ? STAGE_STATUS[stageKey] : undefined;
-  if (!stage) return { outcome: "unknown stage" };
+  if (!current.emailVerifiedAt) return { outcome: "email unverified" };
+  if (payload.language !== current.language) return { outcome: "language mismatch" };
+  const stageKey = payload.stage as keyof typeof STAGE_STATUS;
+  const expected = process.env[`VIDEOASK_${stageKey.toUpperCase()}_FORM_ID_${current.language.toUpperCase()}`];
+  const stage = STAGE_STATUS[stageKey];
+  if (!stage || !expected || payload.formId !== expected) return { outcome: "invalid form" };
 
   const patch = stage.to === "round1_complete" ? { round1CompletedAt: new Date() } : { docsStatus: "submitted" };
   const moved = await transition(tx, {
@@ -227,7 +221,7 @@ async function processResend(tx: Tx, payload: ResendPayload): Promise<ProcessOut
 
 export async function queueDecisionEmail(
   tx: Tx,
-  applicant: { id: string; email: string; language: "en" | "fr" },
+  applicant: { id: string; email: string; language: "en" | "fr" | "es" },
   status: string,
   version: number,
 ): Promise<void> {
@@ -238,8 +232,7 @@ export async function queueDecisionEmail(
       mail = decisionEmail(status, null, applicant.language);
       break;
     case "interview_yes": {
-      const base = videoAskBase("round2", applicant.language);
-      mail = decisionEmail("interview_yes", base ? withApplicantId(base, applicant.id) : null, applicant.language);
+      mail = decisionEmail("interview_yes", videoaskLink(applicant.id, "round2", applicant.language), applicant.language);
       break;
     }
   }

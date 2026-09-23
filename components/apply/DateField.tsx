@@ -1,13 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { FIELD, LABEL } from "./fieldStyles";
+import { useText } from "@/lib/ui-text";
 
-const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-];
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLanguage } from "../LanguageProvider";
+import { FIELD, LABEL } from "./fieldStyles";
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const iso = (y: number, m: number, d: number) => `${y}-${pad(m + 1)}-${pad(d)}`;
@@ -24,6 +21,10 @@ export function DateField({
   onChange: (v: string) => void;
   className?: string;
 }) {
+  const tr = useText();
+  const { locale } = useLanguage();
+  const MONTHS = Array.from({ length: 12 }, (_, month) => new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2024, month, 1)));
+  const WEEKDAYS = Array.from({ length: 7 }, (_, day) => new Intl.DateTimeFormat(locale, { weekday: "narrow" }).format(new Date(2024, 0, day + 7)));
   const [open, setOpen] = useState(false);
   const [yearPicker, setYearPicker] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -103,7 +104,7 @@ export function DateField({
         {display ? (
           <span className="text-[16px] text-black">{display}</span>
         ) : (
-          <span className={LABEL}>*D.O.B</span>
+          <span className={LABEL}>{tr("*D.O.B")}</span>
         )}
       </button>
 
@@ -122,12 +123,12 @@ export function DateField({
             </button>
             {!yearPicker ? (
               <div className="flex items-center gap-1">
-                <button type="button" onClick={() => shift(-1)} aria-label="Previous month" className="grid size-7 place-items-center text-black/70">
+                <button type="button" onClick={() => shift(-1)} aria-label={tr("Previous month")} className="grid size-7 place-items-center text-black/70">
                   <svg viewBox="0 0 12 12" className="size-3.5" fill="none" aria-hidden>
                     <path d="M7.5 2.5L4 6l3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
-                <button type="button" onClick={() => shift(1)} aria-label="Next month" className="grid size-7 place-items-center text-black/70">
+                <button type="button" onClick={() => shift(1)} aria-label={tr("Next month")} className="grid size-7 place-items-center text-black/70">
                   <svg viewBox="0 0 12 12" className="size-3.5" fill="none" aria-hidden>
                     <path d="M4.5 2.5L8 6l-3.5 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>

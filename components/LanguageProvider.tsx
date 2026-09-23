@@ -9,29 +9,34 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { persistLocale, type Locale } from "@/lib/locale";
+import { localePath, persistLocale, type Locale } from "@/lib/locale";
 import { messages, type Messages } from "@/lib/messages";
 
 type LanguageContextValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   copy: Messages;
+  path: string;
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({
   initialLocale,
+  initialPath = "/",
   children,
 }: {
   initialLocale: Locale;
+  initialPath?: string;
   children: ReactNode;
 }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
   const setLocale = useCallback((next: Locale) => {
-    setLocaleState(next);
     persistLocale(next);
+    const destination = localePath(window.location.pathname + window.location.search + window.location.hash, next);
+    if (destination !== window.location.pathname + window.location.search + window.location.hash) window.location.assign(destination);
+    else setLocaleState(next);
   }, []);
 
   useEffect(() => {
@@ -39,8 +44,8 @@ export function LanguageProvider({
   }, [locale]);
 
   const value = useMemo<LanguageContextValue>(
-    () => ({ locale, setLocale, copy: messages[locale] }),
-    [locale, setLocale],
+    () => ({ locale, setLocale, copy: messages[locale], path: initialPath }),
+    [locale, setLocale, initialPath],
   );
 
   return (

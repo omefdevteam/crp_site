@@ -10,6 +10,30 @@ npm run dev
 
 Other scripts: `npm run build`, `npm run start`, `npm run lint`.
 
+## Backend recovery update
+
+Before running the updated backend, apply migrations with `npm run db:migrate`
+against the intended database. Migration `0008_backend_recovery` adds the Excel
+decision batch position and backfills existing records missing from the sync
+feed. It briefly locks the four source tables while taking the baseline; allow
+time for this when scheduling deployment. The backfill excludes private identity
+session links and IDs. `db:push` alone does not perform this data backfill.
+
+Expired worker leases are reclaimed automatically. Email jobs whose first attempt
+was more than 23 hours ago are parked for provider reconciliation, avoiding a
+blind resend outside the provider's idempotency window. Recovery links are minted
+at delivery and require a confirmation POST; an email scanner's GET does not
+consume them. Existing applications are not retroactively marked as having given
+explicit consent; new submissions must send `consent: true` after acceptance.
+
+Excel rotates through batches of 200 decision rows. Editing reviewer fields
+creates a new decision ID; replaying the same ID with different content through
+the decisions API returns `conflict`. Changing only the system version is not a
+new decision. Run `npm test` for disposable PostgreSQL integration tests.
+
+See [BACKEND_SECURITY.md](BACKEND_SECURITY.md) for email confirmation, individual
+operator credentials, VideoAsk form binding, and deployment requirements.
+
 ## Application verification
 
 Configure Didit's webhook destination separately in its console, pointing to
@@ -17,8 +41,7 @@ Configure Didit's webhook destination separately in its console, pointing to
 The session `callback` is a browser redirect to `/apply/complete`; it is not
 the webhook destination. Only authenticated webhook events record approval.
 
-Applicants who submit an email already on file must continue using the private
-link in their original confirmation email. The public form does not disclose
+Applicants who submit an email already on file can request a fresh, single-use resume link sent to that mailbox. The public form does not disclose
 existing application IDs or grant access to existing verification sessions.
 
 > **Build-time font fetch:** the `Outfit` body font is loaded via

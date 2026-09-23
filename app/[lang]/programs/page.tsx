@@ -1,5 +1,7 @@
+import { pageMetadata } from "@/lib/seo";
+import { requestLocale } from "@/lib/request-locale";
+import { StructuredData } from "@/components/StructuredData";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Footer } from "@/components/Footer";
 import { ProgramAbout } from "@/components/programs/ProgramAbout";
 import { ProgramApplicationBand } from "@/components/programs/ProgramApplicationBand";
@@ -10,17 +12,8 @@ import { ProgramResonate } from "@/components/programs/ProgramResonate";
 import { ProgramTestimonials } from "@/components/programs/ProgramTestimonials";
 import { ProgramWhatYouGet } from "@/components/programs/ProgramWhatYouGet";
 import { outfit } from "@/lib/fonts";
-import { LOCALE_COOKIE, parseLocale } from "@/lib/locale";
-import { copyFor } from "@/lib/messages";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
-  const meta = copyFor(locale).meta.programs;
-  return {
-    title: meta.title,
-    description: meta.description,
-  };
-}
+export async function generateMetadata(): Promise<Metadata> { return pageMetadata(await requestLocale(), "programs"); }
 
 export default async function ProgramsPage({
   searchParams,
@@ -30,7 +23,8 @@ export default async function ProgramsPage({
   const { intent } = await searchParams;
   const mode = intent === "nominate" ? "nominate" : "apply";
 
-  return (
+  return (<>
+      <StructuredData page="programs" />
     <div className={`${outfit.className} relative flex flex-1 flex-col bg-cream`}>
       <main className="flex-1">
         <ProgramHero />
@@ -60,5 +54,5 @@ export default async function ProgramsPage({
 
       <ProgramApplyBar mode={mode} />
     </div>
-  );
+  </>);
 }

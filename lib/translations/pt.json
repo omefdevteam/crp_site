@@ -1,0 +1,475 @@
+{
+  "a11y": {
+    "changeLanguage": "Mudar idioma; idioma selecionado: {language}",
+    "languageNames": {
+      "en": "inglês",
+      "fr": "francês",
+      "es": "espanhol",
+      "pt": "português"
+    },
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "playHome": "Reproduzir a série Home",
+    "joinWaitlist": "Aderir à lista de espera",
+    "email": "Endereço de e-mail",
+    "emailInvalid": "Introduza um endereço de e-mail válido",
+    "partnerUp": "Ser parceiro",
+    "getInvolvedJump": "Participar: abrir as opções",
+    "closeGetInvolved": "Fechar as opções de participação",
+    "closeApplicationProcess": "Fechar o processo de candidatura",
+    "closeAboutProgram": "Fechar a informação sobre o programa",
+    "back": "Voltar",
+    "backHome": "Voltar ao início",
+    "discord": "Juntar-se ao nosso Discord",
+    "toggleAbout": "Mostrar ou ocultar a informação sobre o programa",
+    "prevTestimonial": "Testemunho anterior",
+    "nextTestimonial": "Testemunho seguinte",
+    "platformGroups": "Grupos da plataforma",
+    "youthAmbassadorCard": "Indicar uma pessoa entre os 19 e os 26 anos para o Programa de Jovens Embaixadores",
+    "programDetails": "Informações sobre o programa para pessoas dos 19 aos 26 anos",
+    "moreComingSoon": "Mais novidades em breve",
+    "expressInterest": "Manifestar interesse",
+    "closeExpressInterest": "Fechar o formulário de interesse",
+    "submitInterest": "Enviar o meu interesse"
+  },
+  "nav": {
+    "about": "Sobre nós",
+    "involved": "Participar",
+    "contact": "Contacto"
+  },
+  "aboutUs": {
+    "heroTitle": "Sobre nós",
+    "heroBody": "Promovemos a literacia sobre mobilidade climática, reunindo conhecimentos locais, dando voz às experiências vividas e aproximando pessoas para compreender o que a mobilidade climática significa em diferentes lugares.",
+    "statement": "O Climate Refugee Pavilion oferece uma plataforma na COP30 para colocar a mobilidade humana no centro das negociações climáticas e dar voz às comunidades diretamente afetadas por deslocações relacionadas com o clima.",
+    "statementTag": "Tornamos a mobilidade climática impossível de ignorar",
+    "whatTitle": "O que fazemos",
+    "whatBody": "Desde 2020, trabalhamos no terreno no Zimbabué, em Moçambique e na África do Sul, apoiando pessoas afetadas pelas alterações climáticas e colaborando com instituições. Percebemos que a palavra «refugiado» suscita controvérsia e reforçámos o nosso compromisso: hoje construímos uma plataforma para melhorar a compreensão da mobilidade climática em todo o mundo.",
+    "cards": [
+      {
+        "title": "Ligar pessoas",
+        "body": "Exploramos formas de promover mudanças positivas"
+      },
+      {
+        "title": "Contar histórias",
+        "body": "A nossa missão procura gerar um impacto significativo"
+      },
+      {
+        "title": "Impulsionar a mudança",
+        "body": "Agimos para fazer a diferença"
+      }
+    ],
+    "teamTitle": "Equipa",
+    "teamQuote": "«O programa dá voz a jovens ativistas pelo clima e fornece ferramentas para defenderem as suas propostas na COP31.»",
+    "memberName": "Jane Doe",
+    "memberRole": "Responsável",
+    "involvedTitle": "Participar",
+    "youthDates": "9–20 nov.",
+    "youthTitle": "Programa juvenil totalmente financiado na Turquia",
+    "partnerTitle": "Ser parceiro"
+  },
+  "partnerPage": {
+    "heroTitle": "Seja nosso parceiro",
+    "heroBody": "Apoie toda a organização",
+    "reachOut": "Contactar",
+    "ambassador": "Apoiar um programa de embaixadores",
+    "storyline": "Apoiar uma história específica",
+    "speaker": "Candidatar-me como orador"
+  },
+  "contactPage": {
+    "title": "Contacte-nos",
+    "email": "email@gmail.com",
+    "address": "Morada do escritório",
+    "phone": "Telefone",
+    "name": "*Nome",
+    "organization": "Organização",
+    "emailField": "*E-mail",
+    "mobile": "*Telemóvel",
+    "message": "Escreva a sua mensagem aqui",
+    "send": "Enviar"
+  },
+  "hero": {
+    "line1Before": "As alterações climáticas deslocam pessoas ",
+    "line1Accent": "de formas diferentes",
+    "line1After": " em lugares diferentes",
+    "line2": "Os refugiados climáticos não têm reconhecimento jurídico",
+    "photoAlt": "Pessoas a conversar durante um encontro num pavilhão"
+  },
+  "heroExtension": {
+    "title": "Criamos uma forma de distinguir o essencial no meio do ruído",
+    "subtitle": "Transformar conhecimentos locais em ação global",
+    "photoAlt": "Pessoas e cães a atravessar um campo ao anoitecer"
+  },
+  "pavilion": {
+    "location": "COP31, Antalya e online",
+    "headline": "Junte-se a quem procura compreender a mobilidade climática e construir soluções",
+    "bringing": "Reunimos",
+    "together": "para agir em conjunto",
+    "photoAlt": "Vista aérea do recinto do pavilhão da COP31 em Antalya",
+    "groups": [
+      "comunidades",
+      "povos indígenas",
+      "cientistas",
+      "ONG",
+      "jovens",
+      "governos",
+      "engenheiros",
+      "empreendedores"
+    ]
+  },
+  "platform": {
+    "subtitle": "Reunimos conhecimentos de comunidades, especialistas e decisores de todo o mundo",
+    "comingSoon": "Em breve",
+    "groups": {
+      "beacons": {
+        "label": "Faróis",
+        "blurb": "Ligamos comunidades que atuam como faróis e abrem caminhos para a colaboração"
+      },
+      "missions": {
+        "label": "Missões",
+        "blurb": "As missões são atividades comunicadas pelos faróis que exigem ação"
+      },
+      "ambassadors": {
+        "label": "Embaixadores",
+        "blurb": "Quem conclui os nossos programas torna-se embaixador da iniciativa."
+      }
+    }
+  },
+  "content": {
+    "kicker": "Os nossos conteúdos",
+    "subtitle": "Histórias e conhecimentos que ajudam a compreender a mobilidade climática",
+    "homeCaption": "H.O.M.E é uma série de histórias em desenvolvimento sobre mobilidade climática em todo o mundo",
+    "featuredAlt": "Um grupo de amigos reunidos",
+    "comingSoon": "Em breve",
+    "topics": {
+      "phone": "Tecnologia",
+      "getup": "Acessibilidade",
+      "wish": "Reflexão e previsão",
+      "chicken": "Adaptação",
+      "taste": "Nutrição e saúde",
+      "cash": "Finanças"
+    }
+  },
+  "involved": {
+    "title": "Participar",
+    "tab": "Participar",
+    "youth": "Programa de Jovens Embaixadores",
+    "youthAlt": "Grupo de jovens a sorrir",
+    "nominate": "Indicar alguém",
+    "apply": "Candidatar-me",
+    "partner": "Ser parceiro",
+    "dates": "9–20 nov.",
+    "programDates": "14 out. – 16 nov."
+  },
+  "waitlist": {
+    "title": "Adira à lista de espera",
+    "emailPlaceholder": "E-mail",
+    "allSet": "E-mail enviado",
+    "checkEmail": "Consulte o seu e-mail para confirmar",
+    "photoAlt": "Luz do sol e neblina sobre um jardim",
+    "saveError": "Não foi possível guardar os seus dados. Tente novamente."
+  },
+  "sponsors": {
+    "ticker": "Tornar a mobilidade climática impossível de ignorar",
+    "title": "Os nossos parceiros",
+    "logosAlt": "ESG News e MEF"
+  },
+  "footer": {
+    "copyright": "© {year} Climate Refugee Pavilion. Todos os direitos reservados.",
+    "columns": [
+      {
+        "title": "Programas",
+        "links": [
+          "Histórias",
+          "Patrocinadores",
+          "Parceiros"
+        ]
+      },
+      {
+        "title": "Solidariedade",
+        "links": [
+          "Embaixadores",
+          "Faróis",
+          "Intervenção pública"
+        ]
+      },
+      {
+        "title": "Informação legal",
+        "links": [
+          "Privacidade",
+          "Condições",
+          "Missão"
+        ]
+      }
+    ]
+  },
+  "programs": {
+    "title": "19–26 anos\nPrograma de Jovens Embaixadores",
+    "about": {
+      "dates": "14 out. – 16 nov.",
+      "location": "COP31, Antalya, Turquia",
+      "lede": "Vai passar uma semana no espaço onde se tomam decisões climáticas, contribuindo para construir o próprio pavilhão.",
+      "body": [
+        "Este programa parte de uma realidade: a migração tem permitido às pessoas sobreviver a crises ao longo de gerações. Se faz parte dos milhões de pessoas deslocadas pelas alterações climáticas, a sua experiência constitui um conhecimento essencial.",
+        "Não se trata de uma viagem isolada. A COP31 é o ponto de partida: a presença, as relações e a capacidade de ação que construir aqui continuarão em projetos duradouros e numa rede que vai além da cimeira."
+      ],
+      "accordion": "Sobre o programa",
+      "stats": [
+        {
+          "value": "20",
+          "label": "embaixadores"
+        },
+        {
+          "value": "8–10",
+          "label": "online"
+        },
+        {
+          "value": "10–12",
+          "label": "na COP31"
+        }
+      ],
+      "online": "3 semanas de formação online",
+      "onlineDates": "[14 out. – 4 nov.]",
+      "antalya": "1 semana em Antalya",
+      "antalyaDates": "[9–16 nov.]"
+    },
+    "aboutPopup": {
+      "title": "Sobre o programa",
+      "sessionsLead": "Ao longo de 3 semanas, participará em 9 sessões de uma hora",
+      "sessions": [
+        "3 sessões de formação em direto",
+        "3 encontros individuais com um mentor",
+        "3 sessões para desenvolver uma proposta concreta a levar à cimeira"
+      ],
+      "antalyaLead": "Em Antalya, os embaixadores selecionados receberão",
+      "antalya": [
+        "Viagem e alojamento pagos",
+        "Ajudas de custo diárias",
+        "Passe para a Zona Azul da COP31"
+      ],
+      "blueZone": "Zona Azul",
+      "alsoLead": "Também poderá",
+      "also": [
+        "Colaborar com o pavilhão de mobilidade climática",
+        "Conhecer representantes e recolher as suas histórias",
+        "Explicar a plataforma do pavilhão aos visitantes",
+        "Participar em eventos e debates da COP31"
+      ]
+    },
+    "resonate": {
+      "heading": "Revê-se em alguma destas situações?",
+      "age": "Tem entre 19 e 26 anos?",
+      "changemaker": "Organiza atividades, faz ouvir a sua voz ou promove mudanças na sua comunidade?\nEstá a começar?",
+      "stories": "Já viveu, ou a sua comunidade viveu, deslocações relacionadas com o clima?",
+      "indigenous": "Faz parte de uma comunidade indígena ou afrodescendente, em qualquer lugar do mundo?",
+      "interestsLead": "Tem competências, experiência ou interesse em algum destes temas?",
+      "closing": "Se sim, este programa é para si",
+      "interests": [
+        "Agricultura e alimentação",
+        "IA e dados",
+        "Ciência climática",
+        "Justiça climática",
+        "Organização comunitária",
+        "Resposta a catástrofes",
+        "Energia",
+        "Finanças e ativos digitais",
+        "Saúde e bem-estar",
+        "Direitos humanos",
+        "Migração e deslocação",
+        "Direitos dos povos indígenas",
+        "Seguros e finanças",
+        "Direito e políticas públicas",
+        "Media e narrativas",
+        "Mecanismos de reparação",
+        "Tecnologia",
+        "Planeamento urbano"
+      ]
+    },
+    "whatYouGet": {
+      "heading": "O que oferecemos",
+      "cards": [
+        {
+          "title": "4 semanas",
+          "badge": "Online",
+          "description": "Antes da COP, receberá formação em narrativa, políticas públicas, negociação e media. Alguns embaixadores participam apenas online, mas mantêm-se plenamente envolvidos nos projetos do pavilhão e na rede que construímos juntos."
+        },
+        {
+          "title": "1 semana em Antalya",
+          "badge": "Viagem",
+          "description": "Voos, visto, alojamento e refeições pagos. Prepare-se para participar; nós tratamos da logística."
+        },
+        {
+          "title": "",
+          "badge": "",
+          "description": "Acreditação oficial da CQNUAC e acesso ao pavilhão na Zona Azul."
+        },
+        {
+          "title": "Mentoria",
+          "badge": "",
+          "description": "Terá o apoio de negociadores, juristas, cientistas, contadores de histórias e organizadores para avançar nos seus objetivos."
+        },
+        {
+          "title": "Depois\nda COP",
+          "badge": "",
+          "description": "Regressará com ferramentas para desenvolver soluções de mobilidade climática: um projeto duradouro, uma rede estável, relações e capacidade de ação."
+        }
+      ]
+    },
+    "applyBand": {
+      "body": "Financiamos a participação de jovens que representam as suas comunidades na COP31, em Antalya, porque as pessoas mais afetadas pelas deslocações climáticas devem participar nas decisões.",
+      "process": "Processo de candidatura"
+    },
+    "applicationProcess": {
+      "title": "Processo de candidatura",
+      "previous": "Anterior",
+      "next": "Seguinte",
+      "restart": "Recomeçar",
+      "steps": [
+        {
+          "date": "14 OUT. – 16 NOV.",
+          "label": "Envie a sua candidatura",
+          "body": "Responda a algumas perguntas sobre o seu percurso, a sua história e a mensagem que levaria ao pavilhão. Pode responder por vídeo, áudio ou texto, em inglês, francês ou espanhol."
+        },
+        {
+          "date": "14 OUT. – 16 NOV.",
+          "label": "Primeira entrevista",
+          "body": "As pessoas pré-selecionadas recebem um convite por e-mail e respondem a uma segunda ronda de perguntas gravadas sobre a preparação para o programa, a colaboração perante divergências e os documentos de viagem: passaporte, visto e outros documentos necessários."
+        },
+        {
+          "date": "14 OUT. – 16 NOV.",
+          "label": "Decisão",
+          "body": "Enviaremos a decisão por e-mail. Se não for selecionado nesta edição, partilharemos outras formas de participar."
+        },
+        {
+          "date": "14 OUT. – 16 NOV.",
+          "label": "Entrevista e documentos",
+          "body": "Se for selecionado, organizaremos uma chamada individual. Depois, receberá por e-mail as instruções para enviar o passaporte e assinar o consentimento de viagem."
+        },
+        {
+          "date": "14 OUT. – 16 NOV.",
+          "label": "Consentimento de viagem",
+          "body": "Após a confirmação dos documentos e do consentimento, comunicaremos a sua modalidade de participação. Frequentará 3 semanas de formação antes da COP e, se integrar a delegação presencial, viajará durante uma semana para Antalya."
+        }
+      ]
+    },
+    "applyCta": "Candidatar-me",
+    "faq": {
+      "heading": "Perguntas frequentes",
+      "items": [
+        {
+          "q": "O que é o Climate Refugee Pavilion?",
+          "a": "Um espaço na Zona Azul da COP31 onde jovens do Sul Global, da diáspora africana e de comunidades indígenas, com experiência de deslocação climática, participam nas negociações climáticas da ONU."
+        },
+        {
+          "q": "Quem pode candidatar-se?",
+          "a": "Pessoas dos 19 aos 26 anos que promovem mudanças nas suas comunidades, viveram deslocações relacionadas com o clima ou pertencem a comunidades indígenas ou afrodescendentes, assim como quem tem competências ou interesse em narrativa, intervenção pública, políticas e áreas relacionadas."
+        },
+        {
+          "q": "Tenho de viajar para a COP31 para participar?",
+          "a": "Não. Alguns embaixadores participam exclusivamente online, mantendo-se plenamente envolvidos nos projetos do pavilhão e na nossa rede."
+        },
+        {
+          "q": "O que cobre a bolsa?",
+          "a": "Para quem viaja, cobre voos, visto, alojamento e refeições. Inclui também acreditação oficial da CQNUAC, acesso ao pavilhão na Zona Azul e mentoria ao longo do programa."
+        },
+        {
+          "q": "Quanto tempo demora a candidatura?",
+          "a": "A primeira etapa consiste em algumas perguntas às quais pode responder por vídeo, áudio ou texto. A maioria das pessoas conclui-a numa só sessão."
+        },
+        {
+          "q": "Como funciona o processo de candidatura?",
+          "a": "Envia a candidatura, participa numa primeira entrevista se for pré-selecionado e recebe uma decisão por e-mail. Se for selecionado, segue-se uma chamada individual, o envio de documentos e o consentimento de viagem, antes da confirmação da modalidade."
+        },
+        {
+          "q": "Que atividades vou realizar?",
+          "a": "Receberá formação em narrativa, políticas públicas, negociação e media antes da COP. Depois, ajudará a construir o pavilhão, online e, se viajar, durante uma semana em Antalya, com mentoria de especialistas e organizadores."
+        },
+        {
+          "q": "O que acontece depois de me candidatar?",
+          "a": "Enviaremos a decisão por e-mail. Se for selecionado, concluirá as entrevistas e a documentação, participará nas 3 semanas de formação e continuará ligado através de projetos e da rede após a cimeira. Caso contrário, partilharemos outras formas de participar."
+        },
+        {
+          "q": "Quem posso contactar se tiver dúvidas?",
+          "a": "Utilize as opções de contacto deste site ou escreva à equipa do Climate Refugee Pavilion. Teremos todo o gosto em ajudar."
+        }
+      ]
+    },
+    "testimonials": [
+      {
+        "role": "Coordenação\ndo programa",
+        "quote": "«Esta iniciativa fornece aos jovens defensores do clima ferramentas essenciais para a COP31.»"
+      },
+      {
+        "role": "Responsável do programa juvenil\n(América do Norte)",
+        "quote": "«O programa dá voz a jovens ativistas pelo clima e fornece ferramentas para defenderem as suas propostas na COP31.»"
+      },
+      {
+        "role": "Responsável do programa juvenil\n(comunidade francófona)",
+        "quote": "«Esta iniciativa fornece aos jovens defensores do clima ferramentas essenciais para a COP31.»"
+      }
+    ]
+  },
+  "apply": {
+    "title": "Programa de Jovens Embaixadores",
+    "subtitle": "Unimos vozes de todo o mundo",
+    "location": "COP31, Antalya, Turquia",
+    "headline": "Como embaixador, irá acompanhar-nos no caminho para a proteção jurídica dos refugiados climáticos.",
+    "body": "Representará a sua comunidade, abrirá conversas sobre mobilidade climática e conhecerá participantes de todo o mundo. Juntos, reforçaremos as suas competências, daremos voz às suas ideias e contribuiremos para soluções de mobilidade climática.",
+    "benefits": {
+      "travel": "Viagem, visto, alojamento e ajudas de custo totalmente pagos",
+      "accreditationBefore": "Acreditação oficial da CQNUAC e acesso ao pavilhão na ",
+      "accreditationAfter": "",
+      "capacity": "3 semanas de formação antes da COP",
+      "mentorship": "Mentoria direta",
+      "blueZone": "Zona Azul"
+    },
+    "ages1926": "Idades\n19–26",
+    "online": "3 semanas online",
+    "antalya": "1 semana em Antalya",
+    "ages1518": "Dos 15 aos 18 anos",
+    "ages2734": "Dos 27 aos 34 anos",
+    "interest": "Manifestar interesse",
+    "applyNow": "Candidatar-me",
+    "nominate": "Indicar alguém",
+    "programDetails": "Informações sobre o programa",
+    "namePlaceholder": "nome",
+    "emailPlaceholder": "E-mail",
+    "more": "Mais\nnovi-\ndades\nem breve",
+    "heroAlt": "Costa de Antalya com os montes Tauro do outro lado da baía",
+    "dates": "14 out. – 16 nov."
+  },
+  "nominateLanding": {
+    "title": "Indicar alguém para o Programa de Jovens Embaixadores",
+    "headline": "Os embaixadores acompanham-nos no caminho para a proteção jurídica dos refugiados climáticos.",
+    "body": "Representam as suas comunidades, abrem conversas sobre mobilidade climática e conhecem participantes de todo o mundo. Juntos, reforçamos as suas competências, damos voz às suas ideias e contribuímos para soluções de mobilidade climática."
+  },
+  "meta": {
+    "home": {
+      "title": "Climate Refugee Pavilion — Mobilidade climática",
+      "description": "Ligamos experiências locais e ação global sobre mobilidade climática. Conheça o Climate Refugee Pavilion na COP31, em Antalya e online."
+    },
+    "programs": {
+      "title": "Programa de Jovens Embaixadores — Climate Refugee Pavilion",
+      "description": "Um programa totalmente financiado para pessoas dos 19 aos 26 anos que representam as suas comunidades na COP31, em Antalya, Turquia."
+    },
+    "about": {
+      "title": "Sobre nós — Climate Refugee Pavilion",
+      "description": "Promovemos a literacia sobre mobilidade climática, reunindo conhecimentos locais, experiências vividas e pessoas de diferentes comunidades."
+    },
+    "partner": {
+      "title": "Seja nosso parceiro — Climate Refugee Pavilion",
+      "description": "Apoie programas de embaixadores e histórias sobre mobilidade climática ou participe como orador no Climate Refugee Pavilion."
+    },
+    "apply": {
+      "title": "Candidaturas ao Programa de Jovens Embaixadores",
+      "description": "Candidate-se ao Programa de Jovens Embaixadores em Antalya ou manifeste interesse em oportunidades para outras idades."
+    },
+    "nominate": {
+      "title": "Indicar candidatos ao Programa de Jovens Embaixadores",
+      "description": "Indique uma pessoa dos 19 aos 26 anos para o Programa de Jovens Embaixadores do Climate Refugee Pavilion em Antalya."
+    },
+    "contact": {
+      "title": "Contacto — Climate Refugee Pavilion",
+      "description": "Contacte a equipa do Climate Refugee Pavilion através das opções de contacto do nosso site."
+    }
+  }
+}

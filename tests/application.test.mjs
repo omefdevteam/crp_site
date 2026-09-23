@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test, { after, before } from "node:test";
 import pg from "pg";
+import { createHash, randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { loader } from "./helpers.mjs";
 import { startDatabase } from "./db.mjs";
 
@@ -17,7 +19,11 @@ before(async () => {
   process.env.APP_SECRET = "test-secret-test-secret-test-secret-1234";
   process.env.SYNC_API_SECRET = "sync";
   process.env.VIDEOASK_WEBHOOK_SECRET = "videoask";
-  process.env.OPERATIONS_SECRET = "ops";
+  process.env.OPERATIONS_SECRET = "ops"; // Legacy credential must not authorize operations.
+  process.env.OPERATIONS_TOKENS = JSON.stringify([{ id: "tester", tokenHash: createHash("sha256").update("test-operator-token-at-least-32-characters").digest("hex") }]);
+  for (const stage of ["ROUND1", "ROUND2"]) for (const lang of ["EN", "FR", "ES"]) {
+    process.env[`VIDEOASK_${stage}_FORM_ID_${lang}`] = `${stage}-${lang}-fixture`;
+  }
   process.env.CRON_SECRET = "cron";
   process.env.VIDEOASK_ROUND1_URL_EN = "https://videoask.invalid/r1-en";
   process.env.VIDEOASK_ROUND2_URL_EN = "https://videoask.invalid/r2-en";
@@ -95,27 +101,42 @@ function harness() {
     cookies: { get: (name) => (init.cookies?.[name] ? { value: init.cookies[name] } : undefined) },
     text: async () => init.body ?? "",
     json: async () => JSON.parse(init.body ?? "null"),
+    formData: async () => new URLSearchParams(init.body ?? ""),
   });
   const routes = {
     identity: (body, extra = {}) => load("app/api/webhooks/identity/route.ts").POST(req("/api/webhooks/identity", { body: JSON.stringify(body), ...extra })),
-    videoask: (stage, applicantId, body = {}) => load("app/api/webhooks/videoask/route.ts").POST(req(`/api/webhooks/videoask?stage=${stage}`, { headers: { "x-webhook-secret": "videoask" }, body: JSON.stringify({ applicant_id: applicantId, ...body }) })),
+    videoask: (stage, applicantId, body = {}) => {
+      const formStage = stage || "round1";
+      const reference = load("lib/videoask.ts").videoaskReference(applicantId, formStage, "en");
+      return load("app/api/webhooks/videoask/route.ts").POST(req(`/api/webhooks/videoask?stage=${stage}`, {
+        headers: { "x-webhook-secret": "videoask" }, body: JSON.stringify({
+          event_id: randomUUID(), event_type: "form_response", contact: { status: "completed", variables: { application_ref: reference } },
+          form: { form_id: process.env[`VIDEOASK_${formStage.toUpperCase()}_FORM_ID_EN`] }, ...body,
+        }),
+      }));
+    },
     resend: null,
     decisions: (rows) => load("app/api/decisions/route.ts").POST(req("/api/decisions", { headers: { "x-sync-secret": "sync" }, body: JSON.stringify(rows) })),
     sync: (table, query) => load("app/api/sync/[table]/route.ts").GET(req(`/api/sync/${table}?${query}`, { headers: { "x-sync-secret": "sync" } }), { params: Promise.resolve({ table }) }),
     verify: (cookies, query = "") => load("app/api/apply/verify/route.ts").GET(req(`/api/apply/verify${query}`, { cookies })),
-    resume: (token) => load("app/api/apply/resume/route.ts").GET(req(`/api/apply/resume?token=${encodeURIComponent(token)}`)),
+    previewResume: (token) => load("app/api/apply/resume/route.ts").GET(req(`/api/apply/resume?token=${encodeURIComponent(token)}`)),
+    resume: (token) => load("app/api/apply/resume/route.ts").POST(req("/api/apply/resume", { body: new URLSearchParams({ token }).toString() })),
     cron: () => load("app/api/cron/jobs/route.ts").GET(req("/api/cron/jobs", { headers: { authorization: "Bearer cron" } })),
     excel: () => load("app/api/cron/excel/route.ts").GET(req("/api/cron/excel", { headers: { authorization: "Bearer cron" } })),
-    ops: (body) => load("app/api/ops/route.ts").POST(req("/api/ops", { headers: { "x-ops-secret": "ops", "x-operator": "tester" }, body: JSON.stringify(body) })),
-    opsOverview: () => load("app/api/ops/route.ts").GET(req("/api/ops", { headers: { "x-ops-secret": "ops" } })),
+    ops: (body) => load("app/api/ops/route.ts").POST(req("/api/ops", { headers: { authorization: "Bearer test-operator-token-at-least-32-characters", "x-operator": "impersonated" }, body: JSON.stringify(body) })),
+    opsOverview: () => load("app/api/ops/route.ts").GET(req("/api/ops", { headers: { authorization: "Bearer test-operator-token-at-least-32-characters" } })),
   };
   const actions = load("lib/actions.ts");
   const apply = async (overrides = {}) => {
-    const { ip, ...fields } = overrides;
+    const { ip, unverified = false, ...fields } = overrides;
     state.ip = ip ?? `10.2.${Math.floor(ipCounter / 250) % 250}.${(ipCounter++ % 250) + 1}`;
-    return actions.startApplication({ fullName: "Ada Lovelace", email: nextEmail(), dob: dobFor(22), language: "en", track: "in_person", skills: ["Agriculture & Food"], canTravel: true, hasValidPassport: true, ...fields });
+    const result = await actions.startApplication({ fullName: "Ada Lovelace", email: nextEmail(), dob: dobFor(22), language: "en", track: "in_person", skills: ["Agriculture & Food"], canTravel: true, hasValidPassport: true, consent: true, ...fields });
+    // Lifecycle fixtures represent verified owners. Security tests opt out and
+    // exercise the real email-token exchange before accessing private routes.
+    if (result.ok && !unverified) await sql.query("update applicants set email_verified_at = now(), session_version = 1 where id = $1", [result.id]);
+    return result;
   };
-  return { state, load, actions, apply, ...routes };
+  return { state, load, req, actions, apply, ...routes };
 }
 
 const row = async (table, id) => (await sql.query(`select * from ${table} where id = $1`, [id])).rows[0];
@@ -124,7 +145,7 @@ const jobsFor = (applicantId) => sql.query("select * from jobs where applicant_i
 const setStatus = (id, status) => sql.query("update applicants set status = $2 where id = $1", [id, status]);
 
 test("an application commits the applicant, consent, history, and confirmation email together", async () => {
-  const result = await h.apply();
+  const result = await h.apply({ unverified: true });
   assert.equal(result.ok, true);
   const applicant = await row("applicants", result.id);
   assert.equal(applicant.status, "submitted");
@@ -134,10 +155,11 @@ test("an application commits the applicant, consent, history, and confirmation e
   const jobs = await jobsFor(result.id);
   assert.deepEqual(jobs.map((j) => [j.kind, j.status, j.payload.template]), [["email", "pending", "application"]]);
   assert.equal(await count("sync_changes", "record_id = $1 and operation = 'insert'", [result.id]), 1);
-  // The session cookie is signed, not the raw id.
-  assert.equal(h.state.cookies.length, 1);
-  assert.notEqual(h.state.cookies[0][1], result.id);
-  assert.match(h.state.cookies[0][1], new RegExp(`^${result.id}\\.\\d+\\.`));
+  assert.equal(h.state.cookies.length, 0);
+  assert.equal(result.round1Url, null);
+  assert.equal(applicant.email_verified_at, null);
+  assert.equal(jobs[0].payload.html, undefined);
+
 });
 
 test("a failure after the applicant insert rolls everything back", async () => {
@@ -191,13 +213,19 @@ test("an existing email grants no session and no email; a resume link is single-
   assert.deepEqual(asked, { ok: true });
   const unknown = await h.actions.requestApplicationLink({ email: "nobody@example.invalid" });
   assert.deepEqual(unknown, { ok: true });
+  assert.equal(await count("access_tokens", "applicant_id = $1", [first.id]), 0);
+  await h.cron();
   const [resumeJob] = (await jobsFor(first.id)).filter((j) => j.payload.template === "resume");
   const token = new URL(resumeJob.payload.html.match(/href="([^"]+\/api\/apply\/resume[^"]+)"/)[1]).searchParams.get("token");
-  assert.equal(await count("access_tokens", "applicant_id = $1 and used_at is null", [first.id]), 1);
+  assert.ok(await count("access_tokens", "applicant_id = $1 and used_at is null", [first.id]) >= 1);
   assert.equal(await count("access_tokens", "hash = $1", [token]), 0);
 
+  const preview = await h.previewResume(token);
+  assert.equal(preview.status, 200);
+  assert.match(await preview.text(), /method="post"/);
+  assert.ok(await count("access_tokens", "applicant_id = $1 and used_at is null", [first.id]) >= 1);
   const landed = await h.resume(token);
-  assert.equal(landed.url, "https://videoask.invalid/r1-en?applicant_id=" + first.id);
+  assert.equal(landed.url, "https://example.invalid/apply/continue");
   assert.equal(landed.setCookies[0][0], "crp_session");
   const replay = await h.resume(token);
   assert.match(replay.url, /resume=expired/);
@@ -211,9 +239,13 @@ test("the verify hand-off trusts the signed session, never the echoed applicant 
   const forged = await h.verify({ crp_session: `${a.id}.9999999999.forged` });
   assert.equal(forged.url, "https://example.invalid/apply");
 
-  const first = await h.verify({ crp_session: signSession(a.id) });
+  const premature = await h.verify({ crp_session: signSession(a.id, 1) });
+  assert.equal(premature.url, "https://example.invalid/apply/complete");
+  assert.equal((await row("applicants", a.id)).status, "submitted");
+  await h.videoask("round1", a.id);
+  const first = await h.verify({ crp_session: signSession(a.id, 1) });
   assert.match(first.url, /^https:\/\/identity\.invalid\/session-/);
-  const second = await h.verify({ crp_session: signSession(a.id) });
+  const second = await h.verify({ crp_session: signSession(a.id, 1) });
   assert.equal(second.url, first.url);
   const applicant = await row("applicants", a.id);
   assert.equal(applicant.status, "round1_complete");
@@ -241,7 +273,7 @@ test("the worker delivers queued email with an idempotency key, backs off on fai
   await h.cron();
   assert.equal((await row("jobs", job.id)).attempts, 1);
 
-  await sql.query("update jobs set available_at = now() where id = $1", [job.id]);
+  await sql.query("update jobs set available_at = now() - interval '1 second' where id = $1", [job.id]);
   h.state.deliver = async () => ({ ok: false, error: "resend 422: bad address", retryable: false });
   await h.cron();
   after = await row("jobs", job.id);
@@ -259,7 +291,7 @@ test("the worker delivers queued email with an idempotency key, backs off on fai
   assert.equal(calls, 1);
 });
 
-test("a VideoAsk webhook without stage infers round 1 from submitted", async () => {
+test("a VideoAsk webhook without a query stage uses its signed form reference", async () => {
   const a = await h.apply();
   const res = await h.videoask("", a.id, { event_id: "evt-no-stage" });
   assert.equal(res.body.advanced, true);
@@ -273,7 +305,7 @@ test("webhook deliveries are recorded once and replays are answered without repr
   assert.equal(first.body.status, "round1_complete");
   const replay = await h.videoask("round1", a.id, { event_id: "evt-1" });
   assert.equal(replay.body.duplicate, true);
-  assert.equal(await count("webhook_events", "provider = 'videoask' and event_key = 'round1:evt-1'"), 1);
+  assert.equal(await count("webhook_events", "provider = 'videoask' and event_key = $1", [`${process.env.VIDEOASK_ROUND1_FORM_ID_EN}:evt-1`]), 1);
   assert.equal(await count("application_events", "applicant_id = $1 and to_status = 'round1_complete'", [a.id]), 1);
   // Round 1 done: identity provisioning is queued for the worker.
   const queued = (await jobsFor(a.id)).find((j) => j.kind === "identity_session");
@@ -308,7 +340,7 @@ test("identity events for another session or from the past are ignored", async (
   const a = await h.apply();
   await h.videoask("round1", a.id);
   const { signSession } = h.load("lib/session.ts");
-  await h.verify({ crp_session: signSession(a.id) });
+  await h.verify({ crp_session: signSession(a.id, 1) });
   const { identity_session_id: session } = await row("applicants", a.id);
 
   const other = await h.identity({ reference: a.id, sessionId: "someone-elses-session", decision: "approved", eventId: "x1" });
@@ -377,7 +409,9 @@ test("a valid interview decision queues one email across repeated polls, and sta
   assert.equal((await row("applicants", a.id)).status, "interview_yes");
 
   // A retried request replays the receipt rather than re-applying.
-  const replay = await h.decisions([{ applicantId: a.id, decisionId: "22222222-2222-4222-8222-222222222222", interviewOutcome: "no" }]);
+  const conflicting = await h.decisions([{ applicantId: a.id, decisionId: "22222222-2222-4222-8222-222222222222", interviewOutcome: "no" }]);
+  assert.equal(conflicting.body.outcomes[0].result, "conflict");
+  const replay = await h.decisions([{ applicantId: a.id, decisionId: "22222222-2222-4222-8222-222222222222", version, interviewOutcome: "yes", reviewer: "Sam" }]);
   assert.equal(replay.body.outcomes[0].result, "replayed");
   assert.equal((await row("applicants", a.id)).status, "interview_yes");
   const [event] = (await sql.query("select * from application_events where applicant_id = $1 and to_status = 'interview_yes'", [a.id])).rows;
@@ -619,6 +653,12 @@ test("excel cron pulls an applicant, pushes one accept, and replays the same dec
     assert.equal(applicantRow()[at("reviewNotes")], "keep me");
     const receipts = await sql.query("select count(*)::int as n from decision_receipts where applicant_id = $1", [applicant.id]);
     assert.equal(receipts.rows[0].n, 1);
+    const previousId = applicantRow()[at("decisionId")];
+    applicantRow()[at("interviewOutcome")] = "yes";
+    const edited = await h.excel();
+    assert.equal(edited.body.pushed.outcomes[0].result, "applied");
+    assert.notEqual(applicantRow()[at("decisionId")], previousId);
+    assert.equal((await row("applicants", applicant.id)).status, "interview_yes");
   } finally {
     globalThis.fetch = realFetch;
     for (const key of GRAPH_KEYS) delete process.env[key];
@@ -635,4 +675,260 @@ test("all email templates escape untrusted names while preserving branded HTML",
     assert.ok(html.includes("&lt;a href=&quot;https://example.invalid&quot;&gt;O&#39;Brien &amp; Co&lt;/a&gt;"));
     assert.ok(html.includes("<table"));
   }
+});
+
+test("consent must be explicitly true before any application or consent record is saved", async () => {
+  const before = await count("consent_log");
+  for (const consent of [undefined, false, "true", 1]) {
+    const email = nextEmail();
+    assert.deepEqual(await h.apply({ email, consent }), { ok: false, reason: "invalid" });
+    assert.equal(await count("applicants", "email = $1", [email]), 0);
+  }
+  assert.equal(await count("consent_log"), before);
+});
+
+test("expired worker leases are reclaimed while active leases and newer owners are protected", async () => {
+  const database = h.load("lib/db/index.ts").getDb();
+  const { enqueue, claimJobs, settle, runClaimedJob, MAX_ATTEMPTS } = h.load("lib/jobs.ts");
+  const key = `test:lease:${randomUUID()}`;
+  await enqueue(database, { kind: "email", dedupeKey: key, payload: {} });
+  // Keep this fixture ahead of unrelated jobs in the shared integration database.
+  await sql.query("update jobs set available_at = '2000-01-01' where dedupe_key = $1", [key]);
+  const [old] = await claimJobs(database, 1);
+  assert.equal(old.dedupeKey, key);
+  const otherJobs = await claimJobs(database, 100);
+  assert.ok(!otherJobs.some((job) => job.id === old.id));
+  for (const job of otherJobs) await settle(database, job, { status: "retry", error: "released test lease" });
+  await sql.query("update jobs set locked_until = now() - interval '1 second' where id = $1", [old.id]);
+  const [replacement] = await claimJobs(database, 1);
+  assert.equal(replacement.id, old.id);
+  assert.notEqual(replacement.lockToken, old.lockToken);
+  assert.equal(replacement.attempts, 2);
+  await settle(database, old, { status: "done" });
+  assert.equal((await row("jobs", old.id)).status, "running");
+  await settle(database, replacement, { status: "done" });
+  assert.equal((await row("jobs", old.id)).status, "done");
+  let called = false;
+  const exhausted = await runClaimedJob({ ...replacement, attempts: MAX_ATTEMPTS + 1 }, { email: async () => { called = true; return { status: "done" }; } }, database);
+  assert.equal(exhausted.status, "failed");
+  assert.equal(called, false);
+  const uncertain = await runClaimedJob({ ...replacement, firstAttemptAt: new Date(Date.now() - 24 * 3600_000) }, { email: async () => { called = true; return { status: "done" }; } }, database);
+  assert.equal(uncertain.status, "failed");
+  assert.equal(called, false);
+});
+
+test("queued recovery links get their lifetime at delivery and retry the same email", async () => {
+  const a = await h.apply();
+  const database = h.load("lib/db/index.ts").getDb();
+  await h.load("lib/application.ts").requestResumeLink(database, (await row("applicants", a.id)).email);
+  const [queued] = (await jobsFor(a.id)).filter((j) => j.payload.template === "resume");
+  await sql.query("update jobs set created_at = now() - interval '2 days', available_at = '1999-01-01' where id = $1", [queued.id]);
+  const { claimJobs, settle, runClaimedJob } = h.load("lib/jobs.ts");
+  const [claimed] = await claimJobs(database, 1);
+  const { handlers } = h.load("lib/worker.ts");
+  const oldDeliver = h.state.deliver;
+  const sent = [];
+  h.state.deliver = async (input, key) => { sent.push({ input, key }); return { ok: false, retryable: true, error: "timeout" }; };
+  try {
+    const result = await runClaimedJob(claimed, handlers, database);
+    await settle(database, claimed, result);
+    const [token] = (await sql.query("select * from access_tokens where applicant_id = $1", [a.id])).rows;
+    assert.ok(token.expires_at.getTime() > Date.now() + 29 * 60_000);
+    await sql.query("update jobs set available_at = '1999-01-01' where id = $1", [queued.id]);
+    const [retry] = await claimJobs(database, 1);
+    await runClaimedJob(retry, handlers, database);
+    assert.deepEqual(sent[0], sent[1]);
+    await settle(database, retry, { status: "failed", error: "test complete" });
+  } finally { h.state.deliver = oldDeliver; }
+});
+
+test("decision ids cannot be reused for another applicant, including concurrent requests", async () => {
+  const a = await h.apply();
+  const b = await h.apply();
+  const decisionId = randomUUID();
+  const results = await Promise.all([a, b].map((applicant) => h.decisions([{ applicantId: applicant.id, decisionId, version: 0, reviewDecision: "accept" }])));
+  assert.deepEqual(results.map((result) => result.body.outcomes[0].result).sort(), ["applied", "conflict"]);
+});
+
+test("Excel rotates past 200 completed or invalid decisions to reach later applicants", async () => {
+  const database = h.load("lib/db/index.ts").getDb();
+  const a = await h.apply();
+  const b = await h.apply();
+  const decisionId = randomUUID();
+  await h.decisions([{ applicantId: a.id, decisionId, version: 0, reviewDecision: "accept" }]);
+  const excel = h.load("lib/excel-rows.ts");
+  const headers = excel.APPLICANT_COLUMNS;
+  const values = (payload) => headers.map((key) => payload[key] ?? "");
+  const rows = Array.from({ length: 200 }, (_, index) => ({ index, values: values({ id: a.id, version: 1, decisionId, reviewDecision: index % 2 ? "invalid" : "accept" }) }));
+  rows.push({ index: 200, values: values({ id: b.id, version: 0, reviewDecision: "accept" }) });
+  const workbook = {
+    async readTable(name) { return name === "Applicants" ? { headers, rows } : { headers: ["id"], rows: [] }; },
+    async writeRow(name, index, next) { if (name === "Applicants") rows[index].values = next; },
+    async addRow() {},
+  };
+  await sql.query("update excel_sync_state set decision_offset = 0, locked_until = null");
+  const { tickExcel } = h.load("lib/excel-sync.ts");
+  await tickExcel(database, workbook);
+  assert.equal((await row("applicants", b.id)).status, "submitted");
+  await tickExcel(database, workbook);
+  assert.equal((await row("applicants", b.id)).status, "accepted");
+});
+
+test("the backfill includes all four legacy tables, excludes private identity links, and is repeatable", async () => {
+  const a = await h.apply();
+  const ids = [a.id, randomUUID(), randomUUID(), randomUUID()];
+  const backfill = readFileSync("drizzle/0008_backend_recovery.sql", "utf8").split("--> statement-breakpoint")[1];
+  await sql.query("BEGIN");
+  try {
+    await sql.query("delete from sync_changes where record_id = $1", [a.id]);
+    await sql.query("insert into waitlist (id, email) values ($1, $2)", [ids[1], nextEmail()]);
+    await sql.query("insert into interest (id, email, age_group) values ($1, $2, '19_plus')", [ids[2], nextEmail()]);
+    await sql.query("insert into nominations (id, nominator_name, nominator_email, nominee_name, nominee_email) values ($1, 'A', $2, 'B', $3)", [ids[3], nextEmail(), nextEmail()]);
+    await sql.query(backfill);
+    const changes = (await sql.query("select * from sync_changes where record_id = any($1::uuid[]) order by revision", [ids])).rows;
+    assert.equal(changes.length, 4);
+    assert.deepEqual(changes.map((c) => c.table_name).sort(), ["applicants", "interest", "nominations", "waitlist"]);
+    const payload = changes.find((c) => c.table_name === "applicants").payload;
+    assert.equal(payload.fullName, "Ada Lovelace");
+    assert.equal("identityLink" in payload, false);
+    assert.equal("identitySessionId" in payload, false);
+    assert.equal(payload.round1Link, null);
+    await sql.query(backfill);
+    assert.equal(await count("sync_changes", "record_id = any($1::uuid[])", [ids]), 4);
+  } finally { await sql.query("ROLLBACK"); }
+});
+
+
+test("registration grants no access until email confirmation and resuming revokes old sessions", async () => {
+  const a = await h.apply({ unverified: true });
+  const database = h.load("lib/db/index.ts").getDb();
+  const { signSession } = h.load("lib/session.ts");
+  const before = await h.verify({ crp_session: signSession(a.id, 0) });
+  assert.equal(before.url, "https://example.invalid/apply");
+  const blockedEvent = await h.videoask("round1", a.id);
+  assert.equal(blockedEvent.body.advanced, false);
+  assert.equal((await row("applicants", a.id)).status, "submitted");
+  assert.equal(await count("jobs", "applicant_id = $1 and kind = 'identity_session'", [a.id]), 0);
+  const { claimJobs, runClaimedJob, settle } = h.load("lib/jobs.ts");
+  const { handlers } = h.load("lib/worker.ts");
+  async function deliverLink() {
+    const [pending] = (await jobsFor(a.id)).filter((j) => j.status === "pending" && ["application", "resume"].includes(j.payload.template));
+    await sql.query("update jobs set available_at = '1900-01-01' where id = $1", [pending.id]);
+    const [claimed] = await claimJobs(database, 1);
+    assert.equal(claimed.id, pending.id);
+    await settle(database, claimed, await runClaimedJob(claimed, handlers, database));
+    const saved = await row("jobs", pending.id);
+    return new URL(saved.payload.html.match(/href="([^"]+\/api\/apply\/resume[^"]+)"/)[1]).searchParams.get("token");
+  }
+  const first = await h.resume(await deliverLink());
+  const firstCookie = first.setCookies[0][1];
+  assert.ok((await row("applicants", a.id)).email_verified_at);
+  assert.equal((await row("applicants", a.id)).session_version, 1);
+  assert.equal((await h.verify({ crp_session: firstCookie })).url, "https://example.invalid/apply/complete");
+  await h.load("lib/application.ts").requestResumeLink(database, (await row("applicants", a.id)).email);
+  const second = await h.resume(await deliverLink());
+  assert.equal((await row("applicants", a.id)).session_version, 2);
+  assert.equal((await h.verify({ crp_session: firstCookie })).url, "https://example.invalid/apply");
+  assert.equal((await h.verify({ crp_session: second.setCookies[0][1] })).url, "https://example.invalid/apply/complete");
+});
+
+test("VideoAsk rejects forged references, wrong forms, abandoned and unrelated events", async () => {
+  const a = await h.apply();
+  const valid = h.load("lib/videoask.ts").videoaskReference(a.id, "round1", "en");
+  for (const change of [
+    { event_type: "form_contact_message" },
+    { contact: { status: "completed", variables: [null, "invalid"] } },
+    { form: { form_id: "wrong-form" } },
+    { contact: { status: "abandoned", variables: { application_ref: valid } } },
+    { contact: { status: "completed", variables: { application_ref: valid.slice(0, -2) + "XX" } } },
+    { applicant_id: a.id, contact: { status: "completed", answers: [{ input_text: valid }] } },
+  ]) {
+    const result = await h.videoask("round1", a.id, change);
+    assert.equal(result.status, 400);
+  }
+  const mismatch = h.load("lib/videoask.ts").videoaskReference(a.id, "round2", "en");
+  assert.equal((await h.videoask("round1", a.id, { contact: { status: "completed", variables: { application_ref: mismatch } } })).status, 400);
+  assert.equal((await row("applicants", a.id)).status, "submitted");
+  assert.equal((await h.videoask("round1", a.id)).body.advanced, true);
+});
+
+test("operations credentials bind the audit actor and reject legacy shared credentials", async () => {
+  const route = h.load("app/api/ops/route.ts");
+  assert.equal((await route.GET(h.req("/api/ops", { headers: { "x-ops-secret": "ops", "x-operator": "tester" } }))).status, 401);
+  const a = await h.apply();
+  const result = await h.ops({ action: "transition", applicantId: a.id, to: "round1_complete", reason: "verified manually" });
+  assert.equal(result.body.ok, true);
+  const events = (await sql.query("select reason from application_events where applicant_id = $1 and actor = 'ops'", [a.id])).rows;
+  assert.match(events[0].reason, /by tester/);
+  assert.doesNotMatch(events[0].reason, /impersonated/);
+  const before = process.env.OPERATIONS_TOKENS;
+  process.env.OPERATIONS_TOKENS = "[]";
+  try { assert.equal((await h.opsOverview()).status, 401); } finally { process.env.OPERATIONS_TOKENS = before; }
+});
+
+for (const kind of ["waitlist", "interest"]) {
+  test(`${kind} preferences change only after the mailbox owner confirms, once`, async () => {
+    const database = h.load("lib/db/index.ts").getDb();
+    const email = nextEmail();
+    if (kind === "waitlist") await sql.query("insert into waitlist (email,status) values ($1,'unsubscribed')", [email]);
+    else await sql.query("insert into interest (email,age_group,track) values ($1,'under_19','online')", [email]);
+    const submit = kind === "waitlist" ? h.actions.submitWaitlist : h.actions.submitInterest;
+    h.state.ip = `192.0.2.${++ipCounter % 250}`;
+    const input = { email, ageGroup: "19_plus", track: "in_person" };
+    assert.deepEqual(await submit(input), { ok: true });
+    let saved = (await sql.query(`select * from ${kind} where email = $1`, [email])).rows[0];
+    assert.equal(kind === "waitlist" ? saved.status : saved.track, kind === "waitlist" ? "unsubscribed" : "online");
+    const [queued] = (await sql.query("select * from jobs where payload->>'to' = $1", [email])).rows;
+    await sql.query("update jobs set available_at = '1890-01-01' where id = $1", [queued.id]);
+    const { claimJobs, runClaimedJob, settle } = h.load("lib/jobs.ts");
+    const [claimed] = await claimJobs(database, 1);
+    const { handlers } = h.load("lib/worker.ts");
+    await settle(database, claimed, await runClaimedJob(claimed, handlers, database));
+    const sent = await row("jobs", queued.id);
+    const token = new URL(sent.payload.html.match(/href="([^"]+\/api\/capture\/confirm[^"]+)"/)[1]).searchParams.get("token");
+    const route = h.load("app/api/capture/confirm/route.ts");
+    const preview = route.GET(h.req(`/api/capture/confirm?token=${token}`));
+    assert.equal(preview.status, 200);
+    assert.equal(await count("capture_tokens", "used_at is not null and hash = $1", [h.load("lib/access.ts").hashToken(token)]), 0);
+    const req = () => h.req("/api/capture/confirm", { body: new URLSearchParams({ token }).toString() });
+    assert.match((await route.POST(req())).url, /result=confirmed/);
+    saved = (await sql.query(`select * from ${kind} where email = $1`, [email])).rows[0];
+    assert.equal(kind === "waitlist" ? saved.status : saved.track, kind === "waitlist" ? "subscribed" : "in_person");
+    assert.match((await route.POST(req())).url, /result=expired/);
+    assert.equal(await count("sync_changes", "record_id = $1", [saved.id]), 1);
+  });
+}
+
+
+test("Spanish applicants confirm ownership before form-bound Spanish rounds advance", async () => {
+  process.env.VIDEOASK_ROUND1_URL_ES = "https://videoask.invalid/r1-es";
+  process.env.VIDEOASK_ROUND2_URL_ES = "https://videoask.invalid/r2-es";
+  const a = await h.apply({ language: "es", unverified: true });
+  assert.equal(a.ok, true);
+  assert.equal((await row("applicants", a.id)).language, "es");
+  const database = h.load("lib/db/index.ts").getDb();
+  const [queued] = await jobsFor(a.id);
+  await sql.query("update jobs set available_at = '1800-01-01' where id = $1", [queued.id]);
+  const { claimJobs, runClaimedJob, settle } = h.load("lib/jobs.ts");
+  const [claimed] = await claimJobs(database, 1);
+  assert.equal(claimed.id, queued.id);
+  const outcome = await runClaimedJob(claimed, h.load("lib/worker.ts").handlers, database);
+  assert.equal(outcome.status, "done");
+  await settle(database, claimed, outcome);
+  const sent = await row("jobs", queued.id);
+  assert.match(sent.payload.html, /<html lang="es"/);
+  const link = new URL(sent.payload.html.match(/href="([^"]+\/api\/apply\/resume[^"]+)"/)[1]);
+  assert.equal(link.searchParams.get("lang"), "es");
+  const confirmed = await h.resume(link.searchParams.get("token"));
+  assert.equal(confirmed.setCookies.find(([name]) => name === "crp-locale")[1], "es");
+  const { videoaskReference, videoaskLink } = h.load("lib/videoask.ts");
+  assert.match(videoaskLink(a.id, "round1", "es"), /r1-es#application_ref=/);
+  const send = (stage, formId) => h.load("app/api/webhooks/videoask/route.ts").POST(h.req("/api/webhooks/videoask", {
+    headers: { "x-webhook-secret": "videoask" }, body: JSON.stringify({ event_id: randomUUID(), event_type: "form_response", form: { form_id: formId }, contact: { status: "completed", variables: { application_ref: videoaskReference(a.id, stage, "es") } } }),
+  }));
+  assert.equal((await send("round1", process.env.VIDEOASK_ROUND1_FORM_ID_EN)).status, 400);
+  assert.equal((await send("round1", process.env.VIDEOASK_ROUND1_FORM_ID_ES)).body.advanced, true);
+  await setStatus(a.id, "interview_yes");
+  assert.equal((await send("round2", process.env.VIDEOASK_ROUND2_FORM_ID_ES)).body.advanced, true);
+  assert.equal((await row("applicants", a.id)).status, "docs_submitted");
 });

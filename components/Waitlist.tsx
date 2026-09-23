@@ -13,7 +13,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { trail } from "@/lib/fonts";
 import { submitWaitlist } from "@/lib/actions";
 import { Turnstile, TURNSTILE_SITE_KEY } from "./Turnstile";
-import { useCopy, useLanguage } from "./LanguageProvider";
+import { useCopy } from "./LanguageProvider";
 import { useCaptureSubmission } from "./useCaptureSubmission";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -74,7 +74,6 @@ function CheckIcon() {
 
 export function Waitlist() {
   const copy = useCopy();
-  const { locale } = useLanguage();
   const { pending, error, challengeKey, submit } = useCaptureSubmission();
   const errorId = useId();
   const reduceMotion = useReducedMotion() === true;
@@ -325,9 +324,7 @@ export function Waitlist() {
         </div>
         {error ? (
           <p role="alert" className="text-center text-sm text-white">
-            {locale === "fr"
-              ? "Nous n’avons pas pu enregistrer vos informations. Veuillez réessayer."
-              : "We couldn’t save your details. Please try again."}
+            {copy.waitlist.saveError}
           </p>
         ) : null}
       </div>

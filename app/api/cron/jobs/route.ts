@@ -12,7 +12,7 @@ export const maxDuration = 60;
 export async function GET(req: NextRequest) {
   const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
   const provided = bearer ?? req.headers.get("x-cron-secret");
-  if (!secretOk(provided, process.env.CRON_SECRET) && !secretOk(provided, process.env.OPERATIONS_SECRET)) {
+  if (!secretOk(provided, process.env.CRON_SECRET)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const limit = Math.min(100, Math.max(1, Number(req.nextUrl.searchParams.get("limit")) || 25));
