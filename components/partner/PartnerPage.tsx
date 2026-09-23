@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useCopy } from "../LanguageProvider";
 import { ProgramResonate } from "../programs/ProgramResonate";
 import { Sponsors } from "../Sponsors";

@@ -8,7 +8,7 @@ import { PLACEHOLDER } from "../apply/fieldStyles";
 import { useCopy } from "../LanguageProvider";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const US = COUNTRIES.find((c) => c.dial === "+1") ?? COUNTRIES[0];
+const US = COUNTRIES.find((c) => c.code === "US") ?? COUNTRIES[0];
 
 const FIELD =
   `${PLACEHOLDER} w-full rounded-[48px] border border-black/12 bg-white text-[14px] font-semibold uppercase tracking-[0.56px] text-black outline-none`;
@@ -31,6 +31,44 @@ function ContactRow({
         {label}
       </p>
     </div>
+  );
+}
+
+function ArrowOut({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 16 16" className={className} fill="none" aria-hidden>
+      <path
+        d="M4.5 11.5 11.5 4.5M11.5 4.5H6.5M11.5 4.5v5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function EmailRow({ email }: { email: string }) {
+  return (
+    <a
+      href={`mailto:${email}`}
+      className="group inline-flex w-fit max-w-full items-center gap-3 rounded-full py-1 pr-5 transition-colors duration-300 hover:bg-cream hover:p-1 hover:pr-5 focus-visible:bg-cream focus-visible:p-1 focus-visible:pr-5 focus-visible:outline-none"
+    >
+      <span className="grid size-12 shrink-0 place-items-center rounded-[20px] bg-cream transition-all duration-300 group-hover:size-10 group-hover:rounded-full group-hover:bg-black group-focus-visible:size-10 group-focus-visible:rounded-full group-focus-visible:bg-black">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/icons/contact/at.svg"
+          alt=""
+          width={16}
+          height={16}
+          className="size-4 group-hover:hidden group-focus-visible:hidden"
+        />
+        <ArrowOut className="hidden size-3.5 text-lime group-hover:block group-focus-visible:block" />
+      </span>
+      <p className="truncate text-[14px] font-semibold uppercase tracking-[1.12px] text-black/64 transition-colors duration-300 group-hover:text-black group-focus-visible:text-black">
+        {email}
+      </p>
+    </a>
   );
 }
 
@@ -80,7 +118,7 @@ export function ContactPage() {
             {c.title}
           </h1>
           <div className="mt-6 flex flex-col desk:mt-0">
-            <ContactRow icon="/icons/contact/at.svg" label={c.email} />
+            <EmailRow email={c.email} />
             <ContactRow icon="/icons/contact/map-pin.svg" label={c.address} />
             <ContactRow icon="/icons/contact/phone.svg" label={c.phone} />
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { locales, type Locale } from "@/lib/locale";
+import { locales, localePath, nativeLanguageNames, type Locale } from "@/lib/locale";
 import { t } from "@/lib/messages";
 import { useLanguage } from "./LanguageProvider";
 
@@ -45,7 +45,7 @@ export function LanguageDropdown({
 }: {
   variant: "nav" | "compact" | "apply";
 }) {
-  const { locale, setLocale, copy } = useLanguage();
+  const { locale, setLocale, copy, path } = useLanguage();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -141,19 +141,19 @@ export function LanguageDropdown({
             const selected = code === locale;
             return (
               <li key={code} role="none">
-                <button
-                  type="button"
+                <a
+                  href={localePath(path, code)} hrefLang={code} lang={code}
                   role="option"
                   aria-selected={selected}
-                  onClick={() => choose(code)}
+                  onClick={(event) => { event.preventDefault(); choose(code); }}
                   className={`${OPTION} ${
                     variant === "compact"
                       ? "text-[12px] tracking-[0.48px]"
                       : "text-[14px] tracking-[0.56px]"
                   } ${selected ? "bg-black text-white" : "text-black/72 hover:bg-black/5"}`}
                 >
-                  {code.toUpperCase()}
-                </button>
+                  {nativeLanguageNames[code]}
+                </a>
               </li>
             );
           })}

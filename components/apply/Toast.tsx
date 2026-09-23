@@ -1,5 +1,7 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
 import type { ReactNode } from "react";
 
 // Feedback toast for the apply form (Figma 2184:1751 / 2184:2083). Error is a
@@ -16,6 +18,7 @@ export function Toast({
   action?: { label: string; onClick: () => void };
   onClose: () => void;
 }) {
+  const tr = useText();
   const err = variant === "error";
   return (
     <div
@@ -65,7 +68,7 @@ export function Toast({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Dismiss"
+          aria-label={tr("Dismiss")}
           className={`grid size-12 place-items-center rounded-full ${err ? "text-[#5d0d22]" : "text-white"}`}
         >
           <svg viewBox="0 0 24 24" className="size-6" aria-hidden>

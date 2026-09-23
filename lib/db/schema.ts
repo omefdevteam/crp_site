@@ -41,7 +41,7 @@ export const identityStatus = pgEnum("identity_status", [
 export const track = pgEnum("track", ["in_person", "online"]);
 // The language the applicant chose at the pre-application popup. It decides which
 // French/English VideoAsk they were sent to, and which the Round 2 email links to.
-export const appLanguage = pgEnum("app_language", ["en", "fr"]);
+export const appLanguage = pgEnum("app_language", ["en", "fr", "es"]);
 export const ageGroup = pgEnum("age_group", ["under_19", "19_plus"]);
 export const reviewDecision = pgEnum("review_decision", ["accept", "reject"]);
 export const interviewOutcome = pgEnum("interview_outcome", ["yes", "no"]);
@@ -99,6 +99,7 @@ export const applicants = pgTable(
     docsStatus: text("docs_status"),
     version: integer("version").notNull().default(0),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    sessionVersion: integer("session_version").notNull().default(0),
     identityEventAt: timestamp("identity_event_at", { withTimezone: true }),
     // Decision columns (team-owned, synced back from Excel).
     reviewDecision: reviewDecision("review_decision"),
@@ -265,6 +266,7 @@ export const syncChanges = pgTable("sync_changes", {
 // sheet, so a reviewer cannot rewind the feed by editing Config.after.
 export const excelSyncState = pgTable("excel_sync_state", {
   singleton: boolean("singleton").primaryKey().default(true),
+  decisionOffset: integer("decision_offset").notNull().default(0),
   lockedUntil: timestamp("locked_until", { withTimezone: true }),
   lastError: text("last_error"),
   lastRunAt: timestamp("last_run_at", { withTimezone: true }),
@@ -273,3 +275,10 @@ export const excelCursors = pgTable("excel_cursors", {
   tableName: text("table_name").primaryKey(),
   cursor: bigint("cursor", { mode: "bigint" }).notNull().default(BigInt(0)),
 });
+
+export const captureTokens = pgTable("capture_tokens", {
+  hash: text("hash").primaryKey(), createdAt: createdAt(),
+  kind: text("kind").notNull(), payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+}, (t) => [index("capture_tokens_expiry_idx").on(t.expiresAt)]);

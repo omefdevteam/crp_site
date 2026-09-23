@@ -79,3 +79,33 @@ test("rapid repeated submits dispatch only one request", async () => {
   resolveRequest({ ok: true });
   assert.equal(await first, true);
 });
+
+test("the application flow submits explicit consent after the terms are accepted", async () => {
+  const hooks = hookHarness();
+  const TermsStep = () => null;
+  const SkillsStep = () => null;
+  const AboutStep = () => null;
+  let submitted;
+  const { ApplyFlow } = loader({
+    react: hooks.react,
+    "next/navigation": { useRouter: () => ({ push() {} }) },
+    "@/lib/actions": { startApplication: async (input) => { submitted = input; return { ok: false, reason: "invalid" }; } },
+    "../LanguageProvider": { useLanguage: () => ({ locale: "en" }) },
+    "@/lib/ui-text": { useText: () => (text) => text },
+    "./TermsStep": { TermsStep },
+    "./SkillsStep": { SkillsStep },
+    "./AboutStep": { AboutStep },
+    "./RedirectingStep": { RedirectingStep: () => null },
+  })("components/apply/ApplyFlow.tsx");
+  const render = () => hooks.render(() => ApplyFlow({ onClose() {} }));
+  let tree = render();
+  assert.equal(tree.type, TermsStep);
+  tree.props.onAccept();
+  tree = render();
+  assert.equal(tree.type, SkillsStep);
+  tree.props.onContinue();
+  tree = render();
+  assert.equal(tree.type, AboutStep);
+  await tree.props.onSubmit({ email: "applicant@example.invalid" });
+  assert.equal(submitted.consent, true);
+});

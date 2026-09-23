@@ -1,7 +1,9 @@
 "use client";
 
+import { LanguageLinks } from "@/components/LanguageLinks";
+
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { type ReactNode } from "react";
 import { t } from "@/lib/messages";
 import { footerHref } from "@/lib/nav";
@@ -212,7 +214,7 @@ function ApplyFooter() {
           imgClassName="h-[68px] w-auto object-contain object-left desk:h-[121px] desk:w-[341px]"
         />
         <div className="flex gap-8 whitespace-nowrap desk:gap-[64px]">
-          {copy.footer.columns.map((col) => (
+          {copy.footer.columns.map((col, columnIndex) => (
             <div
               key={col.title}
               className="flex flex-col items-start gap-3 desk:gap-[16px]"
@@ -220,8 +222,8 @@ function ApplyFooter() {
               <p className="text-[12px] font-bold tracking-[1.2px] text-[#111] uppercase">
                 {col.title}
               </p>
-              {col.links.map((link) => {
-                const href = footerHref(link);
+              {col.links.map((link, linkIndex) => {
+                const href = footerHref(columnIndex, linkIndex);
                 const className =
                   "text-[14px] text-black/72 transition-colors hover:text-black";
                 return href === "#" ? (
@@ -242,6 +244,7 @@ function ApplyFooter() {
         <p className="text-[12px] text-black/72">
           {t(copy.footer.copyright, { year })}
         </p>
+        <LanguageLinks />
       </div>
     </footer>
   );

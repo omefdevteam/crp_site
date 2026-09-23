@@ -10,8 +10,8 @@ export function hashToken(raw: string): string {
   return createHash("sha256").update(raw).digest("hex");
 }
 
-// Mints a short-lived, single-use token and stores only its hash. The raw value
-// travels once, in the email link, and is never persisted.
+// The access-token table stores only a hash. The private email outbox holds the
+// rendered link so delivery retries can reuse the same message.
 export async function issueAccessToken(
   tx: Store,
   applicantId: string,

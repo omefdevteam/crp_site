@@ -41,7 +41,7 @@ yarn-error.log*
 # Local agent and workbook files stay off the shared repo.
 .cursor/
 .codex/
-excel/
+/excel/
 
 # typescript
 *.tsbuildinfo
@@ -52,3 +52,4 @@ AGENTS.MD
 CLAUDE.MD
 AGENTS.md
 CLAUDE.md
+BACKEND_SECURITY.md

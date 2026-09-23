@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { locales, type Locale } from "@/lib/locale";
+import { applicationLocales, type ApplicationLocale } from "@/lib/locale";
 import { SKILL_LABELS, isSkillLabel } from "@/lib/apply-skills";
 
 // One address, one applicant: trimmed and lower-cased so "Ada@Example.com" and
@@ -36,6 +36,7 @@ export const interestInput = z.object({
 export const resumeInput = z.object({ email: emailInput });
 
 export const applicationInput = z.object({
+  consent: z.literal(true),
   fullName: z.string().trim().min(1).max(200),
   email: emailInput,
   dob: dateInput,
@@ -53,7 +54,7 @@ export const applicationInput = z.object({
   hasValidPassport: z.boolean().optional(),
   // Chosen at the pre-application popup; the popup is the source of truth. Falls
   // back to English so a missing choice can never block an application.
-  language: z.enum(locales).default("en"),
+  language: z.enum(applicationLocales).default("en"),
 }).superRefine((data, ctx) => {
   if (data.track === "in_person" && (!data.canTravel || !data.hasValidPassport)) {
     ctx.addIssue({ code: "custom", path: ["canTravel"], message: "travel attestations required" });
@@ -114,13 +115,6 @@ export function maxApplicantAge(): number {
 
 export const CONSENT_VERSION = process.env.CONSENT_VERSION ?? "v1";
 
-// Thread the applicant id into a VideoAsk link as a hidden variable, the key
-// that ties a completed form back to its row.
-export function withApplicantId(base: string, applicantId: string): string {
-  const sep = base.includes("?") ? "&" : "?";
-  return `${base}${sep}applicant_id=${encodeURIComponent(applicantId)}`;
-}
-
 // A URL pasted without a scheme (e.g. "www.videoask.com/...") is treated as a
 // relative path by the browser and 404s on our own domain. Force an absolute
 // https URL so a copy-paste slip in an env var fails safe.
@@ -133,7 +127,7 @@ function absoluteUrl(value: string): string {
 // VIDEOASK_ROUND1_URL_FR. Returns null when that form has no URL configured.
 export function videoAskBase(
   stage: "round1" | "round2",
-  language: Locale,
+  language: ApplicationLocale,
 ): string | null {
   const key = `VIDEOASK_${stage.toUpperCase()}_URL_${language.toUpperCase()}`;
   const value = process.env[key];

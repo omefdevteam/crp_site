@@ -1,5 +1,7 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
 // Shared Continue control for apply / nominate forms (Figma 2184:4918):
 // gradient pill with optional "N selected" count on the right.
 export function ContinueButton({
@@ -15,6 +17,7 @@ export function ContinueButton({
   onClick: () => void;
   className?: string;
 }) {
+  const tr = useText();
   const ready = !disabled;
   return (
     <button
@@ -34,8 +37,7 @@ export function ContinueButton({
             ready ? "bg-black/25" : "bg-black/40"
           }`}
         >
-          {selectedCount} selected
-        </span>
+          {selectedCount} {tr("selected")}</span>
       ) : null}
     </button>
   );

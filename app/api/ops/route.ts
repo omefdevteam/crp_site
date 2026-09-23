@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getDb } from "@/lib/db";
-import { secretOk } from "@/lib/api-auth";
+import { authenticateOperator } from "@/lib/operations-auth";
 import { STATUSES } from "@/lib/lifecycle";
 import { applicantDetail, overview, performAction } from "@/lib/ops";
 
@@ -11,12 +11,7 @@ export const dynamic = "force-dynamic";
 // Team-only. GET  /api/ops                 → the overview of stuck work
 //            GET  /api/ops?applicant=<id>  → one applicant's history and jobs
 //            POST /api/ops                 → one controlled recovery action
-// Authenticated with OPERATIONS_SECRET; `x-operator` names who acted.
-
-function authorized(req: NextRequest): boolean {
-  const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
-  return secretOk(bearer ?? req.headers.get("x-ops-secret"), process.env.OPERATIONS_SECRET);
-}
+// Individual bearer credentials are mapped to principals on the server.
 
 const actionInput = z.discriminatedUnion("action", [
   z.object({ action: z.literal("retry_job"), jobId: z.uuid() }),
@@ -32,7 +27,7 @@ const actionInput = z.discriminatedUnion("action", [
 ]);
 
 export async function GET(req: NextRequest) {
-  if (!authorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!authenticateOperator(req.headers)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const db = getDb();
   const applicantId = req.nextUrl.searchParams.get("applicant");
   if (applicantId) {
@@ -43,10 +38,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!authorized(req)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const operator = authenticateOperator(req.headers);
+  if (!operator) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const parsed = actionInput.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "invalid body" }, { status: 400 });
-  const operator = req.headers.get("x-operator")?.trim().slice(0, 80) || "ops";
   const result = await performAction(getDb(), parsed.data, operator);
   return NextResponse.json(result, { status: result.ok ? 200 : 409 });
 }

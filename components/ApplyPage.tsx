@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { useCallback, useState } from "react";
 import { trail } from "@/lib/fonts";
 import {

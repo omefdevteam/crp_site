@@ -1,11 +1,15 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Logo } from "../Logo";
+import { locales } from "@/lib/locale";
 import { useLanguage } from "../LanguageProvider";
 
 export function ThanksStep({ onExit }: { onExit: () => void }) {
+  const tr = useText();
   const { locale, setLocale } = useLanguage();
 
   useEffect(() => {
@@ -26,7 +30,7 @@ export function ThanksStep({ onExit }: { onExit: () => void }) {
           />
         </div>
         <div className="flex items-center rounded-full bg-white p-1">
-          {(["en", "fr"] as const).map((code) => (
+          {locales.map((code) => (
             <button
               key={code}
               type="button"
@@ -57,13 +61,10 @@ export function ThanksStep({ onExit }: { onExit: () => void }) {
           <div className="relative z-10 flex h-full flex-col items-center justify-center px-6 text-center text-white">
             <div className="flex w-full max-w-[632px] flex-col items-center gap-6">
               <h1 className="text-[clamp(28px,4.5vw,48px)] leading-[0.9] tracking-[-0.04em] desk:text-[48px] desk:tracking-[-1.92px]">
-                Thank you!
-              </h1>
+                {tr("Thank you!")}</h1>
               <p className="text-[clamp(18px,3vw,32px)] leading-[0.9] tracking-[-0.04em] desk:text-[32px] desk:tracking-[-1.28px]">
-                We&apos;ve received your nomination.
-                <br />
-                Check your email for further steps.
-              </p>
+                {tr("We've received your nomination.")}<br />
+                {tr("Check your email for further steps.")}</p>
             </div>
           </div>
         </div>
@@ -76,8 +77,7 @@ export function ThanksStep({ onExit }: { onExit: () => void }) {
           className="gradient-brand flex h-14 w-full max-w-[632px] items-center justify-center rounded-full desk:h-20"
         >
           <span className="text-[16px] font-semibold uppercase leading-[0.9] tracking-[0.8px] text-white mix-blend-hard-light desk:text-[20px]">
-            Exit
-          </span>
+            {tr("Exit")}</span>
         </button>
       </footer>
     </div>,

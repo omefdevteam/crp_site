@@ -13,7 +13,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { trail } from "@/lib/fonts";
 import { submitWaitlist } from "@/lib/actions";
 import { Turnstile, TURNSTILE_SITE_KEY } from "./Turnstile";
-import { useCopy, useLanguage } from "./LanguageProvider";
+import { useCopy } from "./LanguageProvider";
 import { useCaptureSubmission } from "./useCaptureSubmission";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -74,7 +74,6 @@ function CheckIcon() {
 
 export function Waitlist() {
   const copy = useCopy();
-  const { locale } = useLanguage();
   const { pending, error, challengeKey, submit } = useCaptureSubmission();
   const errorId = useId();
   const reduceMotion = useReducedMotion() === true;
@@ -148,14 +147,14 @@ export function Waitlist() {
     <section
       id="waitlist"
       data-nav-tone="dark"
-      className="bg-ink px-5 py-16 text-white snap-section desk:box-border desk:flex desk:h-svh desk:flex-col desk:justify-center desk:px-8 desk:py-24"
+      className="bg-ink px-5 py-16 text-white desk:px-8 desk:py-24"
     >
       <div className="mx-auto flex w-full max-w-[1072px] flex-col items-center gap-10 desk:gap-12">
         <h2 className="text-center text-[32px] leading-[0.95] tracking-[-0.04em] desk:text-[clamp(28px,6vw,48px)]">
           {copy.waitlist.title}
         </h2>
 
-        <div className="relative mx-auto aspect-[298/484] w-full max-w-[536px] overflow-hidden rounded-[56px] desk:aspect-square desk:max-h-[calc(100svh-12rem)] desk:w-full desk:max-w-[min(536px,calc(100svh-12rem))] desk:rounded-[154px]">
+        <div className="relative mx-auto aspect-[298/484] w-full max-w-[536px] overflow-hidden rounded-[56px] desk:aspect-square desk:rounded-[154px]">
           <Image
             src="/images/waitlist.jpg"
             alt={copy.waitlist.photoAlt}
@@ -325,9 +324,7 @@ export function Waitlist() {
         </div>
         {error ? (
           <p role="alert" className="text-center text-sm text-white">
-            {locale === "fr"
-              ? "Nous n’avons pas pu enregistrer vos informations. Veuillez réessayer."
-              : "We couldn’t save your details. Please try again."}
+            {copy.waitlist.saveError}
           </p>
         ) : null}
       </div>

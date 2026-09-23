@@ -8,7 +8,7 @@ import {
 } from "react";
 import { motion, useTransform } from "framer-motion";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/LocaleLink";
 import { usePointerOrigin } from "@/lib/usePointerOrigin";
 import { useCopy } from "./LanguageProvider";
 import { TicketTab } from "./TicketTab";

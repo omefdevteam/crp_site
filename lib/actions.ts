@@ -1,22 +1,17 @@
 "use server";
+import { requestCaptureConfirmation } from "@/lib/capture-confirmation";
 
 import { headers } from "next/headers";
-import { eq } from "drizzle-orm";
 import {
   getDb,
-  waitlist,
-  interest,
   nominations,
 } from "@/lib/db";
 import { enqueueEmail } from "@/lib/jobs";
 import { recordChange } from "@/lib/sync-log";
 import { rateLimit } from "@/lib/rate-limit";
-import { setSessionCookie } from "@/lib/session";
 import { createApplication, requestResumeLink } from "@/lib/application";
 import { verifyTurnstile } from "@/lib/turnstile";
 import {
-  waitlistEmail,
-  interestEmail,
   nominationEmail,
 } from "@/lib/emails";
 import {
@@ -58,53 +53,18 @@ export async function submitWaitlist(raw: unknown): Promise<{ ok: boolean }> {
   if (!(await passedTurnstile(raw))) return { ok: false };
   const parsed = waitlistInput.safeParse(raw);
   if (!parsed.success) return { ok: false };
-  const { email, name, source } = parsed.data;
-  if (!(await withinLimits("waitlist", email, 20, 3))) return { ok: false };
-
-  await getDb().transaction(async (tx) => {
-    const [row] = await tx
-      .insert(waitlist)
-      .values({ email, name, source })
-      .onConflictDoUpdate({
-        target: waitlist.email,
-        set: { status: "subscribed", updatedAt: new Date() },
-      })
-      .returning();
-    await recordChange(tx, "waitlist", row.id, "update", row);
-    await enqueueEmail(tx, `email:waitlist:${row.id}`, { to: email, ...waitlistEmail() }, "waitlist");
-  });
+  if (!(await withinLimits("waitlist", parsed.data.email, 20, 3))) return { ok: false };
+  await requestCaptureConfirmation(getDb(), "waitlist", parsed.data);
   return { ok: true };
 }
 
-export async function submitInterest(
-  raw: unknown,
-): Promise<{ ok: boolean; already?: boolean }> {
+export async function submitInterest(raw: unknown): Promise<{ ok: boolean }> {
   if (!(await passedTurnstile(raw))) return { ok: false };
   const parsed = interestInput.safeParse(raw);
   if (!parsed.success) return { ok: false };
-  const { email, name, ageGroup, track, source } = parsed.data;
-  if (!(await withinLimits("interest", email, 20, 3))) return { ok: false };
-
-  const already = await getDb().transaction(async (tx) => {
-    const [existing] = await tx
-      .select({ id: interest.id })
-      .from(interest)
-      .where(eq(interest.email, email));
-    const [row] = await tx
-      .insert(interest)
-      .values({ email, name, ageGroup, track, source })
-      .onConflictDoUpdate({
-        target: interest.email,
-        set: { ageGroup, track, updatedAt: new Date() },
-      })
-      .returning();
-    await recordChange(tx, "interest", row.id, existing ? "update" : "insert", row);
-    // Only email on the first expression of interest; the dedupe key makes a
-    // retried first submission a no-op too.
-    if (!existing) await enqueueEmail(tx, `email:interest:${row.id}`, { to: email, ...interestEmail() }, "interest");
-    return Boolean(existing);
-  });
-  return { ok: true, already };
+  if (!(await withinLimits("interest", parsed.data.email, 20, 3))) return { ok: false };
+  await requestCaptureConfirmation(getDb(), "interest", parsed.data);
+  return { ok: true };
 }
 
 export async function submitNomination(raw: unknown): Promise<{ ok: boolean }> {
@@ -172,8 +132,7 @@ export async function startApplication(raw: unknown): Promise<ApplicationResult>
   const result = await createApplication(getDb(), parsed.data);
   if (!result.ok) return result;
 
-  await setSessionCookie(result.id);
-  return { ok: true, id: result.id, round1Url: result.round1Link, isNew: true };
+  return { ok: true, id: result.id, round1Url: null, isNew: true };
 }
 
 // Emails a single-use link to whoever owns the address. The answer is the same

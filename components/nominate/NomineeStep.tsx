@@ -1,5 +1,7 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
 import { useState } from "react";
 import { COUNTRIES, type Country } from "@/lib/countries";
 import { CountryDropdown } from "../apply/CountryDropdown";
@@ -10,7 +12,7 @@ import { ContinueButton } from "../apply/ContinueButton";
 import { FIELD, PLACEHOLDER } from "../apply/fieldStyles";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const GHANA = COUNTRIES.find((c) => c.name === "Ghana") ?? COUNTRIES[0];
+const GHANA = COUNTRIES.find((c) => c.code === "GH") ?? COUNTRIES[0];
 
 export type NomineeData = {
   nomineeName: string;
@@ -31,6 +33,7 @@ export function NomineeStep({
   onContinue: (data: NomineeData) => void;
   initial?: Partial<NomineeData>;
 }) {
+  const tr = useText();
   const [name, setName] = useState(initial?.nomineeName ?? "");
   const [email, setEmail] = useState(initial?.nomineeEmail ?? "");
   const [dob, setDob] = useState(initial?.nomineeDob ?? "");
@@ -52,7 +55,7 @@ export function NomineeStep({
       onBack={onBack}
       footer={
         <ContinueButton
-          label="Continue"
+          label={tr("Continue")}
           selectedCount={1}
           disabled={!valid}
           onClick={() => {
@@ -73,8 +76,7 @@ export function NomineeStep({
       }
     >
       <h1 className="text-center text-[26px] leading-[0.9] tracking-[-1.04px] text-black desk:text-[36px] desk:tracking-[-1.44px]">
-        About the nominee
-      </h1>
+        {tr("About the nominee")}</h1>
 
       <div className="mt-5 flex flex-col gap-1.5 desk:mt-7 desk:gap-2">
         <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
@@ -83,8 +85,8 @@ export function NomineeStep({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="*NAME"
-              aria-label="Nominee full name"
+              placeholder={tr("*NAME")}
+              aria-label={tr("Nominee full name")}
               className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
             />
           </div>
@@ -97,8 +99,8 @@ export function NomineeStep({
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="*EMAIL"
-              aria-label="Nominee email"
+              placeholder={tr("*EMAIL")}
+              aria-label={tr("Nominee email")}
               spellCheck={false}
               className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
             />
@@ -109,8 +111,8 @@ export function NomineeStep({
               type="tel"
               value={mobile}
               onChange={(e) => setMobile(e.target.value)}
-              placeholder="MOBILE"
-              aria-label="Nominee mobile number"
+              placeholder={tr("MOBILE")}
+              aria-label={tr("Nominee mobile number")}
               className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
             />
           </div>
@@ -119,13 +121,13 @@ export function NomineeStep({
         <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
           <CountryDropdown
             variant="field"
-            label="Nationality"
+            label={tr("Nationality")}
             value={nationality}
             onChange={setNationality}
           />
           <CountryDropdown
             variant="field"
-            label="Currently based in"
+            label={tr("Currently based in")}
             value={basedIn}
             onChange={setBasedIn}
           />
@@ -133,12 +135,12 @@ export function NomineeStep({
 
         <div className="mt-0.5 flex gap-1.5 desk:gap-2">
           <FormRadioCard
-            label="Only program"
+            label={tr("Only program")}
             selected={track === "online"}
             onSelect={() => setTrack("online")}
           />
           <FormRadioCard
-            label="Travel to Antalya"
+            label={tr("Travel to Antalya")}
             selected={track === "in_person"}
             onSelect={() => setTrack("in_person")}
           />

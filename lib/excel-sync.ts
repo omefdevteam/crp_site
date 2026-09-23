@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
-import { and, eq, isNull, lte, or } from "drizzle-orm";
-import { applyDecision } from "@/lib/decisions";
-import { excelCursors, excelSyncState, getDb, type Db } from "@/lib/db";
+import { and, eq, inArray, isNull, lte, or } from "drizzle-orm";
+import { applyDecision, decisionHash } from "@/lib/decisions";
+import { decisionReceipts, excelCursors, excelSyncState, getDb, type Db } from "@/lib/db";
 import {
   APPLICANT_SYSTEM,
   EXCEL_TABLES,
@@ -85,14 +85,26 @@ async function pushDecisions(db: Db, workbook: ReviewWorkbook) {
 
   const outcomes: { applicantId: string; result: string }[] = [];
   let invalid = 0;
-  for (const row of pending.slice(0, DECISION_LIMIT)) {
+  const [state] = await db.select().from(excelSyncState).where(eq(excelSyncState.singleton, true));
+  const offset = pending.length ? (state?.decisionOffset ?? 0) % pending.length : 0;
+  const batch = [...pending.slice(offset), ...pending.slice(0, offset)].slice(0, DECISION_LIMIT);
+  const ids = batch.map((row) => row.input.decisionId).filter((id): id is string => typeof id === "string");
+  const receipts = ids.length ? await db.select().from(decisionReceipts).where(inArray(decisionReceipts.id, ids)) : [];
+  const byId = new Map(receipts.map((receipt) => [receipt.id, receipt]));
+  for (const row of batch) {
     let decisionId = typeof row.input.decisionId === "string" ? row.input.decisionId : "";
-    const generated = !decisionId;
+    let generated = !decisionId;
     if (generated) decisionId = randomUUID();
     const parsed = decisionRow.safeParse({ ...row.input, decisionId });
     if (!parsed.success) {
       invalid += 1;
       continue;
+    }
+    const receipt = byId.get(decisionId);
+    if (receipt && (receipt.applicantId !== parsed.data.applicantId || receipt.requestHash !== decisionHash(parsed.data))) {
+      decisionId = randomUUID();
+      parsed.data.decisionId = decisionId;
+      generated = true;
     }
     if (generated) {
       const next = padRow(row.values, sheet.headers.length);
@@ -102,6 +114,8 @@ async function pushDecisions(db: Db, workbook: ReviewWorkbook) {
     const outcome = await applyDecision(db, parsed.data);
     outcomes.push({ applicantId: outcome.applicantId, result: outcome.result });
   }
+  await db.update(excelSyncState).set({ decisionOffset: pending.length ? (offset + batch.length) % pending.length : 0 })
+    .where(eq(excelSyncState.singleton, true));
   return { attempted: outcomes.length, invalid, outcomes };
 }
 

@@ -1,30 +1,21 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { cookies } from "next/headers";
+import { requestLocale, requestPath } from "@/lib/request-locale";
 import { LanguageProvider } from "@/components/LanguageProvider";
-import { LOCALE_COOKIE, parseLocale } from "@/lib/locale";
-import { copyFor } from "@/lib/messages";
 import { outfit } from "@/lib/fonts";
 import "./globals.css";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
-  const meta = copyFor(locale).meta.home;
-  return {
-    title: meta.title,
-    description: meta.description,
-  };
-}
+export const metadata: Metadata = { title: "Climate Refugee Pavilion", robots: { index: false, follow: false } };
 
 export default async function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
-  const locale = parseLocale((await cookies()).get(LOCALE_COOKIE)?.value);
+  const locale = await requestLocale();
 
   return (
-    <html lang={locale} suppressHydrationWarning className={`${outfit.variable} h-full antialiased`}>
+    <html lang={locale} className={`${outfit.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col overflow-x-hidden">
-        <LanguageProvider initialLocale={locale}>{children}</LanguageProvider>
+        <LanguageProvider initialLocale={locale} initialPath={await requestPath()}>{children}</LanguageProvider>
       </body>
     </html>
   );

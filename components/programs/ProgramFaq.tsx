@@ -46,11 +46,11 @@ export function ProgramFaq() {
                 </span>
                 <PlusMinus open={isOpen} />
               </button>
-              {isOpen ? (
-                <p className="text-[18px] font-normal leading-[1.2] tracking-[-0.8px] text-black/84 desk:text-[20px]">
+              {(
+                <p hidden={!isOpen} className="text-[18px] font-normal leading-[1.2] tracking-[-0.8px] text-black/84 desk:text-[20px]">
                   {item.a}
                 </p>
-              ) : null}
+              )}
               <div className="h-px w-full bg-black/15" />
             </div>
           );

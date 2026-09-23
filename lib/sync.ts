@@ -84,7 +84,7 @@ export function applicantSyncRow(a: Applicant) {
     hasValidPassport: a.hasValidPassport,
     language: a.language,
     status: a.status,
-    round1Link: a.round1Link,
+    round1Link: null, // Private form references are delivered only to the verified applicant.
     round1CompletedAt: a.round1CompletedAt,
     identityStatus: a.identityStatus,
     identityCheckedAt: a.identityCheckedAt,

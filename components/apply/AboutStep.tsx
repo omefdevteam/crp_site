@@ -1,11 +1,15 @@
 "use client";
 
+import { useText } from "@/lib/ui-text";
+
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { applicationLocales, nativeLanguageNames, type ApplicationLocale, localePath } from "@/lib/locale";
 import { COUNTRIES, type Country } from "@/lib/countries";
 import { ageFromDob, minApplicantAge, maxApplicantAge } from "@/lib/capture";
 import { submitInterest, requestApplicationLink } from "@/lib/actions";
+import { locales } from "@/lib/locale";
 import { useLanguage } from "../LanguageProvider";
 import { Turnstile, TURNSTILE_SITE_KEY } from "../Turnstile";
 import { CountryDropdown } from "./CountryDropdown";
@@ -16,9 +20,10 @@ import { FormRadioCard } from "./FormRadioCard";
 import { FormCheckRow } from "./FormCheckRow";
 import { FIELD, PLACEHOLDER } from "./fieldStyles";
 
-type ToastKind = "interest" | "success" | "already" | "existing" | "link-sent" | "link-failed";
+type ToastKind = "interest" | "success" | "existing" | "link-sent" | "link-failed";
 
 export type AboutData = {
+  language: ApplicationLocale;
   fullName: string;
   email: string;
   dob: string;
@@ -33,7 +38,7 @@ export type AboutData = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const GHANA = COUNTRIES.find((c) => c.name === "Ghana") ?? COUNTRIES[0];
+const GHANA = COUNTRIES.find((c) => c.code === "GH") ?? COUNTRIES[0];
 
 export function AboutStep({
   onBack,
@@ -51,8 +56,10 @@ export function AboutStep({
   // The address has already applied: offer to email its owner a resume link.
   existing?: boolean;
 }) {
+  const tr = useText();
   const { locale, setLocale } = useLanguage();
   const router = useRouter();
+  const [applicationLanguage, setApplicationLanguage] = useState<ApplicationLocale>(locale === "fr" ? "fr" : locale === "es" ? "es" : "en");
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -115,6 +122,7 @@ export function AboutStep({
       return;
     }
     onSubmit({
+      language: applicationLanguage,
       fullName: fullName.trim(),
       email: email.trim(),
       dob,
@@ -146,8 +154,8 @@ export function AboutStep({
         setInterestBusy(false);
         return;
       }
-      setToast(res.already ? "already" : "success");
-      if (!res.already) window.setTimeout(() => router.push("/"), 3000);
+      setToast("success");
+      window.setTimeout(() => router.push(localePath("/", locale)), 3000);
     } catch (err) {
       console.error("[apply] interest failed", err);
       setInterestBusy(false);
@@ -177,7 +185,7 @@ export function AboutStep({
         <button
           type="button"
           onClick={onBack}
-          aria-label="Back"
+          aria-label={tr("Back")}
           className="grid size-9 place-items-center rounded-full bg-white shadow-sm"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -185,7 +193,7 @@ export function AboutStep({
         </button>
 
         <div className="flex items-center rounded-full bg-white p-1">
-          {(["en", "fr"] as const).map((code) => (
+          {locales.map((code) => (
             <button
               key={code}
               type="button"
@@ -206,8 +214,7 @@ export function AboutStep({
         <div className="flex max-h-full w-full max-w-[960px] flex-col overflow-hidden rounded-[36px] bg-white px-5 py-5 desk:rounded-[64px] desk:px-0 desk:py-8">
           <div className="mx-auto flex min-h-0 w-full max-w-[632px] flex-col overflow-y-auto">
             <h1 className="text-center text-[26px] leading-[0.9] tracking-[-1.04px] text-black desk:text-[48px] desk:tracking-[-1.92px]">
-              More about you
-            </h1>
+              {tr("More about you")}</h1>
 
             <div className="mt-5 flex flex-col gap-1.5 desk:mt-7 desk:gap-2">
               {/* Name + DOB */}
@@ -217,8 +224,8 @@ export function AboutStep({
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="*NAME"
-                    aria-label="Full name"
+                    placeholder={tr("*NAME")}
+                    aria-label={tr("Full name")}
                     className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
                   />
                 </div>
@@ -232,8 +239,8 @@ export function AboutStep({
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="*EMAIL"
-                    aria-label="Email"
+                    placeholder={tr("*EMAIL")}
+                    aria-label={tr("Email")}
                     spellCheck={false}
                     className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
                   />
@@ -244,8 +251,8 @@ export function AboutStep({
                     type="tel"
                     value={mobile}
                     onChange={(e) => setMobile(e.target.value)}
-                    placeholder="MOBILE"
-                    aria-label="Mobile number"
+                    placeholder={tr("MOBILE")}
+                    aria-label={tr("Mobile number")}
                     className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
                   />
                 </div>
@@ -253,31 +260,38 @@ export function AboutStep({
 
               {/* Nationality + based in */}
               <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
-                <CountryDropdown variant="field" label="Nationality" value={nationality} onChange={setNationality} />
-                <CountryDropdown variant="field" label="Currently based in" value={basedIn} onChange={setBasedIn} />
+                <CountryDropdown variant="field" label={tr("Nationality")} value={nationality} onChange={setNationality} />
+                <CountryDropdown variant="field" label={tr("Currently based in")} value={basedIn} onChange={setBasedIn} />
               </div>
 
               {/* Program radios */}
               <div className="mt-0.5 flex">
-                <FormRadioCard label="Only program" selected={track === "online"} onSelect={() => setTrack("online")} />
-                <FormRadioCard label="Travel to Antalya" selected={track === "in_person"} onSelect={() => setTrack("in_person")} />
+                <FormRadioCard label={tr("Only program")} selected={track === "online"} onSelect={() => setTrack("online")} />
+                <FormRadioCard label={tr("Travel to Antalya")} selected={track === "in_person"} onSelect={() => setTrack("in_person")} />
               </div>
 
               {track === "in_person" ? (
                 <div className="mt-6 flex flex-col gap-1.5 desk:mt-8 desk:gap-2">
                   <FormCheckRow
-                    label="Can you travel out of the country you're located in"
+                    label={tr("Can you travel out of the country you're located in")}
                     checked={canTravel}
                     onToggle={() => setCanTravel((v) => !v)}
                   />
                   <FormCheckRow
-                    label="Do you have a passport valid for six months after the dates of travel?"
+                    label={tr("Do you have a passport valid for six months after the dates of travel?")}
                     checked={hasValidPassport}
                     onToggle={() => setHasValidPassport((v) => !v)}
                   />
                 </div>
               ) : null}
 
+              <label className="flex flex-col gap-2 rounded-3xl bg-white p-4 text-sm">
+                {tr("Application language")}
+                <select value={applicationLanguage} onChange={(event) => setApplicationLanguage(event.target.value as ApplicationLocale)} className="rounded-xl border border-black/20 p-3">
+                  {applicationLocales.map((code) => <option key={code} value={code}>{nativeLanguageNames[code]}</option>)}
+                </select>
+                <span>{tr("Choose English, French, or Spanish for your application, interviews, and emails.")}</span>
+              </label>
               {error ? (
                 <p role="alert" className="text-center text-[13px] text-magenta">
                   {error}
@@ -293,45 +307,31 @@ export function AboutStep({
         {shown === "interest" ? (
           <Toast
             variant="error"
-            action={{ label: "I'm interested", onClick: handleInterested }}
+            action={{ label: tr("I'm interested"), onClick: handleInterested }}
             onClose={() => setToast(null)}
           >
-            This program is only for 19-26 year old individuals. To stay updated
-            on upcoming programs you&apos;ll be eligible for, click on the I&apos;m
-            interested button.
-          </Toast>
-        ) : shown === "already" ? (
-          <Toast variant="error" onClose={() => setToast(null)}>
-            Your interest has already been recorded.
-          </Toast>
+            {tr("This program is only for 19-26 year old individuals. To stay updated on upcoming programs you'll be eligible for, click on the I'm interested button.")}</Toast>
         ) : shown === "success" ? (
           <Toast variant="success" onClose={() => setToast(null)}>
-            Your interest has been recorded, stay tuned for future programs. We
-            hope to see you very soon!
-          </Toast>
+            {tr("Check your email and confirm your interest to receive updates about future programs.")}</Toast>
         ) : shown === "existing" ? (
           <Toast
             variant="error"
-            action={{ label: linkBusy ? "Sending…" : "Email me my link", onClick: handleResendLink }}
+            action={{ label: linkBusy ? tr("Sending…") : tr("Email me my link"), onClick: handleResendLink }}
             onClose={() => setFollowup("closed")}
           >
-            An application already exists for this email. We can send a
-            single-use link to that address so you can continue where you left off.
-          </Toast>
+            {tr("An application already exists for this email. We can send a single-use link to that address so you can continue where you left off.")}</Toast>
         ) : shown === "link-sent" ? (
           <Toast variant="success" onClose={() => setFollowup("closed")}>
-            If that address has an application, a link to continue is on its way.
-            It works once and expires in 30 minutes.
-          </Toast>
+            {tr("If that address has an application, a link to continue is on its way. It works once and expires in 30 minutes.")}</Toast>
         ) : shown === "link-failed" ? (
           <Toast variant="error" onClose={() => setFollowup("closed")}>
-            We couldn&apos;t send the link just now. Please wait a moment and try again.
-          </Toast>
+            {tr("We couldn't send the link just now. Please wait a moment and try again.")}</Toast>
         ) : null}
 
         <Turnstile key={challengeKey} onToken={setTurnstileToken} size="compact" />
         <ContinueButton
-          label={submitting ? "One moment…" : "Continue"}
+          label={submitting ? tr("One moment…") : tr("Continue")}
           disabled={!canSubmit || submitting || shown !== null}
           onClick={handleSubmit}
           className={shown ? "pointer-events-none opacity-60 blur-[6px]" : ""}

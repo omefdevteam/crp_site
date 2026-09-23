@@ -7,21 +7,18 @@ import {
   type Db,
 } from "@/lib/db";
 import { appUrl } from "@/lib/config";
-import { issueAccessToken, RESUME_TOKEN_TTL_SECONDS } from "@/lib/access";
 import {
   ageFromDob,
   minApplicantAge,
   maxApplicantAge,
-  withApplicantId,
-  videoAskBase,
   CONSENT_VERSION,
   type ApplicationInput,
 } from "@/lib/capture";
-import { applicationEmail, identityEmail, resumeEmail } from "@/lib/emails";
+import { applicationEmail, identityEmail } from "@/lib/emails";
 import { getIdentityProvider } from "@/lib/identity";
 import { enqueue, enqueueEmail } from "@/lib/jobs";
-import { reconcileIdentity } from "@/lib/application-status";
-import { recordCreation, transition, updateApplicant } from "@/lib/lifecycle";
+import { videoaskLink } from "@/lib/videoask";
+import { recordCreation, updateApplicant } from "@/lib/lifecycle";
 
 // The applicant journey as database operations. Each function is one unit of
 // work: everything that must be true together is written in one transaction,
@@ -32,6 +29,7 @@ export type CreateApplicationResult =
   | { ok: false; reason: "ineligible" | "existing" };
 
 export async function createApplication(db: Db, input: ApplicationInput): Promise<CreateApplicationResult> {
+  if (input.consent !== true) throw new Error("explicit consent required");
   const { fullName, email, dob, language, track, phone, nationality, basedIn, skills, canTravel, hasValidPassport } = input;
 
   // Silent server-side backstop for the 19-26 window; the form gates too.
@@ -39,8 +37,7 @@ export async function createApplication(db: Db, input: ApplicationInput): Promis
   if (age < minApplicantAge() || age > maxApplicantAge()) return { ok: false, reason: "ineligible" };
 
   const id = randomUUID();
-  const base = videoAskBase("round1", language);
-  const round1Link = base ? withApplicantId(base, id) : null;
+  const round1Link = videoaskLink(id, "round1", language);
 
   return db.transaction(async (tx) => {
     const [inserted] = await tx
@@ -69,7 +66,10 @@ export async function createApplication(db: Db, input: ApplicationInput): Promis
 
     await tx.insert(consentLog).values({ applicantId: id, kind: "data_processing", version: CONSENT_VERSION });
     await recordCreation(tx, inserted, "applicant", "application submitted");
-    await enqueueEmail(tx, `email:application:${id}`, { to: email, ...applicationEmail(fullName, round1Link, language) }, "application", id);
+    // Validate/render the acknowledgement inside the transaction; the worker
+    // replaces its CTA with a short-lived confirmation link at delivery.
+    await enqueue(tx, { kind: "email", dedupeKey: `email:application:${id}`, applicantId: id,
+      payload: { to: email, name: fullName, language, template: "application", subject: applicationEmail(fullName, null, language).subject } });
     return { ok: true, id, round1Link } as const;
   });
 }
@@ -81,29 +81,12 @@ export async function requestResumeLink(db: Db, email: string): Promise<{ queued
   return db.transaction(async (tx) => {
     const [applicant] = await tx.select().from(applicants).where(eq(applicants.email, email));
     if (!applicant) return { queued: false };
-    const token = await issueAccessToken(tx, applicant.id, "resume", RESUME_TOKEN_TTL_SECONDS);
-    const link = `${appUrl()}/api/apply/resume?token=${encodeURIComponent(token.raw)}`;
-    // Dedupe on the token hash: each request is its own email, but a retried
-    // request for the same token is not.
-    await enqueueEmail(tx, `email:resume:${token.hash}`, { to: applicant.email, ...resumeEmail(applicant.fullName, link, applicant.language) }, "resume", applicant.id);
-    return { queued: true };
-  });
-}
-
-// VideoAsk's completion redirect lands on /api/apply/verify. That browser hit
-// is the Round 1 completion signal when the VideoAsk webhook is missing or
-// delayed; a later webhook for the same stage is a no-op.
-export async function completeRound1FromRedirect(db: Db, applicantId: string): Promise<void> {
-  await db.transaction(async (tx) => {
-    await transition(tx, {
-      applicantId,
-      to: "round1_complete",
-      actor: "applicant",
-      reason: "round 1 form completed",
-      allowFrom: ["submitted"],
-      patch: { round1CompletedAt: new Date() },
+    // The worker mints the token immediately before delivery, not while queued.
+    await enqueue(tx, {
+      kind: "email", dedupeKey: `email:resume:${randomUUID()}`, applicantId: applicant.id,
+      payload: { template: "resume", to: applicant.email, name: applicant.fullName, language: applicant.language },
     });
-    await reconcileIdentity(tx, applicantId);
+    return { queued: true };
   });
 }
 
@@ -112,13 +95,12 @@ export function nextStepUrl(applicant: Applicant): string {
   const site = appUrl();
   switch (applicant.status) {
     case "submitted":
-      return applicant.round1Link ?? `${site}/apply/complete`;
+      return videoaskLink(applicant.id, "round1", applicant.language) ?? `${site}/apply/complete`;
     case "round1_complete":
     case "id_failed":
       return applicant.identityLink ?? `${site}/api/apply/verify`;
     case "interview_yes": {
-      const base = videoAskBase("round2", applicant.language);
-      return base ? withApplicantId(base, applicant.id) : `${site}/apply/complete`;
+      return videoaskLink(applicant.id, "round2", applicant.language) ?? `${site}/apply/complete`;
     }
     default:
       return `${site}/apply/complete`;
@@ -130,7 +112,7 @@ export function nextStepUrl(applicant: Applicant): string {
 // a refresh, a double webhook, or a worker retry never opens a second session.
 export async function provisionIdentitySession(db: Db, applicantId: string): Promise<{ url: string | null; created: boolean }> {
   const [existing] = await db.select().from(applicants).where(eq(applicants.id, applicantId));
-  if (!existing) return { url: null, created: false };
+  if (!existing?.emailVerifiedAt || !["round1_complete", "id_failed"].includes(existing.status)) return { url: null, created: false };
   if (existing.identityLink) return { url: existing.identityLink, created: false };
 
   const callback = `${appUrl()}/apply/complete`;

@@ -14,6 +14,7 @@ export function loader(mocks = {}) {
     }
     if (!fs.existsSync(file)) file += fs.existsSync(`${file}.ts`) ? ".ts" : ".tsx";
     if (cache.has(file)) return cache.get(file).exports;
+    if (file.endsWith(".json")) return JSON.parse(fs.readFileSync(file, "utf8"));
     const mod = { exports: {} };
     cache.set(file, mod);
     const output = ts.transpileModule(fs.readFileSync(file, "utf8"), {

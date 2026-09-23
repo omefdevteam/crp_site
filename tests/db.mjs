@@ -3,6 +3,8 @@ import os from "node:os";
 import path from "node:path";
 import EmbeddedPostgres from "embedded-postgres";
 import pg from "pg";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 // A throwaway PostgreSQL cluster for one test run, migrated with the same SQL
 // files production runs. Nothing is mocked below the application code, so the
@@ -15,7 +17,7 @@ export async function startDatabase() {
     user: "postgres",
     password: "postgres",
     port,
-    persistent: false,
+    persistent: true, // Cleanup below verifies the exact temporary path first.
     onLog: () => {},
     onError: () => {},
   });
@@ -38,7 +40,21 @@ export async function startDatabase() {
   return {
     url,
     async stop() {
-      try { await cluster.stop(); } catch { /* already stopped */ }
+      if (path.dirname(path.resolve(databaseDir)) !== path.resolve(os.tmpdir()) || !path.basename(databaseDir).startsWith("crp-pg-")) {
+        throw new Error("refusing to remove a directory outside the test database location");
+      }
+      const stopping = cluster.stop();
+      // embedded-postgres uses taskkill /t on Windows, which can stall in a
+      // restricted shell. pg_ctl signals this exact cluster without WMI.
+      if (process.platform === "win32" && fs.existsSync(path.join(databaseDir, "postmaster.pid"))) {
+        const { pg_ctl } = await import("@embedded-postgres/windows-x64");
+        try {
+          await promisify(execFile)(pg_ctl, ["stop", "-D", databaseDir, "-m", "fast", "-W"], { windowsHide: true, timeout: 15_000 });
+        } catch (err) {
+          if (fs.existsSync(path.join(databaseDir, "postmaster.pid"))) throw err;
+        }
+      }
+      await stopping;
       // Windows keeps file handles briefly after the process exits.
       for (let i = 0; i < 5; i++) {
         try {
