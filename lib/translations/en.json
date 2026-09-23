@@ -76,6 +76,18 @@
     "heroTitle": "Partner with us",
     "heroBody": "Support the whole organization",
     "reachOut": "Reach out",
+    "waysLabel": "Ways to contribute",
+    "ways": ["Funds", "Venues", "Perks", "Resources"],
+    "waysBody": "can be used towards supporting programs we highlight, our own programs, missions to engage our members",
+    "rewardsTitle": "Rewards for you",
+    "rewards": [
+      "Matchmaking at our online and in-person pavilion events",
+      "Access to our growing network",
+      "Participation in pavilion talks online or in person",
+      "Premium access to climate events",
+      "Featured logo in content, or posts, or full story sponsor on site",
+      "Feature on site, and/or in Pavilions"
+    ],
     "ambassador": "Support an ambassador program",
     "storyline": "Support a specific storyline",
     "speaker": "Apply as a speaker"

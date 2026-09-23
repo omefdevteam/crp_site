@@ -76,6 +76,18 @@
     "heroTitle": "Devenez partenaire",
     "heroBody": "Soutenez l'ensemble de l'organisation",
     "reachOut": "Nous écrire",
+    "waysLabel": "Façons de contribuer",
+    "ways": ["Fonds", "Lieux", "Avantages", "Ressources"],
+    "waysBody": "peuvent servir à soutenir les programmes que nous mettons en avant, nos propres programmes et des missions pour mobiliser nos membres",
+    "rewardsTitle": "Ce que vous y gagnez",
+    "rewards": [
+      "Mises en relation lors de nos événements du pavillon, en ligne et en personne",
+      "Accès à notre réseau en croissance",
+      "Participation aux échanges du pavillon, en ligne ou en personne",
+      "Accès privilégié aux événements climat",
+      "Logo mis en avant dans les contenus, les publications, ou en tant que sponsor d'une histoire sur le site",
+      "Présence sur le site et/ou dans les pavillons"
+    ],
     "ambassador": "Soutenir un programme d'ambassadeurs",
     "storyline": "Soutenir une histoire précise",
     "speaker": "Postuler comme intervenant·e"

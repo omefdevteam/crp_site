@@ -76,6 +76,18 @@
     "heroTitle": "Seja nosso parceiro",
     "heroBody": "Apoie toda a organização",
     "reachOut": "Contactar",
+    "waysLabel": "Formas de contribuir",
+    "ways": ["Fundos", "Espaços", "Vantagens", "Recursos"],
+    "waysBody": "podem ser usados para apoiar os programas que destacamos, os nossos próprios programas e missões para envolver os nossos membros",
+    "rewardsTitle": "Recompensas para si",
+    "rewards": [
+      "Ligações nos nossos eventos do pavilhão, online e presenciais",
+      "Acesso à nossa rede em crescimento",
+      "Participação em conversas do pavilhão, online ou presencialmente",
+      "Acesso privilegiado a eventos sobre o clima",
+      "Logótipo em destaque em conteúdos, publicações ou como patrocinador de uma história no site",
+      "Presença no site e/ou nos pavilhões"
+    ],
     "ambassador": "Apoiar um programa de embaixadores",
     "storyline": "Apoiar uma história específica",
     "speaker": "Candidatar-me como orador"
