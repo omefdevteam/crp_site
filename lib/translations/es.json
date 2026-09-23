@@ -40,24 +40,29 @@
   "aboutUs": {
     "heroTitle": "Quiénes somos",
     "heroBody": "Promovemos el conocimiento sobre la movilidad climática reuniendo saberes locales, dando voz a las experiencias vividas y conectando a personas para comprender lo que significa la movilidad climática en distintos lugares.",
-    "statement": "El Climate Refugee Pavilion ofrece un espacio en la COP30 para situar la movilidad humana en el centro de las negociaciones climáticas y dar voz a las comunidades directamente afectadas por los desplazamientos relacionados con el clima.",
+    "statement": "La movilidad climática es compleja.\nQuienes la viven y trabajan en ella la entienden mejor.\nSu conocimiento debe ayudar a dar forma a las decisiones que siguen.\nNuestro papel es ayudar a que esas voces lleguen más lejos.",
     "statementTag": "Hacemos que la movilidad climática sea imposible de ignorar",
     "whatTitle": "Qué hacemos",
     "whatBody": "Desde 2020 trabajamos sobre el terreno en Zimbabue, Mozambique y Sudáfrica, apoyando a personas afectadas por el cambio climático y colaborando con instituciones. Descubrimos que la palabra «refugiado» genera controversia y redoblamos nuestros esfuerzos: hoy construimos una plataforma para mejorar la comprensión de la movilidad climática en todo el mundo.",
     "cards": [
       {
-        "title": "Conectar a las personas",
-        "body": "Exploramos formas de impulsar un cambio positivo"
+        "label": "1. Plataforma",
+        "title": "Reunir y conectar saberes locales"
       },
       {
-        "title": "Contar historias",
-        "body": "Nuestra misión busca generar un impacto significativo"
+        "label": "2. Historias",
+        "title": "Hacerlas comprensibles"
       },
       {
-        "title": "Impulsar el cambio",
-        "body": "Actuamos para marcar la diferencia"
+        "label": "3. Embajadores",
+        "title": "Amplificar voces y activar a las personas"
+      },
+      {
+        "label": "4. Pabellón",
+        "title": "Reunir a las personas"
       }
     ],
+    "homeTopics": ["Humanos", "Orígenes", "Movimiento", "Evolución"],
     "teamTitle": "Equipo",
     "teamQuote": "«El programa da voz a jóvenes activistas por el clima y les ofrece herramientas para defender sus propuestas en la COP31».",
     "memberName": "Jane Doe",
