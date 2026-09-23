@@ -38,7 +38,7 @@ export type AboutData = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const GHANA = COUNTRIES.find((c) => c.name === "Ghana") ?? COUNTRIES[0];
+const GHANA = COUNTRIES.find((c) => c.code === "GH") ?? COUNTRIES[0];
 
 export function AboutStep({
   onBack,

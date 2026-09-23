@@ -11,7 +11,7 @@ import { Turnstile, TURNSTILE_SITE_KEY } from "../Turnstile";
 import { FIELD, PLACEHOLDER } from "../apply/fieldStyles";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const GHANA = COUNTRIES.find((c) => c.name === "Ghana") ?? COUNTRIES[0];
+const GHANA = COUNTRIES.find((c) => c.code === "GH") ?? COUNTRIES[0];
 
 export type NominatorData = {
   nominatorName: string;

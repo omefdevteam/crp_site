@@ -12,7 +12,7 @@ import { ContinueButton } from "../apply/ContinueButton";
 import { FIELD, PLACEHOLDER } from "../apply/fieldStyles";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const GHANA = COUNTRIES.find((c) => c.name === "Ghana") ?? COUNTRIES[0];
+const GHANA = COUNTRIES.find((c) => c.code === "GH") ?? COUNTRIES[0];
 
 export type NomineeData = {
   nomineeName: string;
