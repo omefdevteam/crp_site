@@ -7,7 +7,6 @@ import { Footer } from "@/components/Footer";
 import { GetInvolved } from "@/components/GetInvolved";
 import { GetInvolvedPill } from "@/components/GetInvolvedPill";
 import { Header } from "@/components/Header";
-import { Sponsors } from "@/components/Sponsors";
 import { outfit } from "@/lib/fonts";
 
 export async function generateMetadata(): Promise<Metadata> { return pageMetadata(await requestLocale(), "about"); }
@@ -20,7 +19,6 @@ export default function AboutRoute() {
       <main className="flex-1">
         <AboutPage />
         <GetInvolved embedded />
-        <Sponsors />
       </main>
       <Footer />
       <GetInvolvedPill />

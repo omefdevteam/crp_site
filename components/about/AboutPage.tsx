@@ -1,309 +1,457 @@
 "use client";
 
-import type { ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
 import { useCopy } from "../LanguageProvider";
+import { TicketTab } from "../TicketTab";
 import { trail } from "@/lib/fonts";
-import { aboutTeamPhotos } from "@/lib/about-assets";
+import { aboutImages, aboutTeamPhotos } from "@/lib/about-assets";
+import type { Pin } from "@/lib/pins";
+import { PlatformGlobe } from "../platform/PlatformGlobe";
 
-const HOME_STILLS = [
-  aboutTeamPhotos[3],
-  aboutTeamPhotos[6],
-  aboutTeamPhotos[10],
-  aboutTeamPhotos[14],
-] as const;
+function FitWidth({
+  designWidth,
+  designHeight,
+  cap = false,
+  className = "",
+  children,
+}: {
+  designWidth: number;
+  designHeight: number;
+  cap?: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
 
-function FaceGlobe() {
-  const outer = aboutTeamPhotos.slice(0, 8);
-  const inner = aboutTeamPhotos.slice(8, 14);
-
-  const place = (index: number, count: number, radius: number) => {
-    const angle = (index / count) * Math.PI * 2 - Math.PI / 2;
-    return {
-      left: `${50 + Math.cos(angle) * radius}%`,
-      top: `${50 + Math.sin(angle) * radius}%`,
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const next = el.clientWidth / designWidth;
+      setScale(cap ? Math.min(1, next) : next);
     };
-  };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [designWidth, cap]);
 
   return (
-    <div aria-hidden className="relative size-[min(92vw,460px)] desk:size-[560px]">
-      <div className="absolute left-1/2 top-1/2 size-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,#6d5cff_0%,rgba(109,92,255,0.35)_46%,transparent_70%)]" />
-      {outer.map((photo, index) => (
-        <span
-          key={photo}
-          className="absolute size-[18%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full ring-2 ring-white/80"
-          style={place(index, outer.length, 38)}
-        >
-          <Image src={photo} alt="" fill className="object-cover" sizes="100px" />
-        </span>
-      ))}
-      {inner.map((photo, index) => (
-        <span
-          key={photo}
-          className="absolute size-[13%] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full ring-2 ring-white/80"
-          style={place(index, inner.length, 22)}
-        >
-          <Image src={photo} alt="" fill className="object-cover" sizes="72px" />
-        </span>
-      ))}
+    <div
+      ref={ref}
+      className={`relative w-full ${className}`}
+      style={{ height: designHeight * scale }}
+    >
+      <div
+        className="absolute left-0 top-0 origin-top-left"
+        style={{
+          width: designWidth,
+          height: designHeight,
+          transform: `scale(${scale})`,
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 }
 
-function PhotoPin({
+function Glow({
   src,
   className,
-  clipId,
+  inset,
 }: {
   src: string;
-  className?: string;
-  clipId: string;
-}) {
-  return (
-    <svg viewBox="0 0 58 70" className={className} aria-hidden>
-      <defs>
-        <clipPath id={clipId}>
-          <circle cx="29" cy="29" r="26" />
-        </clipPath>
-      </defs>
-      <path d="M8.494 49.506A29 29 0 1 1 49.506 49.506L29 70.015Z" fill="white" />
-      <image
-        href={src}
-        x="3"
-        y="3"
-        width="52"
-        height="52"
-        clipPath={`url(#${clipId})`}
-        preserveAspectRatio="xMidYMid slice"
-      />
-    </svg>
-  );
-}
-
-function WorkCard({
-  label,
-  title,
-  className,
-  titleClass,
-  children,
-}: {
-  label: string;
-  title: string;
   className: string;
-  titleClass: string;
-  children?: ReactNode;
+  inset: string;
 }) {
   return (
-    <article className={`relative aspect-square overflow-hidden rounded-[28px] p-4 desk:rounded-[40px] desk:p-6 ${className}`}>
-      {children}
-      <div className={`relative z-10 flex h-full flex-col ${titleClass}`}>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] desk:text-[13px]">{label}</p>
-        <p className="mt-3 max-w-[12ch] text-[22px] leading-[0.95] tracking-[-0.04em] desk:text-[32px]">
-          {title}
-        </p>
-      </div>
-    </article>
+    <div aria-hidden className={className}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img alt="" src={src} className="absolute max-w-none" style={{ inset }} />
+    </div>
   );
 }
 
-function TeamMember({
+function GlassOrb({
+  icon,
+  pad,
+  blur,
+  opacity = 1,
+  className,
+}: {
+  icon: string;
+  pad: number;
+  blur?: number;
+  opacity?: number;
+  className: string;
+}) {
+  return (
+    <div
+      aria-hidden
+      className={`absolute flex items-center rounded-full border-solid border-white/72 ${className}`}
+      style={{
+        padding: pad,
+        opacity,
+        borderWidth: pad / 16,
+        filter: blur ? `blur(${blur}px)` : undefined,
+      }}
+    >
+      <div
+        className="absolute inset-0 rounded-full bg-black/64"
+        style={{ backdropFilter: `blur(${pad * 0.75}px)` }}
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img alt="" src={icon} className="relative size-full" style={{ width: pad, height: pad }} />
+    </div>
+  );
+}
+
+function WorkLabel({ children, className }: { children: string; className?: string }) {
+  return (
+    <p
+      className={`relative z-10 min-w-full text-[16px] font-semibold uppercase leading-[0.9] tracking-[1.28px] ${className ?? "text-black"}`}
+    >
+      {children}
+    </p>
+  );
+}
+
+function WorkTitle({
+  children,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) {
+  return (
+    <p
+      className={`relative z-10 text-[32px] font-normal leading-none tracking-[-1.28px] ${className ?? "text-black"}`}
+    >
+      {children}
+    </p>
+  );
+}
+
+function TeamCard({
   photo,
   name,
   role,
+  lead = false,
 }: {
   photo: string;
   name: string;
   role: string;
+  lead?: boolean;
 }) {
   return (
-    <div className="flex w-[108px] flex-col items-center gap-3 desk:w-[160px]">
-      <div className="relative size-[108px] overflow-hidden rounded-full desk:size-[160px]">
-        <Image src={photo} alt="" fill className="object-cover" sizes="160px" />
-      </div>
-      <div className="text-center text-white">
-        <p className="text-[14px] leading-none tracking-[-0.04em] desk:text-[20px]">{name}</p>
-        <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/60 desk:text-[12px]">
-          {role}
+    <article
+      className={`relative h-[200px] shrink-0 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        lead ? "w-[200px] group-hover/lead:w-[320px]" : "w-[200px]"
+      }`}
+    >
+      <div className="absolute inset-0 overflow-hidden rounded-[64px]">
+        <Image src={photo} alt="" fill className="object-cover" sizes="320px" />
+        <div
+          className={`absolute inset-0 bg-black/48 transition-opacity duration-500 ${
+            lead ? "group-hover/lead:opacity-0" : ""
+          }`}
+        />
+        <p className="absolute bottom-6 left-0 right-0 px-8 text-center text-[24px] leading-none tracking-[-0.96px] text-white">
+          {name}
         </p>
       </div>
-    </div>
+      <TicketTab placement="top" ink label={role} />
+    </article>
   );
 }
 
 export function AboutPage() {
   const copy = useCopy();
   const a = copy.aboutUs;
-  const [first, second, third, ...rest] = aboutTeamPhotos;
+  const statementLines = a.statement.split("\n");
+  const teamPins: Pin[] = aboutTeamPhotos.map((image, index) => {
+    const band = (index + 0.5) / aboutTeamPhotos.length;
+    return {
+      id: `team-${index + 1}`,
+      kind: "photo",
+      group: "ambassadors",
+      city: a.memberName,
+      lat: Math.asin(1 - 2 * band) * (180 / Math.PI) * 0.72,
+      lng: ((index * 137.508) % 360) - 180,
+      image,
+    };
+  });
+  const [left, featured, right, ...rest] = aboutTeamPhotos;
+  const teamRows: string[][] = [];
+  for (let i = 0; i < rest.length; i += 3) {
+    teamRows.push(rest.slice(i, i + 3));
+  }
 
   return (
     <div className="overflow-x-hidden bg-cream">
-      <section className="relative flex min-h-[820px] items-center justify-center overflow-hidden px-5 pb-24 pt-28 desk:min-h-[960px] desk:px-16 desk:pb-32 desk:pt-32">
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse 55% 48% at 50% 42%, rgba(98, 78, 255, 0.72) 0%, rgba(196, 75, 212, 0.2) 42%, transparent 68%), linear-gradient(180deg, #ff4d9a 0%, #d24ad8 34%, #7d6cff 68%, #f7b7d4 100%)",
-          }}
+      <section className="relative flex min-h-[100svh] items-center justify-center overflow-hidden px-5 pb-16 pt-28 desk:min-h-[805px] desk:px-16 desk:pb-[96px] desk:pt-[120px]">
+        <Image
+          src={aboutImages.heroBg}
+          alt=""
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
         />
-        <div aria-hidden className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-b from-transparent to-cream desk:h-36" />
-        <div className="relative z-10 flex w-full max-w-[760px] flex-col items-center">
-          <div className="relative flex items-center justify-center">
-            <FaceGlobe />
-            <h1
-              className={`${trail.className} absolute left-1/2 top-1/2 w-[8ch] -translate-x-1/2 -translate-y-1/2 text-center text-[clamp(64px,16vw,112px)] uppercase leading-[0.82] tracking-[0.04em] text-white`}
-            >
-              {a.heroTitle}
-            </h1>
-          </div>
-          <p className="relative z-10 -mt-2 max-w-[560px] text-center text-[16px] leading-[1.15] tracking-[-0.03em] text-white desk:text-[22px]">
+        <div className="relative z-10 flex min-h-[520px] w-full flex-col items-center justify-between text-white desk:min-h-[589px]">
+          <h1
+            className={`${trail.className} text-center text-[clamp(64px,14vw,130px)] uppercase leading-[0.9] tracking-[0.04em] desk:tracking-[5.2px]`}
+          >
+            {a.heroTitle}
+          </h1>
+          <p className="max-w-[632px] text-center text-[18px] leading-[0.9] tracking-[-0.72px] desk:text-[32px] desk:tracking-[-1.28px]">
             {a.heroBody}
           </p>
         </div>
+        <div className="absolute left-1/2 top-[calc(50%-38.5px)] z-20 aspect-square w-[min(407px,78vw)] -translate-x-1/2 -translate-y-1/2">
+          <PlatformGlobe visibleGroups={["ambassadors"]} emphasis={null} pins={teamPins} />
+        </div>
       </section>
 
-      <section className="relative z-10 flex items-center justify-center px-5 py-20 desk:min-h-[640px] desk:px-16 desk:py-28">
-        <div className="flex max-w-[640px] flex-col gap-8 desk:gap-12">
-          <p className="whitespace-pre-line text-[28px] leading-[1.05] tracking-[-0.04em] text-black desk:text-[48px] desk:leading-[0.98]">
-            {a.statement}
-          </p>
-          <p className="text-[18px] leading-[1.15] tracking-[-0.03em] text-black desk:text-[28px]">
+      <section className="flex items-center justify-center px-5 py-20 desk:h-[805px] desk:px-16 desk:py-24">
+        <div className="flex w-full max-w-[632px] flex-col gap-12">
+          <div className="text-[28px] leading-[0.9] tracking-[-0.04em] text-black desk:text-[48px] desk:tracking-[-1.92px]">
+            {statementLines.map((line, i) => (
+              <p
+                key={line}
+                className={i < statementLines.length - 1 ? "mb-3" : undefined}
+              >
+                {line}
+              </p>
+            ))}
+          </div>
+          <p className="text-[18px] leading-[0.9] tracking-[-0.04em] text-black desk:text-[32px] desk:tracking-[-1.28px]">
             {a.statementTag}
           </p>
         </div>
       </section>
 
-      <section className="bg-black px-5 py-16 text-white desk:px-16 desk:py-24">
-        <div className="mx-auto flex max-w-[760px] flex-col gap-10 desk:gap-14">
-          <div className="flex flex-col gap-6">
-            <h2 className="text-[32px] leading-[0.9] tracking-[-0.04em] desk:text-[48px]">
+      <section
+        data-nav-tone="dark"
+        className="bg-black px-5 py-16 text-white desk:px-16 desk:py-24"
+      >
+        <div className="mx-auto flex w-full max-w-[632px] flex-col gap-8 desk:gap-16">
+          <div className="flex flex-col gap-8">
+            <h2 className="text-[32px] leading-[0.9] tracking-[-0.04em] desk:text-[48px] desk:tracking-[-1.92px]">
               {a.whatTitle}
             </h2>
-            <p className="max-w-[640px] text-[16px] leading-[1.25] tracking-[-0.03em] text-white/90 desk:text-[22px]">
+            <p className="text-[16px] leading-none tracking-[-0.04em] desk:text-[32px] desk:tracking-[-1.28px]">
               {a.whatBody}
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 desk:gap-4">
-            <WorkCard
-              label={a.cards[0].label}
-              title={a.cards[0].title}
-              className="bg-[#f6f3ec]"
-              titleClass="text-black"
-            >
-              <div aria-hidden className="pointer-events-none absolute inset-0">
-                <div className="absolute left-[8%] top-[34%] h-[58%] w-[78%] rounded-[50%] border border-black/15" />
-                <div className="absolute left-[18%] top-[22%] size-[62%] rounded-full border border-black/10" />
-                <div className="absolute bottom-[16%] left-[22%] h-[46%] w-[70%] rotate-[-16deg] rounded-[50%] border border-black/10" />
-                <div className="absolute right-[14%] top-[18%] size-[22%] overflow-hidden rounded-full">
-                  <Image src="/images/platform-globe-static.png" alt="" fill className="object-cover" sizes="80px" />
-                </div>
-                <PhotoPin
-                  src={aboutTeamPhotos[1]}
-                  clipId="about-platform-pin"
-                  className="absolute bottom-[8%] left-[14%] w-[16%] drop-shadow-[0_8px_16px_rgba(0,0,0,0.18)]"
+          <FitWidth designWidth={632} designHeight={632} cap>
+            <div className="grid size-[632px] grid-cols-2">
+              <article className="relative flex flex-col items-center justify-center gap-6 overflow-hidden rounded-[64px] bg-white p-8">
+                <Glow
+                  src={aboutImages.workGlow}
+                  className="absolute left-[85px] top-[-115px] h-[252.5px] w-[286.81px] rotate-180"
+                  inset="-35.72% -31.45%"
                 />
-              </div>
-            </WorkCard>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt=""
+                  src={aboutImages.workRings}
+                  className="pointer-events-none absolute right-[51px] top-1/2 size-[292px] -translate-y-1/2"
+                />
+                <WorkLabel>{a.cards[0].label}</WorkLabel>
+                <WorkTitle className="w-[252px] text-black">{a.cards[0].title}</WorkTitle>
+                <GlassOrb
+                  icon={aboutImages.iconPin}
+                  pad={20.48}
+                  blur={4}
+                  opacity={0.72}
+                  className="left-[60px] top-[-11px]"
+                />
+                <GlassOrb
+                  icon={aboutImages.iconUser}
+                  pad={30.72}
+                  blur={1.6}
+                  opacity={0.8}
+                  className="left-[217px] top-1/2 -translate-y-1/2"
+                />
+                <GlassOrb
+                  icon={aboutImages.iconCrosshair}
+                  pad={38.4}
+                  className="left-[32px] top-[245px]"
+                />
+              </article>
 
-            <WorkCard
-              label={a.cards[1].label}
-              title={a.cards[1].title}
-              className="bg-[linear-gradient(145deg,#dce85a_0%,#f08ad0_58%,#ec268f_100%)]"
-              titleClass="text-black"
-            >
-              <span
-                aria-hidden
-                className={`${trail.className} pointer-events-none absolute -right-[18%] top-[8%] text-[clamp(88px,12vw,150px)] uppercase leading-[0.75] tracking-[0.02em] text-magenta`}
-              >
-                Home
-              </span>
-            </WorkCard>
-
-            <WorkCard
-              label={a.cards[2].label}
-              title={a.cards[2].title}
-              className="bg-magenta"
-              titleClass="text-white"
-            >
-              <div aria-hidden className="absolute bottom-4 left-4 flex desk:bottom-6 desk:left-6">
-                <span className="relative size-12 overflow-hidden rounded-full ring-2 ring-white desk:size-16">
-                  <Image src={aboutTeamPhotos[0]} alt="" fill className="object-cover" sizes="64px" />
-                </span>
-                <span className="relative -ml-3 size-12 overflow-hidden rounded-full ring-2 ring-white desk:size-16">
-                  <Image src={aboutTeamPhotos[4]} alt="" fill className="object-cover" sizes="64px" />
-                </span>
-              </div>
-            </WorkCard>
-
-            <WorkCard
-              label={a.cards[3].label}
-              title={a.cards[3].title}
-              className="bg-[linear-gradient(160deg,#e7f26a_0%,#d2de38_55%,#c5d84a_100%)]"
-              titleClass="text-black"
-            >
-              <PhotoPin
-                src="/images/pavilion-expo.jpg"
-                clipId="about-pavilion-pin"
-                className="pointer-events-none absolute bottom-[12%] right-[10%] w-[34%] drop-shadow-[0_12px_24px_rgba(0,0,0,0.22)]"
-              />
-            </WorkCard>
-          </div>
-        </div>
-
-        <div className="mx-auto mt-16 flex max-w-[1072px] flex-col items-center gap-6 desk:mt-24 desk:gap-8">
-          <div className="relative w-full overflow-hidden rounded-[36px] desk:rounded-[48px]">
-            <div className="grid h-[220px] grid-cols-4 desk:h-[360px]">
-              {HOME_STILLS.map((photo) => (
-                <div key={photo} className="relative">
-                  <Image src={photo} alt="" fill className="object-cover" sizes="25vw" />
-                </div>
-              ))}
-            </div>
-            <div aria-hidden className="absolute inset-0 bg-black/30" />
-            <div className="absolute inset-x-0 top-0 grid grid-cols-4">
-              {a.homeTopics.map((topic) => (
+              <article className="relative flex flex-col items-center justify-center gap-6 overflow-hidden rounded-[64px] bg-lime p-8">
+                <Glow
+                  src={aboutImages.workGlowStories}
+                  className="absolute left-[109px] top-[82px] h-[214.5px] w-[284.68px]"
+                  inset="-38.56% -29.05%"
+                />
                 <p
-                  key={topic}
-                  className="px-3 pt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-white desk:px-5 desk:pt-5 desk:text-[13px]"
+                  aria-hidden
+                  className={`${trail.className} pointer-events-none absolute left-[283.5px] top-[-1px] w-[115px] -translate-x-1/2 text-center text-[116px] uppercase leading-[0.7] tracking-[-2.32px] text-magenta mix-blend-plus-lighter`}
                 >
-                  {topic}
+                  HOME
                 </p>
-              ))}
+                <WorkLabel>{a.cards[1].label}</WorkLabel>
+                <WorkTitle>{a.cards[1].title}</WorkTitle>
+              </article>
+
+              <article className="relative flex flex-col items-start justify-center gap-6 overflow-hidden rounded-[64px] bg-magenta p-8">
+                <Glow
+                  src={aboutImages.workGlowAmbassadors}
+                  className="absolute left-[-39px] top-[-101px] h-[258.83px] w-[294px]"
+                  inset="-35.72% -31.45%"
+                />
+                <WorkLabel>{a.cards[2].label}</WorkLabel>
+                <div className="relative z-10 flex w-full flex-col gap-3">
+                  <WorkTitle className="text-white">{a.cards[2].title}</WorkTitle>
+                  <div className="absolute left-0 top-[80px] flex isolate items-center">
+                    {[aboutImages.avatar1, aboutImages.avatar2, aboutImages.avatar3].map(
+                      (src, i) => (
+                        <span
+                          key={src}
+                          className={`relative size-12 overflow-hidden rounded-full border-2 border-white ${
+                            i < 2 ? "-mr-[34px]" : ""
+                          }`}
+                          style={{ zIndex: 3 - i }}
+                        >
+                          <Image src={src} alt="" fill className="object-cover" sizes="48px" />
+                        </span>
+                      ),
+                    )}
+                  </div>
+                </div>
+              </article>
+
+              <article className="relative flex flex-col items-center justify-center gap-6 overflow-hidden rounded-[64px] bg-orange p-8">
+                <Glow
+                  src={aboutImages.workGlow}
+                  className="absolute left-[103px] top-[130px] h-[252.5px] w-[286.81px] rotate-180"
+                  inset="-35.72% -31.45%"
+                />
+                <WorkLabel>{a.cards[3].label}</WorkLabel>
+                <WorkTitle>{a.cards[3].title}</WorkTitle>
+                <div className="pointer-events-none absolute left-[156.68px] top-[-35px] flex size-[212.43px] items-center justify-center">
+                  <div className="rotate-45">
+                    <div className="relative bg-white p-[5.18px] [border-radius:1295px_1295px_0_1295px]">
+                      <div className="relative size-[139.852px]">
+                        <div className="absolute left-1/2 top-1/2 flex size-[197.78px] -translate-x-1/2 -translate-y-1/2 -rotate-45 items-center justify-center">
+                          <Image
+                            src={aboutImages.pavilionPin}
+                            alt=""
+                            width={140}
+                            height={140}
+                            className="size-[139.852px]"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
             </div>
-            <p
-              aria-hidden
-              className={`${trail.className} pointer-events-none absolute left-1/2 top-1/2 w-[120%] -translate-x-1/2 -translate-y-1/2 text-center text-[clamp(92px,22vw,240px)] uppercase leading-[0.7] tracking-[0.02em] text-magenta`}
-            >
-              Home
-            </p>
-          </div>
-          <p className="max-w-[720px] text-center text-[16px] leading-[1.15] tracking-[-0.03em] desk:text-[28px]">
-            {copy.content.homeCaption}
-          </p>
+          </FitWidth>
         </div>
       </section>
 
-      <section className="bg-black px-5 pb-20 pt-8 text-white desk:px-16 desk:pb-28 desk:pt-12">
-        <div className="mx-auto flex max-w-[980px] flex-col items-center gap-10 desk:gap-14">
-          <h2 className="text-[32px] leading-[0.9] tracking-[-0.04em] desk:text-[48px]">{a.teamTitle}</h2>
-
-          <div className="flex flex-col items-center gap-8 desk:gap-10">
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-8 desk:gap-x-8">
-              <TeamMember photo={first} name={a.memberName} role={a.memberRole} />
-              <TeamMember photo={second} name={a.memberName} role={a.memberRole} />
-              <p className="w-[min(100%,280px)] text-center text-[14px] leading-[1.25] tracking-[-0.03em] text-white desk:w-[260px] desk:text-left desk:text-[18px]">
-                {a.teamQuote}
-              </p>
-              <TeamMember photo={third} name={a.memberName} role={a.memberRole} />
-            </div>
-
-            <div className="flex max-w-[560px] flex-wrap justify-center gap-x-4 gap-y-8 desk:max-w-[720px] desk:gap-x-8">
-              {rest.map((photo) => (
-                <TeamMember key={photo} photo={photo} name={a.memberName} role={a.memberRole} />
-              ))}
+      <section data-nav-tone="dark" className="bg-black">
+        <FitWidth designWidth={1200} designHeight={526}>
+          <div className="flex h-[526px] w-[1200px] flex-col bg-black">
+            <div className="relative flex min-h-0 flex-1 overflow-hidden rounded-[52px] bg-white/12 p-2">
+              <div className="relative h-full min-h-0 min-w-0 flex-1 overflow-hidden rounded-[44px] bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={aboutImages.homeSlide}
+                  alt=""
+                  className="absolute inset-0 size-full object-cover"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={aboutImages.homeSlide}
+                  alt=""
+                  aria-hidden
+                  className="pointer-events-none absolute inset-0 size-full object-cover blur-[16px]"
+                  style={{
+                    maskImage:
+                      "linear-gradient(to top, #000 0%, rgb(0 0 0 / 0.55) 34%, transparent 66%)",
+                    WebkitMaskImage:
+                      "linear-gradient(to top, #000 0%, rgb(0 0 0 / 0.55) 34%, transparent 66%)",
+                  }}
+                />
+                <div className="pointer-events-none absolute bottom-0 left-1/2 h-[406px] w-[1184px] -translate-x-1/2 bg-gradient-to-t from-black to-transparent" />
+                <p
+                  aria-hidden
+                  className={`${trail.className} pointer-events-none absolute left-1/2 top-[-6px] z-10 -translate-x-1/2 whitespace-nowrap text-center text-[450.691px] uppercase leading-[0.7] tracking-[-9.014px] text-magenta`}
+                >
+                  HOME
+                </p>
+                {[
+                  { label: a.homeTopics[0], left: 135, top: 55 },
+                  { label: a.homeTopics[1], left: 429, top: 122 },
+                  { label: a.homeTopics[2], left: 704, top: 48 },
+                  { label: a.homeTopics[3], left: 1010, top: 171 },
+                ].map((topic) => (
+                  <p
+                    key={topic.label}
+                    className="absolute z-10 whitespace-nowrap text-[20px] font-semibold uppercase leading-[0.9] tracking-[0.8px] text-white mix-blend-hard-light"
+                    style={{ left: topic.left, top: topic.top }}
+                  >
+                    {topic.label}
+                  </p>
+                ))}
+                <p className="absolute left-1/2 top-[377px] z-10 w-[588px] -translate-x-1/2 text-center text-[32px] leading-[0.9] tracking-[-1.28px] text-white">
+                  {copy.content.homeCaption}
+                </p>
+              </div>
             </div>
           </div>
+        </FitWidth>
+      </section>
+
+      <section
+        data-nav-tone="dark"
+        className="bg-black px-5 py-16 text-white desk:px-16 desk:py-24"
+      >
+        <h2 className="text-center text-[32px] leading-[0.9] tracking-[-0.04em] desk:text-[48px] desk:tracking-[-1.92px]">
+          {a.teamTitle}
+        </h2>
+        <div className="mx-auto mt-12 max-w-[1000px] desk:mt-12">
+          <FitWidth designWidth={1000} designHeight={1400} cap>
+            <div className="flex h-[1400px] w-[1000px] flex-col items-center">
+              <div className="group/lead flex w-full items-center justify-center">
+                <TeamCard photo={left} name={a.memberName} role={a.memberRole} />
+                <TeamCard lead photo={featured} name={a.memberName} role={a.memberRole} />
+                <div className="w-0 overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/lead:w-[280px]">
+                  <p className="w-[280px] -translate-x-8 p-8 text-[20px] leading-[1.2] tracking-[-0.8px] text-white opacity-0 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/lead:translate-x-0 group-hover/lead:opacity-100">
+                    {a.teamQuote}
+                  </p>
+                </div>
+                <TeamCard photo={right} name={a.memberName} role={a.memberRole} />
+              </div>
+              {teamRows.map((row) => (
+                <div key={row.join()} className="flex items-center">
+                  {row.map((photo) => (
+                    <TeamCard
+                      key={photo}
+                      photo={photo}
+                      name={a.memberName}
+                      role={a.memberRole}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </FitWidth>
         </div>
       </section>
     </div>

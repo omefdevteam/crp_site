@@ -24,6 +24,7 @@ const PIN_RADIUS = 1.02;
 type GlobeProps = {
   visibleGroups: readonly PinGroup[];
   emphasis: PinGroup | null;
+  pins?: readonly Pin[];
 };
 
 // Pin id -> its wrapper div, shared by the DOM pin layer and the projector in the canvas.
@@ -96,11 +97,11 @@ function GlobeScene({
   // Each pin's fixed spot on the sphere, before the globe's own rotation.
   const pinBasePositions = useMemo(() => {
     const map = new Map<string, Vector3>();
-    for (const pin of pins) {
+    for (const pin of visiblePins) {
       map.set(pin.id, latLngToPosition(pin.lat, pin.lng, PIN_RADIUS));
     }
     return map;
-  }, []);
+  }, [visiblePins]);
 
   useEffect(() => {
     const onMove = (event: PointerEvent) => {
@@ -216,11 +217,11 @@ function PinLayer({
   );
 }
 
-export default function Globe({ visibleGroups, emphasis }: GlobeProps) {
+export default function Globe({ visibleGroups, emphasis, pins: source = pins }: GlobeProps) {
   const pinElsRef = useRef<PinElMap>(new Map());
   const visiblePins = useMemo(
-    () => pins.filter((pin) => visibleGroups.includes(pin.group)),
-    [visibleGroups],
+    () => source.filter((pin) => visibleGroups.includes(pin.group)),
+    [source, visibleGroups],
   );
 
   return (

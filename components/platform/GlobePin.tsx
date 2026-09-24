@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { forwardRef, useState } from "react";
+import { forwardRef, useId, useState } from "react";
 import { pinGroups, type Pin, type PinGroup } from "@/lib/pins";
 import { PinIcon } from "./PinIcon";
 
@@ -45,7 +45,7 @@ function PhotoPin({
   open: boolean;
   reduceMotion: boolean;
 }) {
-  const clipId = "globe-photo-pin-clip";
+  const clipId = useId().replace(/:/g, "");
 
   return (
     <motion.span

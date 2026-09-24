@@ -14,7 +14,7 @@ export default function PartnerRoute() {
   return (<>
       <StructuredData page="partner" />
     <div className={`${outfit.className} relative flex flex-1 flex-col`}>
-      <Header />
+      <Header overMedia />
       <main className="flex-1">
         <PartnerPage />
       </main>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "@/components/LocaleLink";
 import { useCopy } from "../LanguageProvider";
@@ -39,27 +40,99 @@ const WAY_STYLES = [
   "bg-[linear-gradient(135deg,#f6e35a_0%,#fa8d2e_100%)] text-black",
 ] as const;
 
-function AudienceBand() {
+function PartnerHero({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  const frame = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = frame.current;
+    if (!el) return;
+    const measure = () => setScale(el.clientWidth / 1200);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <div className="mt-10 flex justify-center desk:mt-14">
-      <div className="flex w-full max-w-[1080px] items-center justify-center">
-        {Array.from({ length: 4 }, (_, index) => (
-          <div
-            key={index}
-            className="relative -ml-[9%] aspect-square w-[32%] shrink-0 overflow-hidden rounded-full first:ml-0"
-          >
-            <Image
-              src="/images/card-community.jpg"
-              alt=""
-              fill
-              className="object-cover"
-              style={{ objectPosition: `${index * 28}% center` }}
-              sizes="280px"
-            />
-          </div>
-        ))}
+    <section className="overflow-hidden bg-cream">
+      <div ref={frame} className="relative w-full" style={{ height: 1121 * scale }}>
+        <div
+          className="absolute left-0 top-0 h-[1121px] w-[1200px] origin-top-left overflow-hidden bg-cream"
+          style={{ transform: `scale(${scale})` }}
+        >
+      <Image
+        src={partnerImages.heroPhoto}
+        alt=""
+        width={1200}
+        height={558}
+        priority
+        className="absolute left-0 top-0 h-[558px] w-[1200px] rounded-bl-[154px] rounded-br-[154px] object-cover"
+      />
+      <h1
+        className={`${trail.className} absolute left-[64px] top-[285.5px] z-[4] w-[1072px] text-[130px] uppercase leading-[0.9] tracking-[5.2px] text-white`}
+      >
+        {title}
+      </h1>
+      <div className="absolute left-1/2 top-[418px] z-[2] flex -translate-x-1/2 items-center justify-end gap-[48px]">
+        <p className="w-[300px] text-[32px] leading-[0.9] tracking-[-1.28px] text-white">
+          {body}
+        </p>
+        <ReachOutLink
+          compact
+          className="!h-[80px] !w-[300px] !px-8 !text-[20px] !tracking-[0.8px]"
+          light
+        />
       </div>
-    </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={partnerImages.heroUnion}
+        alt=""
+        width={1760}
+        height={440}
+        className="absolute left-[-280px] top-[585px] z-[3] h-[440px] w-[1760px] max-w-none"
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={partnerImages.logoMark}
+        alt=""
+        width={148.688}
+        height={86.7987}
+        className="absolute left-[300px] top-[762px] z-[8] h-[86.799px] w-[148.688px] max-w-none"
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={partnerImages.logoMark}
+        alt=""
+        width={148.688}
+        height={86.7987}
+        className="absolute left-[1126px] top-[762px] z-[7] h-[86.799px] w-[148.688px] max-w-none"
+      />
+      <div className="absolute left-[696px] top-[776.71px] z-[6] h-[57.375px] w-[252.375px] overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={partnerImages.logoRow}
+          alt=""
+          className="absolute left-[-10.4%] top-[-37.29%] h-[178.51%] w-[121.84%] max-w-none"
+        />
+      </div>
+      <div className="absolute left-[-188px] top-[776.71px] z-[5] h-[57.375px] w-[252.375px] overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={partnerImages.logoRow}
+          alt=""
+          className="absolute left-[-10.4%] top-[-37.29%] h-[178.51%] w-[121.84%] max-w-none"
+        />
+      </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -124,22 +197,7 @@ export function PartnerPage() {
 
   return (
     <div className="bg-cream">
-      <section className="overflow-hidden bg-cream px-5 pb-8 pt-28 desk:px-16 desk:pb-12 desk:pt-32">
-        <div className="mx-auto flex max-w-[1080px] flex-col gap-8 desk:flex-row desk:items-end desk:justify-between">
-          <h1
-            className={`${trail.className} max-w-[7.2em] text-[clamp(64px,10vw,108px)] uppercase leading-[0.82] tracking-[0.03em] text-black`}
-          >
-            {p.heroTitle}
-          </h1>
-          <div className="flex flex-wrap items-center gap-5 desk:mb-2 desk:max-w-[420px] desk:justify-end">
-            <p className="max-w-[14ch] text-[22px] leading-[1.05] tracking-[-0.04em] text-black desk:text-[28px]">
-              {p.heroBody}
-            </p>
-            <ReachOutLink compact light />
-          </div>
-        </div>
-        <AudienceBand />
-      </section>
+      <PartnerHero title={p.heroTitle} body={p.heroBody} />
 
       <section className="bg-cream px-5 py-16 desk:px-16 desk:py-24">
         <div className="mx-auto flex max-w-[760px] flex-col items-center text-center">
