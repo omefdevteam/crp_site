@@ -18,11 +18,11 @@ function QuestionCard({
 }) {
   return (
     <div
-      className={`relative flex aspect-square items-center justify-center overflow-hidden rounded-[64px] p-8 ${className}`}
+      className={`relative flex h-[254px] items-center justify-center overflow-hidden rounded-[64px] p-6 desk:aspect-square desk:h-auto desk:p-8 ${className}`}
     >
       {blob}
       <p
-        className={`relative w-[252px] text-[24px] font-normal leading-none tracking-[-1.28px] desk:text-[32px] ${textClass}`}
+        className={`relative w-full text-[24px] font-normal leading-none tracking-[-0.96px] desk:w-[252px] desk:tracking-[-1.28px] desk:text-[32px] ${textClass}`}
       >
         {children}
       </p>
@@ -35,14 +35,14 @@ export function ProgramResonate() {
   const resonate = copy.programs.resonate;
   return (
     <div className="flex flex-col gap-8">
-      <p className="text-center text-[16px] font-semibold uppercase leading-[0.9] tracking-[1.28px] text-black">
+      <p className="px-6 text-center text-[13.5px] font-semibold uppercase leading-[0.9] tracking-[0.54px] text-black desk:px-0 desk:text-[16px] desk:tracking-[1.28px]">
         {resonate.heading}
       </p>
 
       <div className="flex flex-col">
         {/* Row 1 */}
         <div className="grid grid-cols-2">
-          <div className="relative flex aspect-square items-center justify-center overflow-hidden rounded-[64px] bg-black p-8">
+          <div className="relative flex h-[254px] items-center justify-center overflow-hidden rounded-[64px] bg-black p-6 desk:aspect-square desk:h-auto desk:p-8">
             <FigmaImg
               src={programPhotos.earth}
               alt=""
@@ -57,7 +57,7 @@ export function ProgramResonate() {
               height={261}
               className="pointer-events-none absolute bottom-[-166px] left-1/2 h-[261px] w-[259px] -translate-x-1/2 object-bottom"
             />
-            <p className="relative w-[252px] text-[24px] font-normal leading-none tracking-[-1.28px] text-white desk:text-[32px]">
+            <p className="relative w-full text-[24px] font-normal leading-none tracking-[-0.96px] text-white desk:w-[252px] desk:tracking-[-1.28px] desk:text-[32px]">
               {resonate.age}
             </p>
           </div>
@@ -126,7 +126,7 @@ export function ProgramResonate() {
         </div>
 
         {/* Row 3 — interests card */}
-        <div className="relative flex aspect-square flex-col items-start gap-8 overflow-hidden rounded-[64px] bg-white p-8 desk:p-16">
+        <div className="relative flex h-[515px] flex-col items-center justify-center gap-6 overflow-hidden rounded-[64px] bg-white p-6 desk:aspect-square desk:h-auto desk:items-start desk:gap-8 desk:p-16">
           <span className="pointer-events-none absolute left-[-32.32px] top-[-392px] h-[633.635px] w-[696.32px]">
             <FigmaImg
               src={programIcons.interestBlob}
@@ -137,7 +137,7 @@ export function ProgramResonate() {
             />
           </span>
           <div className="relative flex min-h-px w-[432px] max-w-full flex-1 flex-col justify-center">
-            <p className="text-[24px] font-normal leading-none tracking-[-1.28px] text-black desk:text-[32px]">
+            <p className="text-[24px] font-normal leading-none tracking-[-0.96px] text-black desk:tracking-[-1.28px] desk:text-[32px]">
               {resonate.interestsLead}
             </p>
           </div>
@@ -161,7 +161,7 @@ export function ProgramResonate() {
         </div>
       </div>
 
-      <p className="text-center text-[28px] font-normal leading-[1.2] tracking-[-1.28px] text-black desk:text-[32px]">
+      <p className="px-6 text-center text-[24px] font-normal leading-none tracking-[-0.96px] text-black desk:px-0 desk:text-[32px] desk:leading-[1.2] desk:tracking-[-1.28px]">
         {resonate.closing}
       </p>
     </div>

@@ -64,11 +64,11 @@ function Card({ item, dim }: { item: Testimonial; dim?: boolean }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <RoleTab role={item.role} />
-        <blockquote className="relative text-[24px] font-normal leading-none tracking-[-1.28px] text-white desk:text-[32px]">
+        <blockquote className="relative text-[24px] font-normal leading-none tracking-[-0.96px] text-white desk:text-[32px] desk:tracking-[-1.28px]">
           {item.quote}
         </blockquote>
       </div>
-      <figcaption className="mt-4 text-center text-[28px] font-normal leading-none tracking-[-1.28px] text-black desk:text-[32px]">
+      <figcaption className="mt-4 text-center text-[24px] font-normal leading-none tracking-[-0.96px] text-black desk:text-[32px] desk:tracking-[-1.28px]">
         {item.name}
       </figcaption>
     </figure>
@@ -89,11 +89,11 @@ function ArrowButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={`pointer-events-auto absolute top-[210px] z-20 flex size-[80px] -translate-x-1/2 items-center justify-center desk:top-[288px] ${
+      className={`group pointer-events-auto absolute top-[210px] z-20 flex size-[80px] -translate-x-1/2 items-center justify-center desk:top-[288px] ${
         dir === "left" ? "left-0" : "left-full"
       }`}
     >
-      <span className="flex size-[64px] items-center justify-center rounded-full bg-black shadow-[0_6px_24px_rgba(0,0,0,0.18)]">
+      <span className="flex size-[64px] items-center justify-center rounded-full bg-black shadow-[0_6px_24px_rgba(0,0,0,0.18)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105">
         <FigmaImg
           src={programIcons.arrowLeft}
           alt=""

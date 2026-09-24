@@ -35,13 +35,15 @@ export function ProgramHero() {
     <section className="relative overflow-hidden bg-cream">
       <ProgramsHeader />
 
-      <div className="relative h-[420px] desk:h-[558px]">
-        {/* 1896px band (3 × 632) centered so the middle photo is centered and the sides clip. */}
-        <div className="absolute left-1/2 top-0 flex h-full -translate-x-1/2">
-          {PHOTOS.map((photo) => (
+      <div className="relative h-[466px] desk:h-[558px]">
+        {/* Phone: the middle photo fills the frame. From desk, a 1896px band (3 × 632) stays centered. */}
+        <div className="absolute left-0 top-0 flex h-full w-full desk:left-1/2 desk:w-auto desk:-translate-x-1/2">
+          {PHOTOS.map((photo, index) => (
             <div
               key={photo.src}
-              className="relative h-full w-[632px] shrink-0 overflow-hidden rounded-[88px]"
+              className={`relative h-full shrink-0 overflow-hidden rounded-b-[88px] desk:w-[632px] desk:rounded-[88px] ${
+                index === 1 ? "w-full" : "hidden desk:block"
+              }`}
             >
               <div
                 className={`absolute inset-0 ${photo.flip ? "-scale-y-100 rotate-180" : ""}`}
@@ -71,8 +73,8 @@ export function ProgramHero() {
         </div>
 
         {/* Page title, overlaid near the bottom of the band. */}
-        <div className="absolute inset-x-0 bottom-[48px] flex justify-center px-6 desk:bottom-[64px]">
-          <h1 className="max-w-[592px] text-center text-[32px] font-normal leading-[0.9] tracking-[-1.28px] text-white [text-shadow:0_2px_18px_rgba(0,0,0,0.35)] desk:text-[48px] desk:tracking-[-1.92px]">
+        <div className="absolute inset-x-0 bottom-[32px] flex justify-center px-8 desk:bottom-[64px] desk:px-6">
+          <h1 className="max-w-[592px] text-center text-[28px] font-normal leading-[0.9] tracking-[-1.12px] text-white [text-shadow:0_0_4px_rgba(0,0,0,0.25)] desk:text-[48px] desk:tracking-[-1.92px]">
             {copy.programs.title.split("\n").map((line, i) => (
               <span key={line}>
                 {i > 0 ? <br /> : null}

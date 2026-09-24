@@ -95,6 +95,7 @@
     "ambassador": "Apoiar um programa de embaixadores",
     "storyline": "Apoiar uma história específica",
     "speaker": "Candidatar-me como orador",
+    "learnMore": "Saiba mais",
     "reachOutForm": {
       "title": "Sobre si",
       "body": "Entraremos em contacto para confirmar por e-mail ou telefone",
@@ -107,6 +108,7 @@
       "sponsorship": "Patrocínio",
       "message": "A sua mensagem aqui...",
       "continue": "Continuar",
+      "sponsorshipDetails": "Detalhes do apoio",
       "supportOptions": ["Toda a organização", "Um programa de embaixadores", "Uma história específica", "Candidatar-me como orador"],
       "sponsorshipOptions": ["Apoio financeiro", "Apoio em espécie"]
     }
@@ -471,7 +473,8 @@
     "emailPlaceholder": "E-mail",
     "more": "Mais\nnovi-\ndades\nem breve",
     "heroAlt": "Costa de Antalya com os montes Tauro do outro lado da baía",
-    "dates": "14 out. – 16 nov."
+    "dates": "14 out. – 16 nov.",
+    "readMore": "mais"
   },
   "nominateLanding": {
     "title": "Indicar alguém para o Programa de Jovens Embaixadores",

@@ -29,7 +29,7 @@ export function Logo({
     <Link
       href="/"
       aria-label="Climate Refugee Pavilion home"
-      className={`inline-flex cursor-pointer ${className}`}
+      className={`inline-flex cursor-pointer opacity-100 transition-opacity duration-300 hover:opacity-70 ${className}`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

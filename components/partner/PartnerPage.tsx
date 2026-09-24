@@ -54,7 +54,7 @@ function WayTile({
           <img alt="" src={glow} className="absolute max-w-none" style={{ inset: "-36% -31%" }} />
         </div>
       ) : null}
-      <p className="relative text-center text-[16px] font-semibold uppercase leading-[0.9] tracking-[1.28px]">
+      <p className="relative text-center text-[13.5px] font-semibold uppercase leading-[0.9] tracking-[0.54px] desk:text-[16px] desk:tracking-[1.28px]">
         {label}
       </p>
     </div>
@@ -83,7 +83,22 @@ function PartnerHero({
 
   return (
     <section className="overflow-hidden bg-cream">
-      <div ref={frame} className="relative w-full" style={{ height: 1121 * scale }}>
+      <div className="relative flex h-[469px] items-center justify-center overflow-hidden rounded-b-[88px] px-3 pb-3 pt-[68px] desk:hidden">
+        <Image
+          src={partnerImages.heroPhoto}
+          alt=""
+          fill
+          priority
+          className="object-cover"
+          sizes="100vw"
+        />
+        <h1
+          className={`${trail.className} relative z-10 w-[322px] max-w-full text-center text-[90px] uppercase leading-[0.9] tracking-[3.6px] text-white`}
+        >
+          {title}
+        </h1>
+      </div>
+      <div ref={frame} className="relative hidden w-full desk:block" style={{ height: 1121 * scale }}>
         <div
           className="absolute left-0 top-0 h-[1121px] w-[1200px] origin-top-left overflow-hidden bg-cream"
           style={{ transform: `scale(${scale})` }}
@@ -146,7 +161,7 @@ function CtaCard({
 }) {
   return (
     <div
-      className="relative flex min-h-[480px] flex-1 flex-col items-start justify-between overflow-hidden rounded-[48px] p-6 desk:min-h-0 desk:h-full desk:rounded-[64px] desk:p-8"
+      className="relative flex h-[371px] flex-1 flex-col items-start justify-between overflow-hidden rounded-[64px] p-8 desk:h-full"
       style={{ backgroundColor: bg }}
     >
       <div
@@ -168,11 +183,11 @@ function CtaCard({
         className={`pointer-events-none absolute ${glowClass}`}
       />
       <p
-        className={`relative z-10 max-w-[12ch] text-[36px] leading-[0.8] tracking-[-1.44px] desk:text-[64px] desk:tracking-[-2.56px] ${titleClass}`}
+        className={`relative z-10 max-w-[12ch] text-[40px] leading-none tracking-[-1.6px] desk:text-[64px] desk:leading-[0.8] desk:tracking-[-2.56px] ${titleClass}`}
       >
         {title}
       </p>
-      <ReachOutLink href={href} />
+      <ReachOutLink href={href} className="!h-auto !py-7 !text-[14px] !tracking-[0.56px] desk:!h-20 desk:!py-0 desk:!text-[20px] desk:!tracking-[0.04em]" />
     </div>
   );
 }
@@ -185,9 +200,9 @@ export function PartnerPage() {
     <div className="bg-cream">
       <PartnerHero title={p.heroTitle} body={p.heroBody} />
 
-      <section className="flex justify-center bg-cream px-5 pb-16 desk:px-0 desk:pb-24">
+      <section id="ways" className="flex justify-center bg-cream px-0 pb-3 pt-[68px] desk:px-0 desk:pb-24 desk:pt-0">
         <div className="flex w-full max-w-[632px] flex-col items-start gap-8">
-          <p className="w-full text-center text-[16px] font-semibold uppercase leading-[0.9] tracking-[1.28px] text-black">
+          <p className="w-full text-center text-[13.5px] font-semibold uppercase leading-[0.9] tracking-[0.54px] text-black desk:text-[16px] desk:tracking-[1.28px]">
             {p.waysLabel}
           </p>
           <div className="flex w-full">
@@ -215,10 +230,10 @@ export function PartnerPage() {
               />
             </div>
           </div>
-          <p className="w-full text-[22px] leading-none tracking-[-0.04em] text-black desk:text-[32px] desk:tracking-[-1.28px]">
+          <p className="w-full text-[20px] leading-none tracking-[-0.8px] text-black desk:text-[32px] desk:tracking-[-1.28px]">
             {p.waysBody}
           </p>
-          <div className="relative flex aspect-square w-full flex-col gap-6 overflow-hidden rounded-[64px] bg-white p-8 desk:gap-6 desk:p-16">
+          <div className="relative flex h-[390px] w-full flex-col justify-center gap-6 overflow-hidden rounded-[64px] bg-white p-8 desk:aspect-square desk:h-auto desk:p-16">
             <div aria-hidden className="pointer-events-none absolute left-[-32px] top-[-392px] h-[634px] w-[696px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -228,7 +243,7 @@ export function PartnerPage() {
                 style={{ inset: "-27% -22% -26% -24%" }}
               />
             </div>
-            <h2 className="relative flex flex-1 items-center justify-center text-center text-[28px] leading-none tracking-[-0.04em] text-black desk:text-[32px] desk:tracking-[-1.28px]">
+            <h2 className="relative flex flex-1 items-center justify-center text-center text-[24px] leading-none tracking-[-0.96px] text-black desk:text-[32px] desk:tracking-[-1.28px]">
               {p.rewardsTitle}
             </h2>
             <div className="relative flex flex-col gap-8">
@@ -242,9 +257,9 @@ export function PartnerPage() {
                         alt=""
                         width={24}
                         height={24}
-                        className="size-6 max-w-none"
+                        className="size-4 max-w-none desk:size-6"
                       />
-                      <p className="text-[16px] leading-[1.2] tracking-[-0.04em] text-black/84 desk:text-[20px] desk:tracking-[-0.8px]">
+                      <p className="text-[15px] leading-[1.2] tracking-[-0.6px] text-black/84 desk:text-[20px] desk:tracking-[-0.8px]">
                         {reward}
                       </p>
                     </div>
@@ -256,8 +271,48 @@ export function PartnerPage() {
         </div>
       </section>
 
-      <section className="bg-cream py-16 desk:py-24">
+      <section className="bg-cream py-24">
         <div className="mx-auto flex h-auto w-full max-w-[1200px] flex-col desk:h-[613px] desk:flex-row">
+          <div className="relative flex h-[570px] w-full flex-col items-center justify-center gap-6 overflow-hidden rounded-[64px] bg-lime p-6 desk:hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              aria-hidden
+              src={partnerImages.rewardsGlow}
+              alt=""
+              className="pointer-events-none absolute left-[64px] top-[-67px] h-[317px] w-[348px] max-w-none"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              aria-hidden
+              src={partnerImages.rewardsGlow}
+              alt=""
+              className="pointer-events-none absolute left-[-109px] top-[201px] h-[317px] w-[348px] max-w-none -scale-y-100"
+            />
+            <div className="relative min-h-0 w-[259px] flex-1 overflow-hidden rounded-[44px]">
+              <Image
+                src={partnerImages.ctaOrganization}
+                alt=""
+                fill
+                className="object-cover"
+                sizes="259px"
+              />
+            </div>
+            <p className="w-full text-center text-[40px] leading-none tracking-[-1.6px] text-black">
+              {p.heroBody}
+            </p>
+            <div className="flex w-full flex-col items-center px-8">
+              <ReachOutLink
+                href="/partner/reach-out?support=organization"
+                className="!h-auto !py-7 !text-[14px] !tracking-[0.56px]"
+              />
+              <Link
+                href="/about"
+                className="py-7 text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.56px] text-black"
+              >
+                {p.learnMore}→
+              </Link>
+            </div>
+          </div>
           <CtaCard
             title={p.ambassador}
             image={partnerImages.ctaAmbassador}

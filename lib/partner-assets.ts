@@ -7,6 +7,7 @@ export const partnerImages = {
   ctaAmbassador: "/images/partner/cta-ambassadors.jpg",
   ctaStoryline: "/images/partner/cta-storylines.jpg",
   ctaSpeaker: "/images/partner/cta-speakers.jpg",
+  ctaOrganization: "/images/partner/cta-organization.png",
   wayVenues: "/images/partner/way-venues.svg",
   wayPerks: "/images/partner/way-perks.svg",
   wayResources: "/images/partner/way-resources.svg",

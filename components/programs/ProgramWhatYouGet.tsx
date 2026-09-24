@@ -87,7 +87,7 @@ function Collage({
 
   return (
     <motion.div
-      className="pointer-events-none absolute right-0 hidden w-[290px] flex-col desk:flex"
+      className="pointer-events-none absolute right-0 flex w-[180px] flex-col desk:w-[290px]"
       style={reduceMotion ? { top } : { top, y }}
     >
       {reduceMotion ? null : <CollageTile tile={BUFFER_TOP} />}
@@ -101,9 +101,9 @@ function Collage({
 
 function Badge({ iconSrc, label }: { iconSrc: string; label: string }) {
   return (
-    <div className="inline-flex w-fit items-center gap-3 rounded-full bg-white py-[8px] pl-[12px] pr-[16px]">
-      <FigmaImg src={iconSrc} alt="" width={32} height={32} className="size-[32px] shrink-0" />
-      <span className="whitespace-nowrap text-[16px] font-semibold uppercase leading-[0.9] tracking-[1.28px] text-black">
+    <div className="inline-flex w-fit items-center gap-[7px] rounded-full bg-white py-[5px] pl-[7px] pr-[10px] desk:gap-3 desk:py-[8px] desk:pl-[12px] desk:pr-[16px]">
+      <FigmaImg src={iconSrc} alt="" width={16} height={16} className="size-4 shrink-0 desk:size-8" />
+      <span className="whitespace-nowrap text-[12px] font-semibold uppercase leading-[0.9] tracking-[0.48px] text-black desk:text-[16px] desk:tracking-[1.28px]">
         {label}
       </span>
     </div>
@@ -175,14 +175,14 @@ function WhatYouGetCard({
   // the same parallax y in every card keeps tiles continuous across seams.
   return (
     <div
-      className={`relative flex aspect-square overflow-hidden rounded-[56px] p-8 desk:rounded-[105px] desk:p-12 ${card.cardClass}`}
+      className={`relative flex aspect-square overflow-hidden rounded-[88px] p-10 desk:rounded-[105px] desk:p-12 ${card.cardClass}`}
     >
       <Collage y={y} reduceMotion={reduceMotion} cardIndex={cardIndex} />
       <div className="relative z-10 flex h-full flex-1 flex-col justify-between">
         <div className="flex flex-col gap-6 desk:gap-12">
           {card.title ? (
             <h3
-              className={`max-w-full text-[52px] font-normal leading-[0.8] tracking-[-3.84px] desk:text-[96px] ${card.titleClass}`}
+              className={`max-w-[calc(100%-160px)] text-[48px] font-normal leading-[0.8] tracking-[-1.92px] desk:max-w-full desk:text-[96px] desk:tracking-[-3.84px] ${card.titleClass}`}
             >
               {card.title.split("\n").map((line, i) => (
                 <span key={line}>
@@ -193,7 +193,7 @@ function WhatYouGetCard({
             </h3>
           ) : null}
           {card.image ? (
-            <div className="h-[219px] w-[195px] overflow-hidden rounded-[500px] bg-white">
+            <div className="h-[140px] w-[120px] overflow-hidden rounded-[500px] bg-white desk:h-[219px] desk:w-[195px]">
               <FigmaImg
                 src={card.image}
                 alt=""
@@ -206,7 +206,7 @@ function WhatYouGetCard({
           {card.badge ? <Badge iconSrc={card.badge.iconSrc} label={card.badge.label} /> : null}
         </div>
         <p
-          className={`max-w-[241px] text-[18px] font-normal leading-[1.2] tracking-[-0.8px] desk:text-[20px] ${card.descriptionClass}`}
+          className={`max-w-[149px] text-[15px] font-normal leading-[1.2] tracking-[-0.6px] desk:max-w-[241px] desk:text-[20px] desk:tracking-[-0.8px] ${card.descriptionClass}`}
         >
           {card.description}
         </p>
@@ -238,7 +238,7 @@ export function ProgramWhatYouGet() {
 
   return (
     <div className="flex flex-col gap-8">
-      <p className="text-center text-[16px] font-semibold uppercase leading-[0.9] tracking-[1.28px] text-black">
+      <p className="px-6 text-center text-[13.5px] font-semibold uppercase leading-[0.9] tracking-[0.54px] text-black desk:px-0 desk:text-[16px] desk:tracking-[1.28px]">
         {copy.programs.whatYouGet.heading}
       </p>
       <div ref={stackRef} className="relative flex flex-col">

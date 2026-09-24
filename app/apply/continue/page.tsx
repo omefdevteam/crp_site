@@ -20,7 +20,7 @@ export default async function ContinueApplicationPage() {
   return <main className="grid min-h-dvh place-items-center bg-cream p-8 text-black"><div className="max-w-lg rounded-[32px] bg-white p-10 text-center">
     <h1 className="text-3xl">{copy[0]}</h1>
     <p className="mt-5">{copy[1]}</p>
-    <a href={nextStepUrl(applicant)} className="gradient-brand mt-8 inline-block rounded-full px-6 py-3 font-semibold text-white">{copy[2]}</a>
+    <a href={nextStepUrl(applicant)} className="gradient-brand mt-8 inline-block rounded-full px-6 py-3 font-semibold text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98]">{copy[2]}</a>
     <Link href={`/${applicant.language}`} className="mt-6 block underline">{copy[3]}</Link>
   </div></main>;
 }

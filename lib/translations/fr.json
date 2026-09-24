@@ -95,6 +95,7 @@
     "ambassador": "Soutenir un programme d'ambassadeurs",
     "storyline": "Soutenir une histoire précise",
     "speaker": "Postuler comme intervenant·e",
+    "learnMore": "En savoir plus",
     "reachOutForm": {
       "title": "À propos de vous",
       "body": "Nous vous contacterons pour confirmation par e-mail ou par téléphone",
@@ -107,6 +108,7 @@
       "sponsorship": "Parrainage",
       "message": "Votre message ici...",
       "continue": "Continuer",
+      "sponsorshipDetails": "Détails du soutien",
       "supportOptions": ["L'ensemble de l'organisation", "Un programme d'ambassadeurs", "Une histoire précise", "Postuler comme intervenant·e"],
       "sponsorshipOptions": ["Soutien financier", "Soutien en nature"]
     }
@@ -471,7 +473,8 @@
     "emailPlaceholder": "E-mail",
     "more": "Plus\nà\nve\nnir",
     "heroAlt": "Vue côtière d'Antalya, avec les montagnes du Taurus de l'autre côté de la baie",
-    "dates": "14 oct. - 16 nov."
+    "dates": "14 oct. - 16 nov.",
+    "readMore": "plus"
   },
   "nominateLanding": {
     "title": "Proposer une candidature au programme des jeunes ambassadeurs",

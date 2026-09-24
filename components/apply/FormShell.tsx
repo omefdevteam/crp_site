@@ -4,7 +4,7 @@ import { useText } from "@/lib/ui-text";
 
 import { useEffect, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { locales } from "@/lib/locale";
+import { applicationLocales } from "@/lib/locale";
 import { useLanguage } from "../LanguageProvider";
 
 // Full-screen cream shell shared by apply + nominate multi-step forms.
@@ -38,7 +38,7 @@ export function FormShell({
             type="button"
             onClick={onBack}
             aria-label={tr("Back")}
-            className="grid size-9 place-items-center rounded-full bg-white shadow-sm"
+            className="grid size-9 place-items-center rounded-full bg-white shadow-sm transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 active:scale-95"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icons/apply/arrow-left.svg" alt="" width={20} height={20} className="size-5" />
@@ -48,14 +48,14 @@ export function FormShell({
         )}
 
         <div className="flex items-center rounded-full bg-white p-1">
-          {locales.map((code) => (
+          {applicationLocales.map((code) => (
             <button
               key={code}
               type="button"
               onClick={() => setLocale(code)}
               aria-pressed={locale === code}
               className={`h-7 rounded-full px-3.5 text-[12px] font-semibold uppercase tracking-[0.04em] transition-colors ${
-                locale === code ? "bg-black text-white" : "bg-transparent text-black/50"
+                locale === code ? "bg-black text-white" : "bg-transparent text-black/50 hover:bg-black/5 hover:text-black"
               }`}
             >
               {code}

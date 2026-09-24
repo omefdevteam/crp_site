@@ -5,7 +5,7 @@ import { useText } from "@/lib/ui-text";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Logo } from "../Logo";
-import { locales } from "@/lib/locale";
+import { applicationLocales } from "@/lib/locale";
 import { useLanguage } from "../LanguageProvider";
 
 export function ThanksStep({ onExit }: { onExit: () => void }) {
@@ -30,7 +30,7 @@ export function ThanksStep({ onExit }: { onExit: () => void }) {
           />
         </div>
         <div className="flex items-center rounded-full bg-white p-1">
-          {locales.map((code) => (
+          {applicationLocales.map((code) => (
             <button
               key={code}
               type="button"

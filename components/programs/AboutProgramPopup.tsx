@@ -127,6 +127,10 @@ function useFitScale(open: boolean) {
     if (!node) return;
 
     const update = () => {
+      if (window.matchMedia("(max-width: 899px)").matches) {
+        setFit({ scale: 1, width: 0, height: 0 });
+        return;
+      }
       const width = node.offsetWidth;
       const height = node.offsetHeight;
       const scale = height > 0 ? Math.min(1, window.innerHeight / height) : 1;
@@ -161,7 +165,7 @@ export function AboutProgramPopup({ open, onClose }: AboutProgramPopupProps) {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
+    panelRef.current?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -178,7 +182,7 @@ export function AboutProgramPopup({ open, onClose }: AboutProgramPopupProps) {
   const scaled = fit.height > 0 && fit.scale < 1;
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-start justify-end overflow-hidden">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center overflow-hidden desk:items-start desk:justify-end">
       <button
         type="button"
         aria-label={copy.a11y.closeAboutProgram}
@@ -187,7 +191,7 @@ export function AboutProgramPopup({ open, onClose }: AboutProgramPopupProps) {
       />
 
       <div
-        className="relative z-10 overflow-hidden"
+        className="relative z-10 h-[80dvh] w-full overflow-hidden desk:h-auto desk:w-auto"
         style={
           scaled
             ? { width: fit.width * fit.scale, height: fit.height * fit.scale }
@@ -199,20 +203,22 @@ export function AboutProgramPopup({ open, onClose }: AboutProgramPopupProps) {
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
-          className="flex w-screen flex-col bg-white desk:w-[590px]"
+          tabIndex={-1}
+          className="flex h-full w-full flex-col overflow-hidden rounded-t-[28px] bg-white outline-none desk:h-auto desk:w-[590px] desk:overflow-visible desk:rounded-none"
           style={
             scaled
               ? { transform: `scale(${fit.scale})`, transformOrigin: "top left" }
               : undefined
           }
         >
-          <div className="relative flex h-[88px] w-full shrink-0 items-center p-2">
+          <div className="relative flex h-[72px] w-full shrink-0 items-center justify-center p-2 desk:h-[88px] desk:justify-start">
+          <span aria-hidden className="absolute top-2 left-1/2 h-1 w-20 -translate-x-1/2 rounded-full bg-black/16 desk:hidden" />
           <button
             ref={closeRef}
             type="button"
             onClick={onClose}
             aria-label={copy.a11y.closeAboutProgram}
-            className="relative z-10 flex size-[72px] shrink-0 items-center justify-center rounded-full bg-white"
+            className="relative z-10 hidden size-[72px] shrink-0 items-center justify-center rounded-full bg-white desk:flex"
           >
             <FigmaImg
               src={programIcons.arrowLeft}
@@ -224,13 +230,13 @@ export function AboutProgramPopup({ open, onClose }: AboutProgramPopupProps) {
           </button>
           <h2
             id={titleId}
-            className="pointer-events-none absolute inset-x-0 text-center text-[28px] font-normal leading-[0.9] tracking-[-1.28px] text-black desk:text-[32px]"
+            className="pointer-events-none absolute inset-x-4 text-center text-[24px] font-normal leading-[0.9] tracking-[-0.96px] text-black desk:text-[32px]"
           >
             {about.title}
           </h2>
         </div>
 
-        <div className="flex flex-col items-center gap-4 pb-6 pt-3">
+        <div className="flex min-h-0 flex-1 flex-col items-center gap-4 overflow-y-auto pb-6 pt-3 desk:flex-none desk:overflow-visible">
           <Lead icon={programIcons.laptop}>{about.sessionsLead}</Lead>
 
           <div className="flex w-full items-center">

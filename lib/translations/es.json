@@ -95,6 +95,7 @@
     "ambassador": "Apoyar un programa de embajadores",
     "storyline": "Apoyar una historia concreta",
     "speaker": "Presentarme como ponente",
+    "learnMore": "Más información",
     "reachOutForm": {
       "title": "Sobre ti",
       "body": "Te contactaremos para confirmarlo por correo o por teléfono",
@@ -107,6 +108,7 @@
       "sponsorship": "Patrocinio",
       "message": "Tu mensaje aquí...",
       "continue": "Continuar",
+      "sponsorshipDetails": "Detalles del patrocinio",
       "supportOptions": ["El conjunto de la organización", "Un programa de embajadores", "Una historia concreta", "Presentarme como ponente"],
       "sponsorshipOptions": ["Apoyo económico", "Apoyo en especie"]
     }
@@ -471,7 +473,8 @@
     "emailPlaceholder": "Correo electrónico",
     "more": "Más\npróxi-\nma-\nmente",
     "heroAlt": "Costa de Antalya con los montes Tauro al otro lado de la bahía",
-    "dates": "14 oct. – 16 nov."
+    "dates": "14 oct. – 16 nov.",
+    "readMore": "más"
   },
   "nominateLanding": {
     "title": "Proponer a alguien para el Programa de Jóvenes Embajadores",

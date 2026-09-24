@@ -1,7 +1,5 @@
 "use client";
 
-import { LanguageLinks } from "@/components/LanguageLinks";
-
 import Link from "@/components/LocaleLink";
 import { footerHref } from "@/lib/nav";
 import { t } from "@/lib/messages";
@@ -52,7 +50,6 @@ export function Footer() {
 
         <div className="mt-12 border-t border-black/15 pt-5 text-[11px] text-black/55">
           <p>{t(copy.footer.copyright, { year })}</p>
-          <LanguageLinks />
         </div>
       </div>
     </footer>

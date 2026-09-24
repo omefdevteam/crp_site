@@ -28,10 +28,14 @@ function Caret({ up }: { up?: boolean }) {
   );
 }
 
-function RadioMark({ selected }: { selected: boolean }) {
+function RadioMark({ selected, lime = false }: { selected: boolean; lime?: boolean }) {
   return (
-    <span className="grid size-5 shrink-0 place-items-center rounded-full border border-black/32 bg-white">
-      {selected ? <span className="size-2.5 rounded-full bg-black" /> : null}
+    <span
+      className={`grid size-5 shrink-0 place-items-center rounded-full border bg-white ${
+        selected && lime ? "border-2 border-lime" : "border-black/32"
+      }`}
+    >
+      {selected ? <span className={`size-2.5 rounded-full ${lime ? "bg-lime" : "bg-black"}`} /> : null}
     </span>
   );
 }
@@ -135,7 +139,7 @@ function OptionRow({
       role="option"
       aria-selected={selected}
       onClick={onClick}
-      className="relative flex h-14 w-full items-center gap-3 text-left"
+      className="relative flex h-14 w-full items-center gap-3 rounded-[18px] text-left transition-colors hover:bg-[rgba(244,241,234,0.64)]"
     >
       {selected ? <span className="absolute inset-y-0 -left-3 -right-3 rounded-[18px] bg-[rgba(244,241,234,0.64)]" /> : null}
       <span className="relative">{mark}</span>
@@ -164,7 +168,7 @@ function FieldButton({
       aria-expanded={open}
       aria-label={label}
       onClick={onClick}
-      className="flex h-[63px] min-w-0 flex-1 items-center rounded-[48px] border border-black/12 bg-white pl-6 pr-8 text-left"
+      className="flex h-[63px] min-w-0 flex-1 items-center rounded-[48px] border border-black/12 bg-white pl-6 pr-8 text-left transition-colors hover:border-black/40"
     >
       {value ? (
         <span className="flex min-w-0 flex-1 flex-col justify-center pr-3">
@@ -207,7 +211,7 @@ function SupportMenu({
     <>
       <FieldButton label={label} value={value} open={open} onClick={() => setOpen((current) => !current)} buttonRef={triggerRef} />
       <MenuShell open={open} box={box} label={label}>
-        <OptionRow selected={wholeOrg} onClick={onWholeOrg} mark={<RadioMark selected={wholeOrg} />}>
+        <OptionRow selected={wholeOrg} onClick={onWholeOrg} mark={<RadioMark selected={wholeOrg} lime />}>
           {options[0] ?? ""}
         </OptionRow>
         <div className="my-1.5 h-px w-full bg-black/12" />
@@ -287,9 +291,17 @@ export function PartnerReachPage() {
   const [sponsorship, setSponsorship] = useState("");
   const [message, setMessage] = useState("");
   const [dial, setDial] = useState<Country>(US);
+  const [step, setStep] = useState(0);
   const supportLabel = wholeOrg
     ? form.supportOptions[0] ?? ""
     : picks.map((index) => form.supportOptions[index]).filter(Boolean).join(", ");
+
+  const aboutReady =
+    name.trim().length > 1 &&
+    EMAIL_RE.test(email.trim()) &&
+    mobile.trim().length > 5 &&
+    organization.trim().length > 1 &&
+    designation.trim().length > 1;
 
   const ready = useMemo(
     () =>
@@ -323,32 +335,44 @@ export function PartnerReachPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-cream px-4 pb-6 pt-4 desk:px-16 desk:pb-6 desk:pt-0">
-      <header className="flex h-[88px] shrink-0 items-center justify-between">
+    <div className="flex min-h-dvh flex-col bg-cream px-3 pb-2 pt-0 desk:px-16 desk:pb-6 desk:pt-0">
+      <header className="flex h-[68px] shrink-0 items-center justify-between px-5 desk:h-[88px] desk:px-0">
+        {step > 0 ? (
+          <button
+            type="button"
+            onClick={() => setStep(0)}
+            aria-label={tr("Back")}
+            className="grid size-8 place-items-center rounded-full bg-white desk:hidden"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/icons/apply/arrow-left.svg" alt="" width={16} height={16} className="size-4" />
+          </button>
+        ) : null}
         <LocaleLink
           href="/partner"
           aria-label={tr("Back")}
-          className="grid size-10 place-items-center rounded-full bg-white"
+          className={`grid size-8 place-items-center rounded-full bg-white desk:size-10 ${step > 0 ? "hidden desk:grid" : ""}`}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icons/apply/arrow-left.svg" alt="" width={24} height={24} className="size-6" />
+          <img src="/icons/apply/arrow-left.svg" alt="" width={16} height={16} className="size-4 desk:size-6" />
         </LocaleLink>
         <LanguageSwitch />
       </header>
 
       <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col items-center">
-        <div className="flex w-full max-w-[1072px] flex-1 flex-col items-center overflow-hidden rounded-[48px] bg-white px-5 py-10 desk:rounded-[154px] desk:px-10 desk:py-16">
+        <div className="flex w-full max-w-[1072px] flex-1 flex-col items-center overflow-hidden rounded-[88px] bg-white px-6 py-8 desk:rounded-[154px] desk:px-10 desk:py-16">
           <div className="flex w-full max-w-[632px] flex-1 flex-col items-center justify-between gap-8">
-            <div className="flex w-full flex-col items-center gap-6 text-center text-black">
-              <h1 className="text-[40px] leading-[0.9] tracking-[-1.6px] desk:text-[48px] desk:tracking-[-1.92px]">
-                {form.title}
+            <div className="flex w-full flex-col items-center gap-4 text-center text-black desk:gap-6">
+              <h1 className="text-[28px] leading-[0.9] tracking-[-1.12px] desk:text-[48px] desk:tracking-[-1.92px]">
+                <span className="desk:hidden">{step === 0 ? form.title : form.sponsorshipDetails}</span>
+                <span className="hidden desk:inline">{form.title}</span>
               </h1>
-              <p className="max-w-[545px] text-[24px] leading-[0.9] tracking-[-0.96px] desk:text-[32px] desk:tracking-[-1.28px]">
+              <p className={`max-w-[545px] text-[20px] leading-[0.9] tracking-[-0.8px] desk:text-[32px] desk:tracking-[-1.28px] ${step === 0 ? "" : "hidden desk:block"}`}>
                 {form.body}
               </p>
             </div>
 
-            <div className="flex w-full flex-col gap-2">
+            <div className={`w-full flex-col gap-2 ${step === 0 ? "flex" : "hidden desk:flex"}`}>
               <input
                 required
                 name="name"
@@ -408,6 +432,8 @@ export function PartnerReachPage() {
                   className={`${FIELD_SM} desk:min-w-0 desk:flex-1`}
                 />
               </div>
+            </div>
+            <div className={`w-full flex-col gap-2 ${step === 1 ? "flex" : "hidden desk:flex"}`}>
               <div className="flex flex-col gap-2 desk:flex-row">
                 <SupportMenu
                   label={form.support}
@@ -445,9 +471,30 @@ export function PartnerReachPage() {
         </div>
 
         <button
+          type="button"
+          disabled={!aboutReady}
+          onClick={() => setStep(1)}
+          className={`relative mt-2 h-16 w-full items-center justify-center overflow-hidden rounded-full text-[15px] font-semibold uppercase leading-[0.9] tracking-[0.6px] text-white mix-blend-hard-light transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 disabled:opacity-100 desk:hidden ${step === 0 ? "flex" : "hidden"}`}
+        >
+          <span aria-hidden className="absolute inset-0 rounded-full bg-black opacity-32" />
+          <span aria-hidden className="absolute inset-y-0 left-0 w-1/2 overflow-hidden rounded-full">
+            <span className="gradient-brand absolute inset-y-0 left-0 w-[200%]" />
+          </span>
+          <span className="relative">{form.continue}</span>
+        </button>
+        <button
           type="submit"
           disabled={!ready}
-          className={`mt-4 flex h-16 w-full max-w-[632px] items-center justify-center rounded-full text-[18px] font-semibold uppercase leading-[0.9] tracking-[0.72px] text-white mix-blend-hard-light desk:mt-2 desk:h-20 desk:text-[20px] desk:tracking-[0.8px] ${
+          className={`relative mt-2 h-16 w-full items-center justify-center overflow-hidden rounded-full text-[15px] font-semibold uppercase leading-[0.9] tracking-[0.6px] text-white mix-blend-hard-light transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 desk:hidden ${
+            step === 1 ? "flex" : "hidden"
+          } ${ready ? "gradient-brand" : "gradient-brand opacity-32"}`}
+        >
+          {form.continue}
+        </button>
+        <button
+          type="submit"
+          disabled={!ready}
+          className={`mt-4 hidden h-16 w-full max-w-[632px] items-center justify-center rounded-full text-[18px] font-semibold uppercase leading-[0.9] tracking-[0.72px] text-white mix-blend-hard-light transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 desk:mt-2 desk:flex desk:h-20 desk:text-[20px] desk:tracking-[0.8px] ${
             ready ? "gradient-brand" : "gradient-brand opacity-32"
           }`}
         >

@@ -95,6 +95,7 @@
     "ambassador": "Support an ambassador program",
     "storyline": "Support a specific storyline",
     "speaker": "Apply as a speaker",
+    "learnMore": "Learn more",
     "reachOutForm": {
       "title": "About you",
       "body": "We will reach out to you for your confirmation via email or a call",
@@ -107,6 +108,7 @@
       "sponsorship": "Sponsorship",
       "message": "Your message here...",
       "continue": "Continue",
+      "sponsorshipDetails": "Sponsorship details",
       "supportOptions": ["The whole organization", "An ambassador program", "A specific storyline", "Apply as a speaker"],
       "sponsorshipOptions": ["Financial Support", "Support in Kind"]
     }
@@ -471,7 +473,8 @@
     "emailPlaceholder": "Email",
     "more": "More\ncom\ning\nsoon",
     "heroAlt": "Coastal view of Antalya with the Taurus mountains across the bay",
-    "dates": "Oct 14 - Nov 16"
+    "dates": "Oct 14 - Nov 16",
+    "readMore": "more"
   },
   "nominateLanding": {
     "title": "Youth Ambassador Program Nomination",

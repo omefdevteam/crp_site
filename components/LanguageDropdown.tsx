@@ -86,7 +86,7 @@ export function LanguageDropdown({
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
-        className="flex shrink-0 items-center rounded-full bg-white p-[4px] text-black shadow-[inset_0_0_18px_rgba(255,255,255,0.25)]"
+        className="flex shrink-0 items-center rounded-full bg-white p-[4px] text-black shadow-[inset_0_0_18px_rgba(255,255,255,0.25)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.98]"
       >
         <span className="flex h-[32px] items-center gap-[10px] rounded-full px-[12px] py-[10px]">
           <TranslateIcon />
@@ -106,7 +106,7 @@ export function LanguageDropdown({
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-[27px] shrink-0 items-center rounded-full bg-white py-[2px] pl-[2px] pr-[8px] text-black"
+        className="flex h-[27px] shrink-0 items-center rounded-full bg-white py-[2px] pl-[2px] pr-[8px] text-black transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.98]"
       >
         <span className="flex items-center justify-center rounded-full px-[8px] py-[6px] text-[12px] font-semibold uppercase leading-[0.9] tracking-[0.48px]">
           {locale.toUpperCase()}
@@ -121,9 +121,12 @@ export function LanguageDropdown({
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((v) => !v)}
-        className="relative flex items-center rounded-full bg-white p-[2px] text-black shadow-[inset_0_0_18px_rgba(255,255,255,0.25)] desk:p-[4px]"
+        className="relative flex h-[27px] items-center rounded-full bg-white py-[2px] pl-[2px] pr-2 text-black shadow-[inset_0_0_18px_rgba(255,255,255,0.25)] desk:h-auto desk:p-[4px] desk:pr-[4px]"
       >
-        <span className="flex h-[23px] items-center justify-center px-2 text-[12px] font-semibold uppercase leading-[0.9] tracking-[0.48px] desk:h-[32px] desk:w-auto desk:px-[12px] desk:py-[10px] desk:text-[14px] desk:tracking-[0.56px] desk:mix-blend-hard-light">
+        <span className="flex h-[23px] items-center justify-center gap-1 px-2 text-[12px] font-semibold uppercase leading-[0.9] tracking-[0.48px] desk:h-[32px] desk:w-auto desk:gap-0 desk:px-[12px] desk:py-[10px] desk:text-[14px] desk:tracking-[0.56px] desk:mix-blend-hard-light">
+          <span className="desk:hidden">
+            <TranslateIcon />
+          </span>
           <span className="desk:w-[28px] desk:text-center">{locale.toUpperCase()}</span>
         </span>
         <span className="flex items-center justify-center pr-1 desk:size-[32px] desk:p-[10px] desk:pr-[10px]">

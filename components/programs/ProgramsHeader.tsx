@@ -12,19 +12,19 @@ export function ProgramsHeader() {
   const copy = useCopy();
   return (
     <div className="absolute inset-x-0 top-0 z-30">
-      <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-5 desk:px-16 desk:py-6">
+      <div className="mx-auto flex h-[68px] max-w-[1200px] items-center justify-between px-8 desk:h-auto desk:px-16 desk:py-6">
         <Link
           href="/"
           aria-label={copy.a11y.back}
-          className="flex items-center rounded-full bg-white p-[4px] text-black shadow-[0_4px_20px_rgba(0,0,0,0.15)]"
+          className="flex size-8 items-center justify-center rounded-full bg-white p-1 text-black shadow-[0_4px_20px_rgba(0,0,0,0.15)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 active:scale-95 desk:size-auto desk:p-1"
         >
-          <span className="flex size-[32px] items-center justify-center">
+          <span className="flex size-8 items-center justify-center">
             <FigmaImg
               src={programIcons.arrowLeftHeader}
               alt=""
-              width={24}
-              height={24}
-              className="size-[24px] brightness-0"
+              width={16}
+              height={16}
+              className="size-4 brightness-0 desk:size-6"
             />
           </span>
         </Link>
@@ -32,15 +32,15 @@ export function ProgramsHeader() {
         <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
           <Logo
             tone="light"
-            imgClassName="h-[40px] w-auto desk:h-[48px]"
+            imgClassName="h-7 w-auto desk:h-12"
           />
         </div>
 
-        <div className="flex items-center gap-[8px]">
+        <div className="flex items-center gap-1 desk:gap-2">
           <button
             type="button"
             aria-label={copy.a11y.discord}
-            className="flex h-[40px] w-[56px] items-center justify-center rounded-full bg-[#5865f2]"
+            className="flex h-[27px] items-center justify-center rounded-full bg-[#5865f2] px-3 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 active:scale-95 desk:h-10 desk:w-14 desk:px-0"
           >
             <FigmaImg
               src={programIcons.discord}

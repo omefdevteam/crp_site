@@ -45,7 +45,7 @@ export function GetInvolvedTab({ className = "" }: { className?: string }) {
       type="button"
       onClick={openGetInvolvedPopup}
       aria-label={copy.a11y.getInvolvedJump}
-      className={`block shrink-0 ${className}`}
+      className={`block shrink-0 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 active:translate-y-0 ${className}`}
     >
       <span className="relative flex items-end drop-shadow-[0_8px_18px_rgba(0,0,0,0.4)]">
         {/* Side scoops — Figma Exclude nodes at 25.5×25.5 */}

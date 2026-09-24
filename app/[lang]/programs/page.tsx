@@ -30,7 +30,7 @@ export default async function ProgramsPage({
         <ProgramHero />
 
         {/* Centered 632px content column (632 + 2×24 gutter) */}
-        <div className="mx-auto flex max-w-[680px] flex-col gap-16 px-6 pt-16 desk:gap-24 desk:pt-24">
+        <div className="mx-auto flex max-w-[680px] flex-col gap-8 px-0 pt-8 desk:gap-24 desk:px-6 desk:pt-24">
           <ProgramAbout />
           <ProgramResonate />
           <ProgramWhatYouGet />

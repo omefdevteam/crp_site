@@ -167,6 +167,7 @@ export function ApplicationProcessPopup({ open, onClose }: ApplicationProcessPop
   const process = copy.programs.applicationProcess;
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion() === true;
   const [step, setStep] = useState(0);
   const total = process.steps.length;
@@ -179,7 +180,7 @@ export function ApplicationProcessPopup({ open, onClose }: ApplicationProcessPop
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    closeRef.current?.focus();
+    dialogRef.current?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -194,7 +195,7 @@ export function ApplicationProcessPopup({ open, onClose }: ApplicationProcessPop
   if (!open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex justify-end">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center desk:items-stretch desk:justify-end">
       <button
         type="button"
         aria-label={copy.a11y.closeApplicationProcess}
@@ -206,15 +207,18 @@ export function ApplicationProcessPopup({ open, onClose }: ApplicationProcessPop
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 flex h-dvh max-h-dvh w-full flex-col bg-white pt-2 desk:w-[590px]"
+        ref={dialogRef}
+        tabIndex={-1}
+        className="relative z-10 flex h-[80dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-white pt-2 outline-none desk:h-dvh desk:max-h-dvh desk:w-[590px] desk:rounded-none"
       >
-        <div className="relative flex h-[72px] w-full shrink-0 items-center px-2">
+        <div className="relative flex h-[72px] w-full shrink-0 items-center justify-center px-2 desk:justify-start">
+          <span aria-hidden className="absolute top-1 left-1/2 h-1 w-20 -translate-x-1/2 rounded-full bg-black/16 desk:hidden" />
           <button
             ref={closeRef}
             type="button"
             onClick={onClose}
             aria-label={copy.a11y.closeApplicationProcess}
-            className="relative z-10 flex size-[72px] shrink-0 items-center justify-center rounded-full bg-white"
+            className="relative z-10 hidden size-[72px] shrink-0 items-center justify-center rounded-full bg-white desk:flex"
           >
             <FigmaImg
               src={programIcons.plus}
@@ -242,7 +246,7 @@ export function ApplicationProcessPopup({ open, onClose }: ApplicationProcessPop
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
               className="flex min-h-0 flex-1 flex-col gap-3"
             >
-              <div className="relative h-[min(472px,56dvh)] w-full shrink-0 overflow-hidden rounded-[56px] desk:rounded-[88px]">
+              <div className="relative h-[min(280px,42dvh)] w-full shrink-0 overflow-hidden rounded-[40px] desk:h-[min(472px,56dvh)] desk:rounded-[88px]">
                 <FigmaImg
                   src={STEP_IMAGES[step]}
                   alt=""
@@ -252,7 +256,7 @@ export function ApplicationProcessPopup({ open, onClose }: ApplicationProcessPop
                 />
                 <WhiteTicket label={current.date} placement="top" />
                 <WhiteTicket label={current.label} placement="bottom" />
-                <p className="absolute bottom-10 left-8 text-[72px] font-normal leading-[0.8] tracking-[-3.84px] text-white desk:bottom-12 desk:left-12 desk:text-[96px]">
+                <p className="absolute bottom-8 left-6 text-[56px] font-normal leading-[0.8] tracking-[-2px] text-white desk:bottom-12 desk:left-12 desk:text-[96px] desk:tracking-[-3.84px]">
                   {step + 1}
                 </p>
               </div>

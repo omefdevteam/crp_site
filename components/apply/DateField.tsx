@@ -2,7 +2,8 @@
 
 import { useText } from "@/lib/ui-text";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLanguage } from "../LanguageProvider";
 import { FIELD, LABEL } from "./fieldStyles";
 
@@ -28,6 +29,8 @@ export function DateField({
   const [open, setOpen] = useState(false);
   const [yearPicker, setYearPicker] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuBox, setMenuBox] = useState<{ top: number; left: number; width: number } | null>(null);
 
   const today = useMemo(() => new Date(), []);
   const selected = value ? new Date(`${value}T00:00:00`) : null;
@@ -36,11 +39,30 @@ export function DateField({
     m: selected?.getMonth() ?? today.getMonth(),
   }));
 
+  useLayoutEffect(() => {
+    const anchor = wrapRef.current;
+    if (!open || !anchor) return;
+    const place = () => {
+      const rect = anchor.getBoundingClientRect();
+      const width = Math.min(312, window.innerWidth - 16);
+      const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
+      setMenuBox({ top: rect.bottom + 8, left, width });
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     const onDown = (e: PointerEvent) => {
       if (!(e.target instanceof Node)) return;
-      if (!wrapRef.current?.contains(e.target)) setOpen(false);
+      if (wrapRef.current?.contains(e.target) || menuRef.current?.contains(e.target)) return;
+      setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
@@ -108,8 +130,13 @@ export function DateField({
         )}
       </button>
 
-      {open ? (
-        <div className="absolute left-0 top-[calc(100%+8px)] z-50 w-[312px] max-w-[calc(100vw-2rem)] rounded-[24px] border border-black/12 bg-white p-4 shadow-[0_8px_28px_rgba(0,0,0,0.12)]">
+      {open && menuBox
+        ? createPortal(
+        <div
+          ref={menuRef}
+          style={{ top: menuBox.top, left: menuBox.left, width: menuBox.width }}
+          className="fixed z-[90] rounded-[24px] border border-black/12 bg-white p-4 shadow-[0_8px_28px_rgba(0,0,0,0.12)]"
+        >
           <div className="mb-2 flex items-center justify-between">
             <button
               type="button"
@@ -191,8 +218,10 @@ export function DateField({
               </div>
             </>
           )}
-        </div>
-      ) : null}
+        </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

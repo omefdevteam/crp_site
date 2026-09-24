@@ -27,7 +27,7 @@ export function RedirectingStep({ message, onClose }: { message: string; onClose
         >
           {message}
         </p>
-        {onClose ? <button type="button" onClick={onClose} className="mt-4 rounded-full bg-black px-6 py-3 text-white">{tr("Close / Fermer")}</button> : <span className="flex gap-1.5" aria-hidden>
+        {onClose ? <button type="button" onClick={onClose} className="mt-4 rounded-full bg-black px-6 py-3 text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98]">{tr("Close / Fermer")}</button> : <span className="flex gap-1.5" aria-hidden>
           {[0, 1, 2].map((i) => (
             <span
               key={i}

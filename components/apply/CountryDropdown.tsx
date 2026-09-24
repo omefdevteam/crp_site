@@ -251,7 +251,7 @@ export function CountryDropdown({
             <div
               ref={menuRef}
               style={{ top: menuStyle.top, left: menuStyle.left, width: menuStyle.width, maxHeight: menuStyle.maxHeight }}
-              className="fixed z-[80] flex flex-col overflow-hidden rounded-[24px] border border-black/12 bg-white shadow-[0_8px_28px_rgba(0,0,0,0.12)]"
+              className="fixed z-[90] flex flex-col overflow-hidden rounded-[24px] border border-black/12 bg-white shadow-[0_8px_28px_rgba(0,0,0,0.12)]"
             >
               <div ref={listRef} id={listId} role="listbox" className="overflow-y-auto px-2 py-1.5">
                 {ranked.length === 0 ? (
