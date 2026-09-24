@@ -74,6 +74,7 @@ export function SkillsStep({
         <ContinueButton
           label={tr("Continue")}
           selectedCount={count}
+          progress={0.5}
           disabled={count === 0}
           onClick={onContinue}
         />

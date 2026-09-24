@@ -64,7 +64,11 @@
     ],
     "homeTopics": ["Humains", "Origines", "Mouvement", "Évolution"],
     "teamTitle": "Équipe",
-    "teamQuote": "« Le programme amplifie les voix des jeunes militant·e·s climatiques, et leur donne des outils de plaidoyer à la COP31 »",
+    "teamQuotes": [
+      "« Le programme amplifie les voix des jeunes militant·e·s climatiques, et leur donne des outils de plaidoyer à la COP31 »",
+      "« Le programme amplifie les voix des jeunes militant·e·s climatiques, et leur donne des outils de plaidoyer à la COP31 »",
+      "« Le programme amplifie les voix des jeunes militant·e·s climatiques, et leur donne des outils de plaidoyer à la COP31 »"
+    ],
     "memberName": "Jane Doe",
     "memberRole": "Responsable",
     "involvedTitle": "S'impliquer",
@@ -90,7 +94,22 @@
     ],
     "ambassador": "Soutenir un programme d'ambassadeurs",
     "storyline": "Soutenir une histoire précise",
-    "speaker": "Postuler comme intervenant·e"
+    "speaker": "Postuler comme intervenant·e",
+    "reachOutForm": {
+      "title": "À propos de vous",
+      "body": "Nous vous contacterons pour confirmation par e-mail ou par téléphone",
+      "name": "*Nom",
+      "email": "*E-mail",
+      "mobile": "*Mobile",
+      "organization": "*Organisation",
+      "designation": "*Fonction",
+      "support": "Soutien",
+      "sponsorship": "Parrainage",
+      "message": "Votre message ici...",
+      "continue": "Continuer",
+      "supportOptions": ["L'ensemble de l'organisation", "Un programme d'ambassadeurs", "Une histoire précise", "Postuler comme intervenant·e"],
+      "sponsorshipOptions": ["Soutien financier", "Soutien en nature"]
+    }
   },
   "contactPage": {
     "title": "Contactez-nous",
@@ -459,6 +478,17 @@
     "headline": "Les ambassadeur·rice·s nous rejoignent sur le chemin vers une protection juridique pour les réfugiés climatiques.",
     "body": "En représentant leurs communautés, elles et ils aident à ouvrir des conversations sur la mobilité climatique et créent des liens avec des participant·e·s du monde entier. Ensemble, nous aiderons à renforcer leurs compétences, à faire entendre leur voix, et à contribuer aux solutions pour la mobilité climatique."
   },
+  "privacyPage": {
+    "title": "Privacy policy",
+    "updated": "LAST UPDATED: [INSERT DATE]",
+    "heading": "Heading 1",
+    "subhead": "Sub-header",
+    "paragraphs": [
+      "At the heart of our mission lies a profound understanding: migration is not just a statistic, but a crucial lifeline for communities grappling with adversity.",
+      "Those impacted by climate change embody stories of resilience, hope, and the urgent need for action. We recognize that each individual represents a unique journey, deserving of compassion and support.",
+      "Our initiative aims to empower these communities, ensuring their voices are heard and their rights upheld in the face of environmental challenges."
+    ]
+  },
   "meta": {
     "home": {
       "title": "Climate Refugee Pavilion",
@@ -487,6 +517,10 @@
     "contact": {
       "title": "Contactez-nous — Climate Refugee Pavilion",
       "description": "Écrivez au Climate Refugee Pavilion — par e-mail, sur place, ou via le formulaire."
+    },
+    "privacy": {
+      "title": "Privacy policy — Climate Refugee Pavilion",
+      "description": "How the Climate Refugee Pavilion handles personal information."
     }
   }
 }

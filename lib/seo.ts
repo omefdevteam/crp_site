@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { copyFor } from "@/lib/messages";
 import { locales, localePath, type Locale } from "@/lib/locale";
 export const SITE_URL = "https://www.climaterefugeepavilion.org";
-export const pagePaths = { home: "/", about: "/about", programs: "/programs", partner: "/partner", contact: "/contact", apply: "/apply", nominate: "/nominate" } as const;
+export const pagePaths = { home: "/", about: "/about", programs: "/programs", partner: "/partner", contact: "/contact", apply: "/apply", nominate: "/nominate", privacy: "/privacy" } as const;
 export type PageKey = keyof typeof pagePaths;
 export function languageAlternates(path: string) {
   return Object.fromEntries([...locales.map((locale) => [locale, SITE_URL + localePath(path, locale)]), ["x-default", SITE_URL + localePath(path, "en")]]);

@@ -19,6 +19,7 @@ export default function AboutRoute() {
       <main className="flex-1">
         <AboutPage />
         <GetInvolved embedded />
+        <div aria-hidden className="h-16 bg-cream desk:h-24" />
       </main>
       <Footer />
       <GetInvolvedPill />

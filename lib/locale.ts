@@ -5,7 +5,7 @@ export type ApplicationLocale = (typeof applicationLocales)[number];
 export const defaultLocale: Locale = "en";
 export const LOCALE_COOKIE = "crp-locale";
 export const nativeLanguageNames: Record<Locale, string> = { en: "English", fr: "Français", es: "Español", pt: "Português" };
-export const publicPaths = ["/", "/about", "/programs", "/partner", "/contact", "/apply", "/nominate"] as const;
+export const publicPaths = ["/", "/about", "/programs", "/partner", "/partner/reach-out", "/contact", "/apply", "/nominate", "/privacy"] as const;
 export function isLocale(value: string | undefined | null): value is Locale {
   return locales.some((locale) => locale === value);
 }

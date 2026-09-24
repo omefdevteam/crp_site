@@ -144,32 +144,80 @@ function TeamCard({
   photo,
   name,
   role,
-  lead = false,
+  expand,
 }: {
   photo: string;
   name: string;
   role: string;
-  lead?: boolean;
+  expand?: "left" | "lead" | "right";
 }) {
+  const wide =
+    expand === "left" ? "group-hover/left:w-[320px]" : expand === "lead" ? "group-hover/lead:w-[320px]" : expand === "right" ? "group-hover/right:w-[320px]" : "";
+  const clear =
+    expand === "left" ? "group-hover/left:opacity-0" : expand === "lead" ? "group-hover/lead:opacity-0" : expand === "right" ? "group-hover/right:opacity-0" : "";
+
   return (
     <article
-      className={`relative h-[200px] shrink-0 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-        lead ? "w-[200px] group-hover/lead:w-[320px]" : "w-[200px]"
-      }`}
+      className={`relative h-[200px] w-[200px] shrink-0 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${wide}`}
     >
       <div className="absolute inset-0 overflow-hidden rounded-[64px]">
         <Image src={photo} alt="" fill className="object-cover" sizes="320px" />
-        <div
-          className={`absolute inset-0 bg-black/48 transition-opacity duration-500 ${
-            lead ? "group-hover/lead:opacity-0" : ""
-          }`}
-        />
+        <div className={`absolute inset-0 bg-black/48 transition-opacity duration-500 ${clear}`} />
         <p className="absolute bottom-6 left-0 right-0 px-8 text-center text-[24px] leading-none tracking-[-0.96px] text-white">
           {name}
         </p>
       </div>
       <TicketTab placement="top" ink label={role} />
     </article>
+  );
+}
+
+const TEAM_SEATS = ["left", "lead", "right"] as const;
+
+function TeamRow({
+  photos,
+  quotes,
+  name,
+  role,
+}: {
+  photos: readonly string[];
+  quotes: readonly string[];
+  name: string;
+  role: string;
+}) {
+  return (
+    <div className="flex w-full items-center justify-center">
+      {TEAM_SEATS.map((seat, index) => {
+        const photo = photos[index];
+        if (!photo) return null;
+        const groupClass = seat === "left" ? "group/left" : seat === "lead" ? "group/lead" : "group/right";
+        return (
+          <div key={photo} className={`${groupClass} flex items-center`}>
+            <TeamCard expand={seat} photo={photo} name={name} role={role} />
+            <TeamQuote group={seat} quote={quotes[index] ?? ""} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function TeamQuote({ quote, group }: { quote: string; group: "left" | "lead" | "right" }) {
+  const open =
+    group === "left" ? "group-hover/left:w-[280px]" : group === "lead" ? "group-hover/lead:w-[280px]" : "group-hover/right:w-[280px]";
+  const shown =
+    group === "left"
+      ? "group-hover/left:translate-x-0 group-hover/left:opacity-100"
+      : group === "lead"
+        ? "group-hover/lead:translate-x-0 group-hover/lead:opacity-100"
+        : "group-hover/right:translate-x-0 group-hover/right:opacity-100";
+
+  return (
+    <div className={`w-0 overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${open}`}>
+      <p className={`w-[280px] -translate-x-8 p-8 text-[20px] leading-[1.2] tracking-[-0.8px] text-white opacity-0 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${shown}`}>
+        {quote}
+      </p>
+    </div>
   );
 }
 
@@ -189,10 +237,12 @@ export function AboutPage() {
       image,
     };
   });
-  const [left, featured, right, ...rest] = aboutTeamPhotos;
-  const teamRows: string[][] = [];
-  for (let i = 0; i < rest.length; i += 3) {
-    teamRows.push(rest.slice(i, i + 3));
+  const teamRows: { photos: string[]; quotes: string[] }[] = [];
+  for (let i = 0; i < aboutTeamPhotos.length; i += 3) {
+    teamRows.push({
+      photos: aboutTeamPhotos.slice(i, i + 3),
+      quotes: [0, 1, 2].map((offset) => a.teamQuotes[i + offset] ?? a.teamQuotes[(i + offset) % a.teamQuotes.length] ?? ""),
+    });
   }
 
   return (
@@ -428,27 +478,14 @@ export function AboutPage() {
         <div className="mx-auto mt-12 max-w-[1000px] desk:mt-12">
           <FitWidth designWidth={1000} designHeight={1400} cap>
             <div className="flex h-[1400px] w-[1000px] flex-col items-center">
-              <div className="group/lead flex w-full items-center justify-center">
-                <TeamCard photo={left} name={a.memberName} role={a.memberRole} />
-                <TeamCard lead photo={featured} name={a.memberName} role={a.memberRole} />
-                <div className="w-0 overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/lead:w-[280px]">
-                  <p className="w-[280px] -translate-x-8 p-8 text-[20px] leading-[1.2] tracking-[-0.8px] text-white opacity-0 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/lead:translate-x-0 group-hover/lead:opacity-100">
-                    {a.teamQuote}
-                  </p>
-                </div>
-                <TeamCard photo={right} name={a.memberName} role={a.memberRole} />
-              </div>
               {teamRows.map((row) => (
-                <div key={row.join()} className="flex items-center">
-                  {row.map((photo) => (
-                    <TeamCard
-                      key={photo}
-                      photo={photo}
-                      name={a.memberName}
-                      role={a.memberRole}
-                    />
-                  ))}
-                </div>
+                <TeamRow
+                  key={row.photos.join()}
+                  photos={row.photos}
+                  quotes={row.quotes}
+                  name={a.memberName}
+                  role={a.memberRole}
+                />
               ))}
             </div>
           </FitWidth>
