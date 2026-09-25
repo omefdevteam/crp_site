@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import {
   getDb,
   nominations,
+  partnerInquiries,
 } from "@/lib/db";
 import { enqueueEmail } from "@/lib/jobs";
 import { recordChange } from "@/lib/sync-log";
@@ -19,6 +20,7 @@ import {
   interestInput,
   applicationInput,
   nominationInput,
+  partnerInput,
   resumeInput,
   type ApplicationResult,
   type ResumeResult,
@@ -116,6 +118,19 @@ export async function submitNomination(raw: unknown): Promise<{ ok: boolean }> {
     if (!row) return;
     await recordChange(tx, "nominations", row.id, "insert", row);
     await enqueueEmail(tx, `email:nomination:${row.id}`, { to: nominatorEmail, ...nominationEmail(nomineeName) }, "nomination");
+  });
+  return { ok: true };
+}
+
+export async function submitPartner(raw: unknown): Promise<{ ok: boolean; reason?: "invalid" | "turnstile" | "rate_limited" }> {
+  if (!(await passedTurnstile(raw))) return { ok: false, reason: "turnstile" };
+  const parsed = partnerInput.safeParse(raw);
+  if (!parsed.success) return { ok: false, reason: "invalid" };
+  if (!(await withinLimits("partner", parsed.data.email, 20, 5))) return { ok: false, reason: "rate_limited" };
+
+  await getDb().transaction(async (tx) => {
+    const [row] = await tx.insert(partnerInquiries).values(parsed.data).returning();
+    await recordChange(tx, "partners", row.id, "insert", row);
   });
   return { ok: true };
 }

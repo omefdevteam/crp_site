@@ -12,20 +12,20 @@ export function ProgramApplicationBand() {
 
   return (
     <section className="w-full">
-      <div className="flex flex-col items-center gap-8 rounded-[56px] bg-black px-8 py-20 desk:rounded-[105px] desk:py-[120px]">
-        <p className="w-full max-w-[632px] text-[24px] font-normal leading-none tracking-[-1.28px] text-white desk:text-[32px]">
+      <div className="flex flex-col items-center gap-8 bg-black px-0 py-16 desk:rounded-[105px] desk:px-8 desk:py-[120px]">
+        <p className="w-full max-w-[632px] px-6 text-[32px] font-normal leading-none tracking-[-1.28px] text-white desk:px-0">
           {copy.programs.applyBand.body}
         </p>
 
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="flex h-[112px] w-full max-w-[632px] items-center justify-between rounded-[32px] bg-white py-[8px] pl-8 pr-[8px]"
+          className="flex w-full max-w-[632px] items-center justify-between rounded-[32px] bg-white py-2 pl-6 pr-2 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] desk:h-[112px] desk:py-2 desk:pl-8"
         >
-          <span className="text-[24px] font-normal leading-none tracking-[-1.28px] text-black desk:text-[32px]">
+          <span className="text-[24px] font-normal leading-none tracking-[-0.96px] text-black desk:text-[32px] desk:tracking-[-1.28px]">
             {copy.programs.applyBand.process}
           </span>
-          <span className="flex size-[96px] shrink-0 items-center justify-center rounded-full bg-black">
+          <span className="flex size-[72px] shrink-0 items-center justify-center rounded-full bg-black desk:size-[96px]">
             <FigmaImg
               src={programIcons.caretDown}
               alt=""

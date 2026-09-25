@@ -25,8 +25,8 @@ export function ProgramFaq() {
   const [open, setOpen] = useState(0);
 
   return (
-    <section className="mx-auto flex max-w-[680px] flex-col items-center gap-16 px-6 py-20 desk:py-[120px]">
-      <h2 className="w-full text-[36px] font-normal leading-[0.9] tracking-[-1.92px] text-black desk:text-[48px]">
+    <section className="mx-auto flex max-w-[680px] flex-col items-center gap-16 px-6 py-16 desk:py-[120px]">
+      <h2 className="w-full text-[32px] font-normal leading-none tracking-[-1.28px] text-black desk:text-[48px] desk:leading-[0.9] desk:tracking-[-1.92px]">
         {copy.programs.faq.heading}
       </h2>
 
@@ -39,15 +39,15 @@ export function ProgramFaq() {
                 type="button"
                 onClick={() => setOpen(isOpen ? -1 : i)}
                 aria-expanded={isOpen}
-                className="flex w-full items-center gap-6 text-left"
+                className="group flex w-full items-center gap-6 text-left"
               >
-                <span className="flex-1 text-[26px] font-normal leading-none tracking-[-1.28px] text-black desk:text-[32px]">
+                <span className="flex-1 text-[20px] font-normal leading-none tracking-[-0.8px] text-black transition-colors group-hover:text-black/60 desk:text-[32px] desk:tracking-[-1.28px]">
                   {item.q}
                 </span>
                 <PlusMinus open={isOpen} />
               </button>
               {(
-                <p hidden={!isOpen} className="text-[18px] font-normal leading-[1.2] tracking-[-0.8px] text-black/84 desk:text-[20px]">
+                <p hidden={!isOpen} className="text-[15px] font-normal leading-[1.2] tracking-[-0.6px] text-black desk:text-[20px] desk:tracking-[-0.8px] desk:text-black/84">
                   {item.a}
                 </p>
               )}

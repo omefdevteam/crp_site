@@ -34,7 +34,7 @@ function FeaturedVideo() {
       <button
         type="button"
         aria-label={copy.a11y.playHome}
-        className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2"
+        className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 active:scale-95"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

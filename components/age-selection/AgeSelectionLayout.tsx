@@ -4,7 +4,7 @@ import { LanguageLinks } from "@/components/LanguageLinks";
 
 import Image from "next/image";
 import Link from "@/components/LocaleLink";
-import { type ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { t } from "@/lib/messages";
 import { footerHref } from "@/lib/nav";
 import { programPhotos } from "@/lib/program-assets";
@@ -23,7 +23,7 @@ function ApplyHeader() {
       <Link
         href="/"
         aria-label={copy.a11y.backHome}
-        className="relative flex size-10 items-center justify-center rounded-full bg-white p-1 shadow-[inset_0_0_18px_rgba(255,255,255,0.25)]"
+        className="relative flex size-8 items-center justify-center desk:size-10 desk:rounded-full desk:bg-white desk:p-1 desk:shadow-[inset_0_0_18px_rgba(255,255,255,0.25)]"
       >
         <span className="flex size-8 items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -32,7 +32,7 @@ function ApplyHeader() {
             alt=""
             width={24}
             height={24}
-            className="size-6"
+            className="size-6 brightness-0 invert desk:brightness-100 desk:invert-0"
           />
         </span>
       </Link>
@@ -51,15 +51,15 @@ function ApplyHeader() {
 
 function IconChip({ src, label }: { src: string; label: string }) {
   return (
-    <div className="flex items-center gap-3 desk:gap-[12px]">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white p-1.5 desk:size-[48px] desk:p-[6px]">
+    <div className="flex min-w-0 flex-1 flex-col items-start gap-3 desk:flex-none desk:flex-row desk:items-center desk:gap-[12px]">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white p-1 desk:size-[48px] desk:p-[6px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
           alt=""
-          width={24}
-          height={24}
-          className="size-5 desk:size-[24px]"
+          width={16}
+          height={16}
+          className="size-4 desk:size-[24px]"
         />
       </span>
       <p className="text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.56px] text-black mix-blend-hard-light desk:text-[20px] desk:tracking-[0.8px]">
@@ -111,10 +111,11 @@ function ProgramHero({
 }) {
   const copy = useCopy();
   const { benefits } = copy.apply;
+  const [bodyOpen, setBodyOpen] = useState(false);
 
   return (
     <div className="relative w-full desk:h-[562px]">
-      <div className="relative flex min-h-[520px] flex-col justify-end gap-6 overflow-hidden rounded-[80px] p-6 desk:h-[562px] desk:min-h-0 desk:flex-row desk:items-center desk:justify-between desk:gap-[48px] desk:overflow-clip desk:rounded-[154px] desk:p-[64px]">
+      <div className="relative flex flex-col items-center justify-center gap-6 overflow-hidden rounded-[88px] p-8 desk:h-[562px] desk:min-h-0 desk:flex-row desk:items-center desk:justify-between desk:gap-[48px] desk:overflow-clip desk:rounded-[154px] desk:p-[64px]">
         <Image
           src="/images/apply/hero.jpg"
           alt={copy.apply.heroAlt}
@@ -137,21 +138,29 @@ function ProgramHero({
                 alt=""
                 width={48}
                 height={32}
-                className="h-8 w-12"
+                className="h-6 w-9 desk:h-8 desk:w-12"
               />
-              <p className="text-[16px] font-semibold uppercase leading-[0.9] tracking-[0.64px] text-white/72 mix-blend-hard-light [text-shadow:0_0_4px_rgba(0,0,0,0.25)] desk:text-[20px] desk:tracking-[0.8px]">
+              <p className="text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.56px] text-white/72 mix-blend-hard-light [text-shadow:0_0_4px_rgba(0,0,0,0.25)] desk:text-[20px] desk:tracking-[0.8px]">
                 {copy.apply.location}
               </p>
             </div>
-            <p className="w-full text-[24px] leading-[0.9] tracking-[-0.04em] text-white desk:text-[32px] desk:tracking-[-1.28px]">
+            <p className="w-full text-[20px] leading-[0.9] tracking-[-0.8px] text-white desk:text-[32px] desk:tracking-[-1.28px]">
               {headline}
             </p>
-            <p className="w-full text-[16px] leading-[1.2] tracking-[-0.04em] text-white desk:text-[20px] desk:tracking-[-0.8px]">
-              {body}
+            <p className="w-full text-[15px] leading-[1.2] tracking-[-0.6px] text-white desk:text-[20px] desk:tracking-[-0.8px]">
+              <span className="desk:hidden">
+                {bodyOpen ? body : `${body.slice(0, 108).trim()}… `}
+                {bodyOpen ? null : (
+                  <button type="button" onClick={() => setBodyOpen(true)} className="text-lime">
+                    {copy.apply.readMore}
+                  </button>
+                )}
+              </span>
+              <span className="hidden desk:inline">{body}</span>
             </p>
           </div>
 
-          <ul className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2 desk:gap-x-[12px] desk:gap-y-[12px]">
+          <ul className="grid w-full grid-cols-1 gap-3 desk:grid-cols-2 desk:gap-x-[12px] desk:gap-y-[12px]">
             <BenefitItem>{benefits.travel}</BenefitItem>
             <BenefitItem>
               {benefits.accreditationBefore}
@@ -163,10 +172,10 @@ function ProgramHero({
           </ul>
         </div>
 
-        <div className="group relative z-10 flex w-full shrink-0 flex-col justify-between gap-8 overflow-hidden rounded-[40px] bg-lime p-6 desk:h-full desk:w-[434px] desk:gap-0 desk:rounded-[64px] desk:p-[32px]">
+        <div className="group relative z-10 mx-auto flex min-h-[244px] w-[244px] shrink-0 flex-col justify-between gap-3 overflow-hidden rounded-[44px] bg-lime px-3 pb-3 pt-6 desk:mx-0 desk:h-full desk:w-[434px] desk:gap-0 desk:rounded-[64px] desk:p-[32px]">
           <div
             aria-hidden
-            className="pointer-events-none absolute left-[96px] top-[-55px] hidden h-[214.5px] w-[284.68px] desk:block"
+            className="pointer-events-none absolute left-[96px] top-[-55px] h-[214.5px] w-[284.68px]"
           >
             <span className="absolute inset-[-38.56%_-29.05%]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -177,7 +186,7 @@ function ProgramHero({
               />
             </span>
           </div>
-          <p className="relative min-w-full text-[64px] leading-[0.8] tracking-[-0.04em] text-black desk:w-[370px] desk:text-[96px] desk:tracking-[-3.84px]">
+          <p className="relative min-w-full text-[48px] leading-[0.8] tracking-[-1.92px] text-black desk:w-[370px] desk:text-[96px] desk:tracking-[-3.84px]">
             {copy.apply.ages1926.split("\n").map((line, i) => (
               <span key={line}>
                 {i > 0 ? <br /> : null}
@@ -185,7 +194,7 @@ function ProgramHero({
               </span>
             ))}
           </p>
-          <div className="relative flex flex-col items-start justify-center gap-1.5 desk:gap-[6px]">
+          <div className="relative flex w-full flex-row items-start justify-center gap-1.5 desk:flex-col desk:gap-[6px]">
             <IconChip src="/icons/apply/laptop.svg" label={copy.apply.online} />
             <IconChip
               src="/icons/apply/airplane-takeoff.svg"
@@ -208,12 +217,12 @@ function ApplyFooter() {
       id="contact"
       className="flex flex-col gap-10 bg-cream px-5 pb-10 pt-12 desk:gap-[48px] desk:px-[64px] desk:pb-[40px] desk:pt-[64px]"
     >
-      <div className="flex flex-col items-start justify-between gap-10 desk:flex-row desk:items-start desk:gap-0">
+      <div className="flex flex-col items-center justify-between gap-10 desk:flex-row desk:items-start desk:gap-0">
         <Logo
           tone="color"
-          imgClassName="h-[68px] w-auto object-contain object-left desk:h-[121px] desk:w-[341px]"
+          imgClassName="mx-auto h-12 w-auto object-contain desk:mx-0 desk:h-[121px] desk:w-[341px] desk:object-left"
         />
-        <div className="flex gap-8 whitespace-nowrap desk:gap-[64px]">
+        <div className="flex w-full justify-center gap-8 whitespace-nowrap desk:w-auto desk:justify-start desk:gap-[64px]">
           {copy.footer.columns.map((col, columnIndex) => (
             <div
               key={col.title}
@@ -240,11 +249,13 @@ function ApplyFooter() {
           ))}
         </div>
       </div>
-      <div className="flex items-center border-t border-black/10 pt-5 desk:pt-[24px]">
-        <p className="text-[12px] text-black/72">
+      <div className="flex flex-col items-center border-t border-black/10 pt-6 text-center desk:flex-row desk:pt-[24px] desk:text-left">
+        <p className="w-full text-[12px] text-black/72">
           {t(copy.footer.copyright, { year })}
         </p>
-        <LanguageLinks />
+        <div className="hidden desk:block">
+          <LanguageLinks />
+        </div>
       </div>
     </footer>
   );
@@ -271,10 +282,10 @@ export function AgeSelectionLayout({
 
       <section className="flex flex-col items-center gap-8 rounded-b-[80px] bg-ink pt-24 text-white desk:h-[805px] desk:gap-[32px] desk:rounded-b-[154px] desk:pt-[120px]">
         <div className="flex w-full flex-col items-center gap-3 px-5 text-center desk:flex-1 desk:gap-[12px] desk:px-[64px]">
-          <h1 className="w-full text-[32px] leading-[0.9] tracking-[-0.04em] desk:text-[48px] desk:tracking-[-1.92px]">
+          <h1 className="w-full text-[28px] leading-[0.9] tracking-[-1.12px] [text-shadow:0_0_4px_rgba(0,0,0,0.25)] desk:text-[48px] desk:tracking-[-1.92px] desk:[text-shadow:none]">
             {title}
           </h1>
-          <p className="w-full text-[20px] leading-none tracking-[-0.04em] text-white/64 desk:text-[32px] desk:tracking-[-1.28px]">
+          <p className="w-full max-w-[246px] text-[20px] leading-none tracking-[-0.8px] text-white/64 desk:max-w-none desk:text-[32px] desk:tracking-[-1.28px]">
             {subtitle}
           </p>
         </div>

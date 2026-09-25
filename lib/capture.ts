@@ -61,6 +61,17 @@ export const applicationInput = z.object({
   }
 });
 
+export const partnerInput = z.object({
+  name: z.string().trim().min(2).max(200),
+  email: emailInput,
+  phone: z.string().trim().max(40).optional(),
+  organization: z.string().trim().min(2).max(200),
+  designation: z.string().trim().min(2).max(200),
+  support: z.string().trim().min(1).max(400),
+  sponsorship: z.string().trim().max(200).optional(),
+  message: z.string().trim().max(4000).optional(),
+});
+
 export const nominationInput = z.object({
   nominatorName: z.string().trim().min(1).max(200),
   nominatorEmail: emailInput,
@@ -81,6 +92,7 @@ export type WaitlistInput = z.infer<typeof waitlistInput>;
 export type InterestInput = z.infer<typeof interestInput>;
 export type ApplicationInput = z.infer<typeof applicationInput>;
 export type NominationInput = z.infer<typeof nominationInput>;
+export type PartnerInput = z.infer<typeof partnerInput>;
 
 // Lives here, not in the "use server" module, whose exports must all be actions.
 export type ApplicationResult =

@@ -64,7 +64,11 @@
     ],
     "homeTopics": ["Humans", "Origins", "Movement", "Evolution"],
     "teamTitle": "Team",
-    "teamQuote": "“The program amplifies young climate activists' voices, providing tools for advocacy at COP31”",
+    "teamQuotes": [
+      "“The program amplifies young climate activists' voices, providing tools for advocacy at COP31”",
+      "“The program amplifies young climate activists' voices, providing tools for advocacy at COP31”",
+      "“The program amplifies young climate activists' voices, providing tools for advocacy at COP31”"
+    ],
     "memberName": "Jane Doe",
     "memberRole": "Manager",
     "involvedTitle": "Get involved",
@@ -76,9 +80,39 @@
     "heroTitle": "Partner with us",
     "heroBody": "Support the whole organization",
     "reachOut": "Reach out",
+    "waysLabel": "Ways to contribute",
+    "ways": ["Funds", "Venues", "Perks", "Resources"],
+    "waysBody": "can be used towards supporting programs we highlight, our own programs, missions to engage our members",
+    "rewardsTitle": "Rewards for you",
+    "rewards": [
+      "Matchmaking at our online and in-person pavilion events",
+      "Access to our growing network",
+      "Participation in pavilion talks online or in person",
+      "Premium access to climate events",
+      "Featured logo in content, or posts, or full story sponsor",
+      "Feature on site, and/or in Pavilions on site"
+    ],
     "ambassador": "Support an ambassador program",
     "storyline": "Support a specific storyline",
-    "speaker": "Apply as a speaker"
+    "speaker": "Apply as a speaker",
+    "learnMore": "Learn more",
+    "reachOutForm": {
+      "title": "About you",
+      "body": "We will reach out to you for your confirmation via email or a call",
+      "name": "*Name",
+      "email": "*Email",
+      "mobile": "*Mobile",
+      "organization": "*Organization",
+      "designation": "*Designation",
+      "support": "Support",
+      "sponsorship": "Sponsorship",
+      "message": "Your message here...",
+      "continue": "Continue",
+      "sent": "We'll be in touch.",
+      "sponsorshipDetails": "Sponsorship details",
+      "supportOptions": ["The whole organization", "An ambassador program", "A specific storyline", "Apply as a speaker"],
+      "sponsorshipOptions": ["Financial Support", "Support in Kind"]
+    }
   },
   "contactPage": {
     "title": "Contact us",
@@ -440,12 +474,24 @@
     "emailPlaceholder": "Email",
     "more": "More\ncom\ning\nsoon",
     "heroAlt": "Coastal view of Antalya with the Taurus mountains across the bay",
-    "dates": "Oct 14 - Nov 16"
+    "dates": "Oct 14 - Nov 16",
+    "readMore": "more"
   },
   "nominateLanding": {
     "title": "Youth Ambassador Program Nomination",
     "headline": "Ambassadors join us on the path toward legal protection for climate refugees.",
     "body": "Representing their communities, help spark conversations around climate mobility, and connect with participants from across the world. Together, we'll help strengthen their skills, amplify their voice, and contribute to solutions for climate mobility."
+  },
+  "privacyPage": {
+    "title": "Privacy policy",
+    "updated": "LAST UPDATED: [INSERT DATE]",
+    "heading": "Heading 1",
+    "subhead": "Sub-header",
+    "paragraphs": [
+      "At the heart of our mission lies a profound understanding: migration is not just a statistic, but a crucial lifeline for communities grappling with adversity.",
+      "Those impacted by climate change embody stories of resilience, hope, and the urgent need for action. We recognize that each individual represents a unique journey, deserving of compassion and support.",
+      "Our initiative aims to empower these communities, ensuring their voices are heard and their rights upheld in the face of environmental challenges."
+    ]
   },
   "meta": {
     "home": {
@@ -475,6 +521,10 @@
     "contact": {
       "title": "Contact us — Climate Refugee Pavilion",
       "description": "Get in touch with the Climate Refugee Pavilion — email, visit, or send a message."
+    },
+    "privacy": {
+      "title": "Privacy policy — Climate Refugee Pavilion",
+      "description": "How the Climate Refugee Pavilion handles personal information."
     }
   }
 }

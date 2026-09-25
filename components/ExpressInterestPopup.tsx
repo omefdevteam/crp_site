@@ -345,7 +345,7 @@ export function ExpressInterestPopup({
                     type="submit"
                     disabled={pending || Boolean(TURNSTILE_SITE_KEY && !turnstileToken)}
                     aria-label={copy.a11y.submitInterest}
-                    className="mt-2 grid size-[80px] place-items-center rounded-full"
+                    className="mt-2 grid size-[80px] place-items-center rounded-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 active:scale-95 disabled:hover:scale-100"
                     style={{
                       background: invalid ? GRAY_GRADIENT : BRAND_GRADIENT,
                     }}

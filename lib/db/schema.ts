@@ -196,6 +196,24 @@ export type Interest = typeof interest.$inferSelect;
 export type NewInterest = typeof interest.$inferInsert;
 export type Nomination = typeof nominations.$inferSelect;
 export type NewNomination = typeof nominations.$inferInsert;
+
+// A partner reach-out. One row per submission; the Excel mirror reads these as-is.
+export const partnerInquiries = pgTable("partner_inquiries", {
+  id: id(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone"),
+  organization: text("organization").notNull(),
+  designation: text("designation").notNull(),
+  support: text("support").notNull(),
+  sponsorship: text("sponsorship"),
+  message: text("message"),
+});
+
+export type PartnerInquiry = typeof partnerInquiries.$inferSelect;
+export type NewPartnerInquiry = typeof partnerInquiries.$inferInsert;
 export type ConsentLog = typeof consentLog.$inferSelect;
 export type NewConsentLog = typeof consentLog.$inferInsert;
 

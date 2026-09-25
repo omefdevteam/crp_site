@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { asc, gt, sql } from "drizzle-orm";
-import { getDb, applicants, waitlist, interest, nominations } from "@/lib/db";
+import { getDb, applicants, waitlist, interest, nominations, partnerInquiries } from "@/lib/db";
 import { secretOk } from "@/lib/api-auth";
 import { applicantSyncRow } from "@/lib/sync";
 import { pageChanges } from "@/lib/sync-log";
@@ -15,8 +15,8 @@ const PAGE_MAX = 500;
 // `cursor` it saw can never skip a change or read the same one twice, however
 // long it was away. `changedSince=<timestamp>` is kept for the existing Power
 // Automate flow; it now pages by (updatedAt, id) and returns a `next` cursor.
-type Table = "applicants" | "waitlist" | "interest" | "nominations";
-const TABLES = new Set<Table>(["applicants", "waitlist", "interest", "nominations"]);
+type Table = "applicants" | "waitlist" | "interest" | "nominations" | "partners";
+const TABLES = new Set<Table>(["applicants", "waitlist", "interest", "nominations", "partners"]);
 
 async function byRevision(table: Table, after: bigint, limit: number) {
   const page = await pageChanges(getDb(), table, after, limit);
@@ -28,7 +28,7 @@ async function byRevision(table: Table, after: bigint, limit: number) {
 }
 
 async function byTimestamp(table: Table, since: Date, afterId: string | null, limit: number) {
-  const source = { applicants, waitlist, interest, nominations }[table];
+  const source = { applicants, waitlist, interest, nominations, partners: partnerInquiries }[table];
   // Keyset on (updatedAt, id). JS Date only has millisecond precision, so the
   // cursor compares epoch milliseconds rather than the raw timestamptz; otherwise
   // a row whose microseconds were truncated would be returned again on the next page.

@@ -5,6 +5,8 @@ type TicketTabProps = {
   placement: "top" | "bottom";
   size?: "sm" | "lg";
   className?: string;
+  /** Black chip with light type — Figma team tabs on photos. */
+  ink?: boolean;
 };
 
 // Concave corner that blends the chip into the surface it sits on, so it has
@@ -30,17 +32,20 @@ export function TicketTab({
   placement,
   size = "sm",
   className = "",
+  ink = false,
 }: TicketTabProps) {
   const isTop = placement === "top";
   const isLarge = size === "lg";
 
-  const tone = isLarge
-    ? isTop
-      ? "text-black"
-      : "text-cream"
-    : isTop
-      ? "text-white"
-      : "text-black";
+  const tone = ink
+    ? "text-black"
+    : isLarge
+      ? isTop
+        ? "text-black"
+        : "text-cream"
+      : isTop
+        ? "text-white"
+        : "text-black";
 
   const earSize = isLarge
     ? "h-[19px] w-[19px] desk:h-[38.25px] desk:w-[38.25px]"
@@ -56,13 +61,15 @@ export function TicketTab({
           : "rounded-t-[13.5px] [text-shadow:0_0_4.5px_rgba(0,0,0,0.25)]"
       }`;
 
-  const labelTone = isLarge
-    ? isTop
-      ? "text-white"
-      : "text-black"
-    : isTop
-      ? "text-black/72"
-      : "text-white/72";
+  const labelTone = ink
+    ? "text-white/72 [text-shadow:0_0_4.5px_rgba(0,0,0,0.25)]"
+    : isLarge
+      ? isTop
+        ? "text-white"
+        : "text-black"
+      : isTop
+        ? "text-black/72"
+        : "text-white/72";
 
   // 2px overlap kills flex/SVG hairlines between ear and chip.
   const leftEar = `${earSize} shrink-0 -mr-[2px] ${

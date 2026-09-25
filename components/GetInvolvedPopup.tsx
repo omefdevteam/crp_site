@@ -73,7 +73,7 @@ export function GetInvolvedPopup({ open, onClose }: GetInvolvedPopupProps) {
             type="button"
             onClick={onClose}
             aria-label={copy.a11y.closeGetInvolved}
-            className="relative z-10 size-[24px] shrink-0 text-white"
+            className="relative z-10 size-[24px] shrink-0 text-white transition-opacity duration-300 hover:opacity-60"
           >
             <CloseIcon />
           </button>

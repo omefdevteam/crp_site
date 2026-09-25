@@ -64,7 +64,11 @@
     ],
     "homeTopics": ["Humanos", "Orígenes", "Movimiento", "Evolución"],
     "teamTitle": "Equipo",
-    "teamQuote": "«El programa da voz a jóvenes activistas por el clima y les ofrece herramientas para defender sus propuestas en la COP31».",
+    "teamQuotes": [
+      "«El programa da voz a jóvenes activistas por el clima y les ofrece herramientas para defender sus propuestas en la COP31».",
+      "«El programa da voz a jóvenes activistas por el clima y les ofrece herramientas para defender sus propuestas en la COP31».",
+      "«El programa da voz a jóvenes activistas por el clima y les ofrece herramientas para defender sus propuestas en la COP31»."
+    ],
     "memberName": "Jane Doe",
     "memberRole": "Responsable",
     "involvedTitle": "Participar",
@@ -76,9 +80,39 @@
     "heroTitle": "Colabora con nosotros",
     "heroBody": "Apoya al conjunto de la organización",
     "reachOut": "Contactar",
+    "waysLabel": "Formas de contribuir",
+    "ways": ["Fondos", "Espacios", "Beneficios", "Recursos"],
+    "waysBody": "pueden destinarse a los programas que destacamos, a nuestros propios programas y a misiones para involucrar a nuestros miembros",
+    "rewardsTitle": "Recompensas para ti",
+    "rewards": [
+      "Conexiones en nuestros eventos del pabellón, en línea y presenciales",
+      "Acceso a nuestra red en crecimiento",
+      "Participación en charlas del pabellón, en línea o en persona",
+      "Acceso preferente a eventos sobre el clima",
+      "Logotipo destacado en contenidos, publicaciones o como patrocinador de una historia en el sitio",
+      "Aparición en el sitio y/o en los pabellones"
+    ],
     "ambassador": "Apoyar un programa de embajadores",
     "storyline": "Apoyar una historia concreta",
-    "speaker": "Presentarme como ponente"
+    "speaker": "Presentarme como ponente",
+    "learnMore": "Más información",
+    "reachOutForm": {
+      "title": "Sobre ti",
+      "body": "Te contactaremos para confirmarlo por correo o por teléfono",
+      "name": "*Nombre",
+      "email": "*Correo",
+      "mobile": "*Móvil",
+      "organization": "*Organización",
+      "designation": "*Cargo",
+      "support": "Apoyo",
+      "sponsorship": "Patrocinio",
+      "message": "Tu mensaje aquí...",
+      "continue": "Continuar",
+      "sent": "Nos pondremos en contacto.",
+      "sponsorshipDetails": "Detalles del patrocinio",
+      "supportOptions": ["El conjunto de la organización", "Un programa de embajadores", "Una historia concreta", "Presentarme como ponente"],
+      "sponsorshipOptions": ["Apoyo económico", "Apoyo en especie"]
+    }
   },
   "contactPage": {
     "title": "Contacta con nosotros",
@@ -440,12 +474,24 @@
     "emailPlaceholder": "Correo electrónico",
     "more": "Más\npróxi-\nma-\nmente",
     "heroAlt": "Costa de Antalya con los montes Tauro al otro lado de la bahía",
-    "dates": "14 oct. – 16 nov."
+    "dates": "14 oct. – 16 nov.",
+    "readMore": "más"
   },
   "nominateLanding": {
     "title": "Proponer a alguien para el Programa de Jóvenes Embajadores",
     "headline": "Los embajadores nos acompañan en el camino hacia la protección jurídica de los refugiados climáticos.",
     "body": "Representan a sus comunidades, abren conversaciones sobre la movilidad climática y conectan con participantes de todo el mundo. Juntos reforzamos sus habilidades, damos voz a sus ideas y contribuimos a soluciones para la movilidad climática."
+  },
+  "privacyPage": {
+    "title": "Privacy policy",
+    "updated": "LAST UPDATED: [INSERT DATE]",
+    "heading": "Heading 1",
+    "subhead": "Sub-header",
+    "paragraphs": [
+      "At the heart of our mission lies a profound understanding: migration is not just a statistic, but a crucial lifeline for communities grappling with adversity.",
+      "Those impacted by climate change embody stories of resilience, hope, and the urgent need for action. We recognize that each individual represents a unique journey, deserving of compassion and support.",
+      "Our initiative aims to empower these communities, ensuring their voices are heard and their rights upheld in the face of environmental challenges."
+    ]
   },
   "meta": {
     "home": {
@@ -475,6 +521,10 @@
     "contact": {
       "title": "Contacto — Climate Refugee Pavilion",
       "description": "Contacta con el equipo del Climate Refugee Pavilion mediante las opciones de contacto de nuestro sitio."
+    },
+    "privacy": {
+      "title": "Privacy policy — Climate Refugee Pavilion",
+      "description": "How the Climate Refugee Pavilion handles personal information."
     }
   }
 }

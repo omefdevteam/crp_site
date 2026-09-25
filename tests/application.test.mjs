@@ -567,6 +567,7 @@ test("excel cron pulls an applicant, pushes one accept, and replays the same dec
     Waitlist: excel.WAITLIST_COLUMNS,
     Interest: excel.INTEREST_COLUMNS,
     Nominations: excel.NOMINATION_COLUMNS,
+    Partners: excel.PARTNER_COLUMNS,
   };
   const book = {};
   for (const [name, headers] of Object.entries(tables)) {
@@ -613,7 +614,7 @@ test("excel cron pulls an applicant, pushes one accept, and replays the same dec
 
   try {
     const max = await sql.query("select coalesce(max(revision), 0)::text as rev from sync_changes");
-    for (const table of ["applicants", "waitlist", "interest", "nominations"]) {
+    for (const table of ["applicants", "waitlist", "interest", "nominations", "partners"]) {
       await sql.query(
         "insert into excel_cursors (table_name, cursor) values ($1, $2) on conflict (table_name) do update set cursor = excluded.cursor",
         [table, max.rows[0].rev],

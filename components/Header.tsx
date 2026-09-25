@@ -156,7 +156,7 @@ export function Header({ overMedia = false }: { overMedia?: boolean }) {
               aria-label={open ? copy.a11y.closeMenu : copy.a11y.openMenu}
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
-              className={`flex h-[27px] shrink-0 items-center ${
+              className={`flex h-[27px] shrink-0 items-center transition-opacity duration-300 hover:opacity-60 ${
                 showPill || lightChrome ? "text-white" : "text-black"
               }`}
             >
@@ -177,7 +177,7 @@ export function Header({ overMedia = false }: { overMedia?: boolean }) {
                   <a
                     href={localePath(link.href, locale)}
                     onClick={() => setOpen(false)}
-                    className="flex w-full items-center justify-center py-[24px] text-center text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.56px] text-white [text-shadow:0_0_4px_rgba(0,0,0,0.25)]"
+                    className="flex w-full items-center justify-center py-[24px] text-center text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.56px] text-white transition-colors duration-300 hover:text-white/70 [text-shadow:0_0_4px_rgba(0,0,0,0.25)]"
                   >
                     {copy.nav[link.key]}
                   </a>

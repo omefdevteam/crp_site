@@ -5,11 +5,10 @@ import { useText } from "@/lib/ui-text";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { applicationLocales, nativeLanguageNames, type ApplicationLocale, localePath } from "@/lib/locale";
+import { applicationLocales, localePath, type ApplicationLocale } from "@/lib/locale";
 import { COUNTRIES, type Country } from "@/lib/countries";
 import { ageFromDob, minApplicantAge, maxApplicantAge } from "@/lib/capture";
 import { submitInterest, requestApplicationLink } from "@/lib/actions";
-import { locales } from "@/lib/locale";
 import { useLanguage } from "../LanguageProvider";
 import { Turnstile, TURNSTILE_SITE_KEY } from "../Turnstile";
 import { CountryDropdown } from "./CountryDropdown";
@@ -59,7 +58,7 @@ export function AboutStep({
   const tr = useText();
   const { locale, setLocale } = useLanguage();
   const router = useRouter();
-  const [applicationLanguage, setApplicationLanguage] = useState<ApplicationLocale>(locale === "fr" ? "fr" : locale === "es" ? "es" : "en");
+  const applicationLanguage = locale === "fr" || locale === "es" ? locale : "en";
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -193,7 +192,7 @@ export function AboutStep({
         </button>
 
         <div className="flex items-center rounded-full bg-white p-1">
-          {locales.map((code) => (
+          {applicationLocales.map((code) => (
             <button
               key={code}
               type="button"
@@ -285,13 +284,6 @@ export function AboutStep({
                 </div>
               ) : null}
 
-              <label className="flex flex-col gap-2 rounded-3xl bg-white p-4 text-sm">
-                {tr("Application language")}
-                <select value={applicationLanguage} onChange={(event) => setApplicationLanguage(event.target.value as ApplicationLocale)} className="rounded-xl border border-black/20 p-3">
-                  {applicationLocales.map((code) => <option key={code} value={code}>{nativeLanguageNames[code]}</option>)}
-                </select>
-                <span>{tr("Choose English, French, or Spanish for your application, interviews, and emails.")}</span>
-              </label>
               {error ? (
                 <p role="alert" className="text-center text-[13px] text-magenta">
                   {error}

@@ -2,12 +2,13 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import type { PinGroup } from "@/lib/pins";
+import type { Pin, PinGroup } from "@/lib/pins";
 import { GlobeShell } from "./GlobeShell";
 
 export type PlatformGlobeProps = {
   visibleGroups: readonly PinGroup[];
   emphasis: PinGroup | null;
+  pins?: readonly Pin[];
 };
 
 // Still image of the globe's first frame, so the swap to the live canvas is not noticeable.
@@ -34,6 +35,6 @@ const Globe = dynamic(() => import("./Globe"), {
   loading: () => <GlobeLoading />,
 });
 
-export function PlatformGlobe({ visibleGroups, emphasis }: PlatformGlobeProps) {
-  return <Globe visibleGroups={visibleGroups} emphasis={emphasis} />;
+export function PlatformGlobe({ visibleGroups, emphasis, pins }: PlatformGlobeProps) {
+  return <Globe visibleGroups={visibleGroups} emphasis={emphasis} pins={pins} />;
 }

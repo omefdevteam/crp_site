@@ -187,7 +187,7 @@ export function ContactPage() {
           <button
             type="submit"
             disabled={!ready}
-            className="mt-1 h-14 w-full shrink-0 rounded-full bg-black text-[16px] font-semibold uppercase tracking-[0.64px] text-white transition-opacity disabled:opacity-32 desk:mt-0 desk:h-16 desk:w-[284px]"
+            className="mt-1 h-14 w-full shrink-0 rounded-full bg-black text-[16px] font-semibold uppercase tracking-[0.64px] text-white transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-32 disabled:hover:scale-100 desk:mt-0 desk:h-16 desk:w-[284px]"
           >
             {c.send}
           </button>

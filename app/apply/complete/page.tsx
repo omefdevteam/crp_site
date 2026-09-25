@@ -21,7 +21,7 @@ export default async function VerificationCompletePage() {
         <p className="mt-5 text-lg text-black/70">
           {text[1]}
         </p>
-        <Link href={`/${locale}`} className="gradient-brand mt-8 inline-flex rounded-full px-8 py-4 font-semibold text-white">
+        <Link href={`/${locale}`} className="gradient-brand mt-8 inline-flex rounded-full px-8 py-4 font-semibold text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98]">
           {text[2]}
         </Link>
       </div>
