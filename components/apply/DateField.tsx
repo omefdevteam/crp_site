@@ -114,7 +114,7 @@ export function DateField({
     : null;
 
   return (
-    <div ref={wrapRef} className={`relative ${className}`}>
+    <div ref={wrapRef} className={`relative min-w-0 ${className}`}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

@@ -517,10 +517,10 @@ test("submissions are rate limited per connection", async () => {
   }
 });
 
-const GRAPH_KEYS = ["GRAPH_TENANT_ID", "GRAPH_CLIENT_ID", "GRAPH_CLIENT_SECRET", "GRAPH_DRIVE_ID", "GRAPH_ITEM_ID"];
+const SHEETS_KEYS = ["GOOGLE_SHEET_ID", "GOOGLE_SERVICE_ACCOUNT_JSON"];
 
-test("excel cron skips when Graph is not configured", async () => {
-  for (const key of GRAPH_KEYS) delete process.env[key];
+test("excel cron skips when Google Sheets is not configured", async () => {
+  for (const key of SHEETS_KEYS) delete process.env[key];
   const res = await h.excel();
   assert.equal(res.status, 200);
   assert.deepEqual(res.body, { ok: true, skipped: true });
@@ -554,12 +554,14 @@ test("excel pull keeps reviewer cells when merging a system row", () => {
 });
 
 test("excel cron pulls an applicant, pushes one accept, and replays the same decision", async () => {
-  for (const key of GRAPH_KEYS) delete process.env[key];
-  process.env.GRAPH_TENANT_ID = "tenant";
-  process.env.GRAPH_CLIENT_ID = "client";
-  process.env.GRAPH_CLIENT_SECRET = "secret";
-  process.env.GRAPH_DRIVE_ID = "drive";
-  process.env.GRAPH_ITEM_ID = "item";
+  for (const key of SHEETS_KEYS) delete process.env[key];
+  const { generateKeyPairSync } = await import("node:crypto");
+  const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  process.env.GOOGLE_SHEET_ID = "sheet";
+  process.env.GOOGLE_SERVICE_ACCOUNT_JSON = JSON.stringify({
+    client_email: "sync@example.iam.gserviceaccount.com",
+    private_key: privateKey.export({ type: "pkcs8", format: "pem" }),
+  });
 
   const excel = h.load("lib/excel-rows.ts");
   const tables = {
@@ -580,36 +582,35 @@ test("excel cron pulls an applicant, pushes one accept, and replays the same dec
   globalThis.fetch = async (input, init) => {
     const url = String(input);
     const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
-    if (url.includes("oauth2/v2.0/token")) return json({ access_token: "tok", expires_in: 3600 });
-    if (url.includes("/workbook/")) {
-      const headers = new Headers(init?.headers);
-      if (headers.get("authorization") !== "Bearer tok") throw new Error(`missing token ${url}`);
-      if (!url.endsWith("/createSession") && headers.get("workbook-session-id") !== "sess") throw new Error(`missing session ${url}`);
+    if (url.includes("oauth2.googleapis.com/token")) {
+      const params = new URLSearchParams(String(init?.body ?? ""));
+      if (params.get("grant_type") !== "urn:ietf:params:oauth:grant-type:jwt-bearer") return json({ error: "bad grant" }, 400);
+      if (!params.get("assertion")) return json({ error: "missing assertion" }, 400);
+      return json({ access_token: "tok", expires_in: 3600 });
     }
-    if (url.endsWith("/createSession")) return json({ id: "sess" });
-    if (url.endsWith("/closeSession")) return new Response(null, { status: 204 });
-    const match = url.match(/\/tables\/([^/]+)\//);
+    if (!url.includes("sheets.googleapis.com")) return new Response(`not found ${url}`, { status: 404 });
+    const headers = new Headers(init?.headers);
+    if (headers.get("authorization") !== "Bearer tok") throw new Error(`missing token ${url}`);
+    if (url.includes(":batchUpdate")) {
+      const body = JSON.parse(init.body);
+      for (const update of body.data) {
+        const match = String(update.range).match(/^'([^']+)'!([A-Z]+)(\d+)/);
+        if (!match) return new Response(`bad range ${update.range}`, { status: 400 });
+        const sheet = book[match[1]];
+        if (!sheet) return new Response(`missing table ${match[1]}`, { status: 404 });
+        const index = Number(match[3]) - 2;
+        while (sheet.rows.length < index) sheet.rows.push(sheet.headers.map(() => ""));
+        if (sheet.rows.length === index) sheet.rows.push(update.values[0]);
+        else sheet.rows[index] = update.values[0];
+      }
+      return json({ totalUpdatedRows: body.data.length });
+    }
+    const match = url.match(/\/values\/([^?]+)/);
     if (!match) return new Response(`not found ${url}`, { status: 404 });
     const table = decodeURIComponent(match[1]);
     const sheet = book[table];
-    if (!sheet) return new Response(`missing table ${table}`, { status: 404 });
-    const body = init?.body ? JSON.parse(init.body) : null;
-    if (url.includes("/rows/add")) {
-      sheet.rows.push(body.values[0]);
-      return json({ index: sheet.rows.length - 1 });
-    }
-    if (url.includes("/itemAt(index=")) {
-      const index = Number(url.match(/index=(\d+)/)[1]);
-      sheet.rows[index] = body.values[0];
-      return json({ index });
-    }
-    if (url.includes("/columns")) {
-      return json({ value: sheet.headers.map((name, index) => ({ name, index })) });
-    }
-    if (url.includes("/rows")) {
-      return json({ value: sheet.rows.map((values, index) => ({ index, values: [values] })) });
-    }
-    return new Response(`not found ${url}`, { status: 404 });
+    if (!sheet) return new Response("Unable to parse range", { status: 400 });
+    return json({ values: [sheet.headers, ...sheet.rows] });
   };
 
   try {
@@ -662,7 +663,7 @@ test("excel cron pulls an applicant, pushes one accept, and replays the same dec
     assert.equal((await row("applicants", applicant.id)).status, "interview_yes");
   } finally {
     globalThis.fetch = realFetch;
-    for (const key of GRAPH_KEYS) delete process.env[key];
+    for (const key of SHEETS_KEYS) delete process.env[key];
   }
 });
 

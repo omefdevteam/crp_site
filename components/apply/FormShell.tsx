@@ -70,12 +70,12 @@ export function FormShell({
         }`}
       >
         <div
-          className={`w-full max-w-[960px] overflow-hidden rounded-[36px] bg-white px-5 py-5 desk:rounded-[64px] desk:px-0 desk:py-8 ${
+          className={`w-full min-w-0 max-w-[960px] rounded-[36px] bg-white px-5 py-5 desk:rounded-[64px] desk:px-0 desk:py-8 ${
             fill ? "flex h-full min-h-0 flex-col" : ""
           }`}
         >
           <div
-            className={`mx-auto flex w-full max-w-[632px] flex-col ${
+            className={`mx-auto flex w-full min-w-0 max-w-[632px] flex-col ${
               fill ? "min-h-0 flex-1" : ""
             }`}
           >

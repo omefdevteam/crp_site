@@ -109,8 +109,8 @@ export function ContactPage() {
   }
 
   return (
-    <section className="bg-cream px-5 pb-16 pt-24 desk:px-16 desk:py-[88px]">
-      <div className="mx-auto flex min-h-[640px] max-w-[1072px] flex-col overflow-hidden rounded-[88px] bg-white px-6 py-10 desk:h-[629px] desk:min-h-0 desk:flex-row desk:items-end desk:rounded-[154px] desk:px-10 desk:py-16">
+    <section className="overflow-x-hidden bg-cream px-5 pb-16 pt-24 desk:px-16 desk:py-[88px]">
+      <div className="mx-auto flex min-h-[640px] min-w-0 max-w-[1072px] flex-col overflow-hidden rounded-[88px] bg-white px-6 py-10 desk:h-[629px] desk:min-h-0 desk:flex-row desk:items-end desk:rounded-[154px] desk:px-10 desk:py-16">
         <div className="flex flex-col gap-2 desk:h-[501px] desk:w-[558px] desk:shrink-0 desk:-mr-[109px] desk:gap-0">
           <h1
             className={`${trail.className} text-[clamp(56px,12vw,130px)] uppercase leading-[0.9] tracking-[0.04em] text-black desk:flex-1 desk:tracking-[5.2px]`}

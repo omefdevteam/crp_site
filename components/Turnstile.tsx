@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type TurnstileApi = {
   render: (el: HTMLElement, opts: Record<string, unknown>) => string;
@@ -34,6 +35,8 @@ function loadScript(): Promise<void> {
 
 // Renders the managed Turnstile widget and hands its token up. Renders nothing
 // when no site key is configured, so the forms still work in dev.
+// Portaled out of the form so the banner never shifts fields or buttons.
+// Hidden unless Cloudflare asks the visitor to complete a check.
 export function Turnstile({
   onToken,
   size = "normal",
@@ -44,12 +47,16 @@ export function Turnstile({
   const boxRef = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
   const cbRef = useRef(onToken);
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
     cbRef.current = onToken;
   }, [onToken]);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
-    if (!SITE_KEY || !boxRef.current) return;
+    if (!SITE_KEY || !mounted || !boxRef.current) return;
     let cancelled = false;
     const box = boxRef.current;
 
@@ -58,7 +65,7 @@ export function Turnstile({
         if (cancelled || !window.turnstile) return;
         widgetId.current = window.turnstile.render(box, {
           sitekey: SITE_KEY,
-          appearance: "always",
+          appearance: "interaction-only",
           size,
           callback: (token: string) => cbRef.current(token),
           "error-callback": () => cbRef.current(null),
@@ -78,8 +85,11 @@ export function Turnstile({
         widgetId.current = null;
       }
     };
-  }, [size]);
+  }, [mounted, size]);
 
-  if (!SITE_KEY) return null;
-  return <div ref={boxRef} />;
+  if (!SITE_KEY || !mounted) return null;
+  return createPortal(
+    <div ref={boxRef} className="fixed bottom-4 left-4 z-[100]" />,
+    document.body,
+  );
 }

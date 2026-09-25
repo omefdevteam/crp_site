@@ -79,8 +79,8 @@ export function NomineeStep({
         {tr("About the nominee")}</h1>
 
       <div className="mt-5 flex flex-col gap-1.5 desk:mt-7 desk:gap-2">
-        <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
-          <div className={`${FIELD} flex-1 pl-5 pr-6`}>
+        <div className="flex min-w-0 flex-col gap-1.5 desk:flex-row desk:gap-2">
+          <div className={`${FIELD} min-w-0 flex-1 pl-5 pr-6`}>
             <input
               type="text"
               value={name}
@@ -93,8 +93,8 @@ export function NomineeStep({
           <DateField value={dob} onChange={setDob} className="desk:w-[206px]" />
         </div>
 
-        <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
-          <div className={`${FIELD} flex-1 pl-5 pr-6`}>
+        <div className="flex min-w-0 flex-col gap-1.5 desk:flex-row desk:gap-2">
+          <div className={`${FIELD} min-w-0 flex-1 pl-5 pr-6`}>
             <input
               type="email"
               value={email}
@@ -105,7 +105,7 @@ export function NomineeStep({
               className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
             />
           </div>
-          <div className={`${FIELD} gap-3 pl-3 pr-5 desk:w-[312px]`}>
+          <div className={`${FIELD} min-w-0 gap-3 pl-3 pr-5 desk:w-[312px]`}>
             <CountryDropdown variant="inline" value={dialCountry} onChange={setDialCountry} />
             <input
               type="tel"
@@ -118,7 +118,7 @@ export function NomineeStep({
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
+        <div className="flex min-w-0 flex-col gap-1.5 desk:flex-row desk:gap-2">
           <CountryDropdown
             variant="field"
             label={tr("Nationality")}
@@ -133,7 +133,7 @@ export function NomineeStep({
           />
         </div>
 
-        <div className="mt-0.5 flex gap-1.5 desk:gap-2">
+        <div className="mt-0.5 flex min-w-0 gap-1.5 desk:gap-2">
           <FormRadioCard
             label={tr("Only program")}
             selected={track === "online"}
