@@ -108,6 +108,7 @@
       "sponsorship": "Sponsorship",
       "message": "Your message here...",
       "continue": "Continue",
+      "sent": "We'll be in touch.",
       "sponsorshipDetails": "Sponsorship details",
       "supportOptions": ["The whole organization", "An ambassador program", "A specific storyline", "Apply as a speaker"],
       "sponsorshipOptions": ["Financial Support", "Support in Kind"]

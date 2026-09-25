@@ -108,6 +108,7 @@
       "sponsorship": "Parrainage",
       "message": "Votre message ici...",
       "continue": "Continuer",
+      "sent": "Nous vous recontacterons.",
       "sponsorshipDetails": "Détails du soutien",
       "supportOptions": ["L'ensemble de l'organisation", "Un programme d'ambassadeurs", "Une histoire précise", "Postuler comme intervenant·e"],
       "sponsorshipOptions": ["Soutien financier", "Soutien en nature"]

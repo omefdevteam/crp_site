@@ -5,7 +5,7 @@ import { useText } from "@/lib/ui-text";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { applicationLocales, localePath } from "@/lib/locale";
+import { applicationLocales, localePath, type ApplicationLocale } from "@/lib/locale";
 import { COUNTRIES, type Country } from "@/lib/countries";
 import { ageFromDob, minApplicantAge, maxApplicantAge } from "@/lib/capture";
 import { submitInterest, requestApplicationLink } from "@/lib/actions";

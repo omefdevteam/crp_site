@@ -1,7 +1,7 @@
 import { and, asc, eq, gt, sql } from "drizzle-orm";
 import { syncChanges, syncClock, type Store } from "@/lib/db";
 
-export type SyncTable = "applicants" | "waitlist" | "interest" | "nominations";
+export type SyncTable = "applicants" | "waitlist" | "interest" | "nominations" | "partners";
 export type SyncOperation = "insert" | "update";
 
 // Appends one row to the durable change feed inside the caller's transaction.

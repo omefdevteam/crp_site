@@ -17,6 +17,11 @@ export const APPLICANT_COLUMNS = [...APPLICANT_SYSTEM, ...APPLICANT_TEAM];
 
 export const WAITLIST_COLUMNS = ["id", "createdAt", "updatedAt", "email", "name", "source", "status"];
 export const INTEREST_COLUMNS = ["id", "createdAt", "updatedAt", "email", "name", "ageGroup", "track", "source"];
+export const PARTNER_COLUMNS = [
+  "id", "createdAt", "updatedAt", "name", "email", "phone", "organization",
+  "designation", "support", "sponsorship", "message",
+];
+
 export const NOMINATION_COLUMNS = [
   "id", "createdAt", "updatedAt", "nominatorName", "nominatorEmail", "nominatorPhone",
   "nominatorOrganization", "nominatorRelation", "nomineeName", "nomineeEmail", "nomineeDob",
@@ -29,6 +34,7 @@ export const EXCEL_TABLES = {
   waitlist: "Waitlist",
   interest: "Interest",
   nominations: "Nominations",
+  partners: "Partners",
 } as const;
 
 export type Cell = string | number | boolean | null;

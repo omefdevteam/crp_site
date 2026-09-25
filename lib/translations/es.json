@@ -108,6 +108,7 @@
       "sponsorship": "Patrocinio",
       "message": "Tu mensaje aquí...",
       "continue": "Continuar",
+      "sent": "Nos pondremos en contacto.",
       "sponsorshipDetails": "Detalles del patrocinio",
       "supportOptions": ["El conjunto de la organización", "Un programa de embajadores", "Una historia concreta", "Presentarme como ponente"],
       "sponsorshipOptions": ["Apoyo económico", "Apoyo en especie"]

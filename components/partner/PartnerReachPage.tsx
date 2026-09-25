@@ -9,7 +9,9 @@ import { COUNTRIES, type Country } from "@/lib/countries";
 import { CountryDropdown } from "../apply/CountryDropdown";
 import { PLACEHOLDER } from "../apply/fieldStyles";
 import { useText } from "@/lib/ui-text";
+import { submitPartner } from "@/lib/actions";
 import { useCopy } from "../LanguageProvider";
+import { Turnstile } from "../Turnstile";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const US = COUNTRIES.find((c) => c.code === "US") ?? COUNTRIES[0];
@@ -292,6 +294,10 @@ export function PartnerReachPage() {
   const [message, setMessage] = useState("");
   const [dial, setDial] = useState<Country>(US);
   const [step, setStep] = useState(0);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const supportLabel = wholeOrg
     ? form.supportOptions[0] ?? ""
     : picks.map((index) => form.supportOptions[index]).filter(Boolean).join(", ");
@@ -314,24 +320,40 @@ export function PartnerReachPage() {
     [name, email, mobile, organization, designation, supportLabel],
   );
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!ready) return;
-    const body = [
-      `Name: ${name.trim()}`,
-      `Email: ${email.trim()}`,
-      `Mobile: ${dial.dial} ${mobile.trim()}`,
-      `Organization: ${organization.trim()}`,
-      `Designation: ${designation.trim()}`,
-      `Support: ${supportLabel}`,
-      sponsorship ? `Sponsorship: ${sponsorship}` : null,
-      "",
-      message.trim(),
-    ]
-      .filter((line) => line !== null)
-      .join("\n");
-    const href = `mailto:${copy.contactPage.email}?subject=${encodeURIComponent("Partnership — Climate Refugee Pavilion")}&body=${encodeURIComponent(body)}`;
-    window.location.href = href;
+    if (!ready || submitting || sent) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const result = await submitPartner({
+        name: name.trim(),
+        email: email.trim(),
+        phone: mobile.trim() ? `${dial.dial} ${mobile.trim()}` : undefined,
+        organization: organization.trim(),
+        designation: designation.trim(),
+        support: supportLabel,
+        sponsorship: sponsorship.trim() || undefined,
+        message: message.trim() || undefined,
+        turnstileToken,
+      });
+      if (!result.ok) {
+        setError(
+          result.reason === "turnstile"
+            ? tr("Please complete the security check and try again.")
+            : result.reason === "rate_limited"
+              ? tr("Too many attempts from this connection. Please wait a little while and try again.")
+              : tr("Please check your details and try again."),
+        );
+        setSubmitting(false);
+        return;
+      }
+      setSent(true);
+    } catch (err) {
+      console.error("[partner] submit failed", err);
+      setError(tr("Something went wrong. Please try again."));
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -470,9 +492,16 @@ export function PartnerReachPage() {
           </div>
         </div>
 
+        <Turnstile onToken={setTurnstileToken} size="compact" />
+        {sent ? (
+          <p className="mt-2 text-center text-[16px] leading-[0.9] text-black">{form.sent}</p>
+        ) : null}
+        {error ? (
+          <p role="alert" className="mt-2 text-center text-[13px] text-magenta">{error}</p>
+        ) : null}
         <button
           type="button"
-          disabled={!aboutReady}
+          disabled={!aboutReady || submitting || sent}
           onClick={() => setStep(1)}
           className={`relative mt-2 h-16 w-full items-center justify-center overflow-hidden rounded-full text-[15px] font-semibold uppercase leading-[0.9] tracking-[0.6px] text-white mix-blend-hard-light transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 disabled:opacity-100 desk:hidden ${step === 0 ? "flex" : "hidden"}`}
         >
@@ -484,7 +513,7 @@ export function PartnerReachPage() {
         </button>
         <button
           type="submit"
-          disabled={!ready}
+          disabled={!ready || submitting || sent}
           className={`relative mt-2 h-16 w-full items-center justify-center overflow-hidden rounded-full text-[15px] font-semibold uppercase leading-[0.9] tracking-[0.6px] text-white mix-blend-hard-light transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 desk:hidden ${
             step === 1 ? "flex" : "hidden"
           } ${ready ? "gradient-brand" : "gradient-brand opacity-32"}`}
@@ -493,7 +522,7 @@ export function PartnerReachPage() {
         </button>
         <button
           type="submit"
-          disabled={!ready}
+          disabled={!ready || submitting || sent}
           className={`mt-4 hidden h-16 w-full max-w-[632px] items-center justify-center rounded-full text-[18px] font-semibold uppercase leading-[0.9] tracking-[0.72px] text-white mix-blend-hard-light transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 desk:mt-2 desk:flex desk:h-20 desk:text-[20px] desk:tracking-[0.8px] ${
             ready ? "gradient-brand" : "gradient-brand opacity-32"
           }`}

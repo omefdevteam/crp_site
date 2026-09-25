@@ -16,7 +16,7 @@ import { pageChanges, type SyncTable } from "@/lib/sync-log";
 const DECISION_LIMIT = 200;
 const PAGE_SIZE = 100;
 const LOCK_MS = 4 * 60 * 1000;
-const TABLES: SyncTable[] = ["applicants", "waitlist", "interest", "nominations"];
+const TABLES: SyncTable[] = ["applicants", "waitlist", "interest", "nominations", "partners"];
 
 export type TableSnapshot = {
   headers: string[];
