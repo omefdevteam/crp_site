@@ -210,30 +210,30 @@ export function AboutStep({
 
       {/* Card */}
       <main className="flex min-h-0 flex-1 items-center justify-center px-3 pb-2">
-        <div className="flex max-h-full w-full max-w-[960px] flex-col overflow-hidden rounded-[36px] bg-white px-5 py-5 desk:rounded-[64px] desk:px-0 desk:py-8">
-          <div className="mx-auto flex min-h-0 w-full max-w-[632px] flex-col overflow-y-auto">
+        <div className="flex max-h-full w-full min-w-0 max-w-[960px] flex-col rounded-[36px] bg-white px-5 py-5 desk:rounded-[64px] desk:px-0 desk:py-8">
+          <div className="mx-auto flex min-h-0 w-full min-w-0 max-w-[632px] flex-col overflow-x-hidden overflow-y-auto">
             <h1 className="text-center text-[26px] leading-[0.9] tracking-[-1.04px] text-black desk:text-[48px] desk:tracking-[-1.92px]">
               {tr("More about you")}</h1>
 
             <div className="mt-5 flex flex-col gap-1.5 desk:mt-7 desk:gap-2">
               {/* Name + DOB */}
-              <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
-                <div className={`${FIELD} flex-1 pl-5 pr-6`}>
+              <div className="flex min-w-0 flex-col gap-1.5 desk:flex-row desk:gap-2">
+                <div className={`${FIELD} min-w-0 flex-1 pl-5 pr-6`}>
                   <input
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder={tr("*NAME")}
                     aria-label={tr("Full name")}
-                    className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
+                    className={`min-w-0 w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
                   />
                 </div>
                 <DateField value={dob} onChange={setDob} className="desk:w-[206px]" />
               </div>
 
               {/* Email + phone */}
-              <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
-                <div className={`${FIELD} flex-1 pl-5 pr-6`}>
+              <div className="flex min-w-0 flex-col gap-1.5 desk:flex-row desk:gap-2">
+                <div className={`${FIELD} min-w-0 flex-1 pl-5 pr-6`}>
                   <input
                     type="email"
                     value={email}
@@ -241,10 +241,10 @@ export function AboutStep({
                     placeholder={tr("*EMAIL")}
                     aria-label={tr("Email")}
                     spellCheck={false}
-                    className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
+                    className={`min-w-0 w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
                   />
                 </div>
-                <div className={`${FIELD} gap-3 pl-3 pr-5 desk:w-[312px]`}>
+                <div className={`${FIELD} min-w-0 gap-3 pl-3 pr-5 desk:w-[312px]`}>
                   <CountryDropdown variant="inline" value={dialCountry} onChange={setDialCountry} />
                   <input
                     type="tel"
@@ -252,19 +252,19 @@ export function AboutStep({
                     onChange={(e) => setMobile(e.target.value)}
                     placeholder={tr("MOBILE")}
                     aria-label={tr("Mobile number")}
-                    className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
+                    className={`min-w-0 w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
                   />
                 </div>
               </div>
 
               {/* Nationality + based in */}
-              <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
+              <div className="flex min-w-0 flex-col gap-1.5 desk:flex-row desk:gap-2">
                 <CountryDropdown variant="field" label={tr("Nationality")} value={nationality} onChange={setNationality} />
                 <CountryDropdown variant="field" label={tr("Currently based in")} value={basedIn} onChange={setBasedIn} />
               </div>
 
               {/* Program radios */}
-              <div className="mt-0.5 flex">
+              <div className="mt-0.5 flex min-w-0">
                 <FormRadioCard label={tr("Only program")} selected={track === "online"} onSelect={() => setTrack("online")} />
                 <FormRadioCard label={tr("Travel to Antalya")} selected={track === "in_person"} onSelect={() => setTrack("in_person")} />
               </div>

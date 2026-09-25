@@ -206,7 +206,7 @@ export function CountryDropdown({
   const shownLabel = value ? countryLabel(value, locale) : label;
 
   return (
-    <div ref={wrapRef} className={variant === "field" ? "relative flex-1" : "relative"}>
+    <div ref={wrapRef} className={variant === "field" ? "relative min-w-0 flex-1" : "relative shrink-0"}>
       <button
         ref={triggerRef}
         type="button"

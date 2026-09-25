@@ -357,7 +357,7 @@ export function PartnerReachPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-cream px-3 pb-2 pt-0 desk:px-16 desk:pb-6 desk:pt-0">
+    <div className="flex min-h-dvh min-w-0 flex-col overflow-x-hidden bg-cream px-3 pb-2 pt-0 desk:px-16 desk:pb-6 desk:pt-0">
       <header className="flex h-[68px] shrink-0 items-center justify-between px-5 desk:h-[88px] desk:px-0">
         {step > 0 ? (
           <button
@@ -382,7 +382,7 @@ export function PartnerReachPage() {
       </header>
 
       <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col items-center">
-        <div className="flex w-full max-w-[1072px] flex-1 flex-col items-center overflow-hidden rounded-[88px] bg-white px-6 py-8 desk:rounded-[154px] desk:px-10 desk:py-16">
+        <div className="flex w-full max-w-[1072px] min-w-0 flex-1 flex-col items-center overflow-x-hidden rounded-[88px] bg-white px-6 py-8 desk:rounded-[154px] desk:px-10 desk:py-16">
           <div className="flex w-full max-w-[632px] flex-1 flex-col items-center justify-between gap-8">
             <div className="flex w-full flex-col items-center gap-4 text-center text-black desk:gap-6">
               <h1 className="text-[28px] leading-[0.9] tracking-[-1.12px] desk:text-[48px] desk:tracking-[-1.92px]">
@@ -405,7 +405,7 @@ export function PartnerReachPage() {
                 aria-label={form.name}
                 className={FIELD_SM}
               />
-              <div className="flex flex-col gap-2 desk:flex-row">
+              <div className="flex min-w-0 flex-col gap-2 desk:flex-row">
                 <input
                   required
                   type="email"
@@ -417,7 +417,7 @@ export function PartnerReachPage() {
                   aria-label={form.email}
                   className={`${FIELD_SM} desk:min-w-0 desk:flex-1`}
                 />
-                <div className={`${FIELD_SM} flex items-center gap-4 pl-4 pr-6 desk:w-[312px] desk:shrink-0`}>
+                <div className={`${FIELD_SM} flex min-w-0 items-center gap-4 pl-4 pr-6 desk:w-[312px]`}>
                   <CountryDropdown variant="inline" value={dial} onChange={setDial} />
                   <input
                     required
@@ -432,7 +432,7 @@ export function PartnerReachPage() {
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-2 desk:flex-row">
+              <div className="flex min-w-0 flex-col gap-2 desk:flex-row">
                 <input
                   required
                   name="organization"
@@ -456,7 +456,7 @@ export function PartnerReachPage() {
               </div>
             </div>
             <div className={`w-full flex-col gap-2 ${step === 1 ? "flex" : "hidden desk:flex"}`}>
-              <div className="flex flex-col gap-2 desk:flex-row">
+              <div className="flex min-w-0 flex-col gap-2 desk:flex-row">
                 <SupportMenu
                   label={form.support}
                   options={form.supportOptions}

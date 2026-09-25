@@ -1,13 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { secretOk } from "@/lib/api-auth";
-import { graphConfigFromEnv, openGraphWorkbook } from "@/lib/excel-graph";
+import { openGoogleWorkbook, sheetsConfigFromEnv } from "@/lib/google-sheets";
 import { tickExcelFromEnv } from "@/lib/excel-sync";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
-// Vercel Cron calls this every 10 minutes. Missing Graph env is a skip, not a
+// Vercel Cron calls this every 10 minutes. Missing Sheets env is a skip, not a
 // failed deploy: the rest of the site does not require the workbook sync.
 export async function GET(req: NextRequest) {
   const bearer = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? null;
@@ -16,12 +16,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const config = graphConfigFromEnv();
+  const config = sheetsConfigFromEnv();
   if (!config) return NextResponse.json({ ok: true, skipped: true });
 
-  let opened: Awaited<ReturnType<typeof openGraphWorkbook>> | undefined;
+  let opened: Awaited<ReturnType<typeof openGoogleWorkbook>> | undefined;
   try {
-    opened = await openGraphWorkbook(config);
+    opened = await openGoogleWorkbook(config);
     const summary = await tickExcelFromEnv(opened.workbook);
     return NextResponse.json(summary);
   } catch (err) {

@@ -76,7 +76,7 @@ export function TermsStep({
         </div>
 
         {/* Scrollable consent copy */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4 desk:px-8">
+        <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-6 pb-4 desk:px-8">
           <div className="space-y-3 text-[16px] leading-[1.2] tracking-[-0.8px] text-black/72 desk:text-[20px]">
             <p>
               {tr("By accepting, I consent to my personal data being processed to assess my application and contact me about the program.")}</p>

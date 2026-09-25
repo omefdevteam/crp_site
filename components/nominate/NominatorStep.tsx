@@ -95,8 +95,8 @@ export function NominatorStep({
           />
         </div>
 
-        <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
-          <div className={`${FIELD} flex-1 pl-5 pr-6`}>
+        <div className="flex min-w-0 flex-col gap-1.5 desk:flex-row desk:gap-2">
+          <div className={`${FIELD} min-w-0 flex-1 pl-5 pr-6`}>
             <input
               type="email"
               value={email}
@@ -107,7 +107,7 @@ export function NominatorStep({
               className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
             />
           </div>
-          <div className={`${FIELD} gap-3 pl-3 pr-5 desk:w-[312px]`}>
+          <div className={`${FIELD} min-w-0 gap-3 pl-3 pr-5 desk:w-[312px]`}>
             <CountryDropdown variant="inline" value={dialCountry} onChange={setDialCountry} />
             <input
               type="tel"
@@ -120,8 +120,8 @@ export function NominatorStep({
           </div>
         </div>
 
-        <div className="flex flex-col gap-1.5 desk:flex-row desk:gap-2">
-          <div className={`${FIELD} flex-1 pl-5 pr-6`}>
+        <div className="flex min-w-0 flex-col gap-1.5 desk:flex-row desk:gap-2">
+          <div className={`${FIELD} min-w-0 flex-1 pl-5 pr-6`}>
             <input
               type="text"
               value={organization}
@@ -131,7 +131,7 @@ export function NominatorStep({
               className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER}`}
             />
           </div>
-          <div className={`${FIELD} flex-1 pl-5 pr-6`}>
+          <div className={`${FIELD} min-w-0 flex-1 pl-5 pr-6`}>
             <input
               type="text"
               value={relation}

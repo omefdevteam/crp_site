@@ -88,8 +88,8 @@ export function SkillsStep({
             {tr("Select the ones that apply")}</p>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto pb-10">
-          <div className="grid grid-cols-3">
+        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto pb-10">
+          <div className="grid min-w-0 grid-cols-3">
             {APPLY_SKILLS.map((skill) => {
               const on = selected.includes(skill.en);
               return (
