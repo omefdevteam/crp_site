@@ -518,9 +518,10 @@ test("submissions are rate limited per connection", async () => {
 });
 
 const SHEETS_KEYS = ["GOOGLE_SHEET_ID", "GOOGLE_SERVICE_ACCOUNT_JSON"];
+const GRAPH_KEYS = ["GRAPH_TENANT_ID", "GRAPH_CLIENT_ID", "GRAPH_CLIENT_SECRET", "GRAPH_DRIVE_ID", "GRAPH_ITEM_ID"];
 
 test("excel cron skips when Google Sheets is not configured", async () => {
-  for (const key of SHEETS_KEYS) delete process.env[key];
+  for (const key of [...SHEETS_KEYS, ...GRAPH_KEYS]) delete process.env[key];
   const res = await h.excel();
   assert.equal(res.status, 200);
   assert.deepEqual(res.body, { ok: true, skipped: true });
@@ -554,7 +555,7 @@ test("excel pull keeps reviewer cells when merging a system row", () => {
 });
 
 test("excel cron pulls an applicant, pushes one accept, and replays the same decision", async () => {
-  for (const key of SHEETS_KEYS) delete process.env[key];
+  for (const key of [...SHEETS_KEYS, ...GRAPH_KEYS]) delete process.env[key];
   const { generateKeyPairSync } = await import("node:crypto");
   const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
   process.env.GOOGLE_SHEET_ID = "sheet";
@@ -663,7 +664,7 @@ test("excel cron pulls an applicant, pushes one accept, and replays the same dec
     assert.equal((await row("applicants", applicant.id)).status, "interview_yes");
   } finally {
     globalThis.fetch = realFetch;
-    for (const key of SHEETS_KEYS) delete process.env[key];
+    for (const key of [...SHEETS_KEYS, ...GRAPH_KEYS]) delete process.env[key];
   }
 });
 
