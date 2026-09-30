@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { localePath, persistLocale, type Locale } from "@/lib/locale";
-import { messages, type Messages } from "@/lib/messages";
+import type { Messages } from "@/lib/messages";
 
 type LanguageContextValue = {
   locale: Locale;
@@ -24,10 +24,12 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 export function LanguageProvider({
   initialLocale,
   initialPath = "/",
+  copy,
   children,
 }: {
   initialLocale: Locale;
   initialPath?: string;
+  copy: Messages;
   children: ReactNode;
 }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
@@ -44,8 +46,8 @@ export function LanguageProvider({
   }, [locale]);
 
   const value = useMemo<LanguageContextValue>(
-    () => ({ locale, setLocale, copy: messages[locale], path: initialPath }),
-    [locale, setLocale, initialPath],
+    () => ({ locale, setLocale, copy, path: initialPath }),
+    [locale, setLocale, copy, initialPath],
   );
 
   return (

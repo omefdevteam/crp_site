@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "@/components/LocaleLink";
 import { useCallback, useState } from "react";
 import { trail } from "@/lib/fonts";
 import {
@@ -90,14 +89,15 @@ export function ApplyPage() {
         headline={copy.apply.headline}
         body={copy.apply.body}
         cta={
-          <Link
-            href="/programs?intent=apply"
-            aria-label={copy.a11y.programDetails}
+          <button
+            type="button"
+            onClick={() => setInterestGroup("19_26")}
+            aria-label={copy.a11y.expressInterest}
             className="relative z-10 flex h-14 w-full items-center justify-center rounded-full px-4 text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.56px] text-white mix-blend-hard-light transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] desk:h-[80px] desk:px-8 desk:text-[20px] desk:tracking-[0.8px]"
             style={{ backgroundImage: APPLY_GRADIENT }}
           >
-            {copy.apply.applyNow}
-          </Link>
+            {copy.apply.interest}
+          </button>
         }
         belowHero={
           <div className="no-scrollbar flex w-full overflow-x-auto desk:aspect-[948/316] desk:overflow-visible desk:flex-row desk:items-stretch">

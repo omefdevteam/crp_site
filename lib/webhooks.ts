@@ -1,19 +1,21 @@
-import { createHash } from "crypto";
+import { createHash, createHmac, timingSafeEqual } from "crypto";
 import { and, eq, isNull, lt, or } from "drizzle-orm";
 import { applicants, jobs, webhookEvents, type Db, type JobPayload } from "@/lib/db";
-import { videoaskLink } from "@/lib/videoask";
-import { decisionEmail } from "@/lib/emails";
+import { decisionEmail, receivedEmail } from "@/lib/emails";
 import { getIdentityProvider, type IdentityDecision } from "@/lib/identity";
 import { enqueue, enqueueEmail } from "@/lib/jobs";
 import { lockApplicant, transition, updateApplicant } from "@/lib/lifecycle";
 import { reconcileIdentity } from "@/lib/application-status";
 import { scheduleIdentitySession } from "@/lib/application";
+import { issueAccessToken } from "@/lib/access";
+import { appUrl } from "@/lib/config";
+import { calendlyLink, parseCalendlyReference } from "@/lib/calendly";
 
 // Every verified webhook is written down before anything acts on it. The
 // (provider, event key) pair is unique, so a redelivery is recognised and
 // answered without a second processing run; a delivery whose processing fails
 // stays on record and is retried by the worker.
-export type WebhookProvider = "videoask" | "identity" | "resend";
+export type WebhookProvider = "videoask" | "identity" | "resend" | "calendly";
 export type WebhookEvent = typeof webhookEvents.$inferSelect;
 
 export function bodyHash(raw: string): string {
@@ -104,6 +106,8 @@ async function dispatch(tx: Tx, event: WebhookEvent): Promise<ProcessOutcome> {
       return processIdentity(tx, event.payload as IdentityPayload);
     case "resend":
       return processResend(tx, event.payload as ResendPayload);
+    case "calendly":
+      return processCalendly(tx, event.payload as CalendlyPayload);
     default:
       return { outcome: `unknown provider ${event.provider}` };
   }
@@ -111,45 +115,57 @@ async function dispatch(tx: Tx, event: WebhookEvent): Promise<ProcessOutcome> {
 
 // --- VideoAsk -----------------------------------------------------------------
 
-export type VideoaskPayload = { stage: string; applicantId: string; language: string; formId: string; eventId: string };
-
-const STAGE_STATUS = {
-  round1: { to: "round1_complete", from: ["submitted"] },
-  round2: { to: "docs_submitted", from: ["interview_yes"] },
-} as const;
+export type VideoaskPayload = { applicantId: string; formId: string; eventId: string };
 
 async function processVideoask(tx: Tx, payload: VideoaskPayload): Promise<ProcessOutcome> {
   const current = await lockApplicant(tx, payload.applicantId);
   if (!current) return { outcome: "unknown applicant" };
   if (!current.emailVerifiedAt) return { outcome: "email unverified" };
-  if (payload.language !== current.language) return { outcome: "language mismatch" };
-  const stageKey = payload.stage as keyof typeof STAGE_STATUS;
-  const expected = process.env[`VIDEOASK_${stageKey.toUpperCase()}_FORM_ID_${current.language.toUpperCase()}`];
-  const stage = STAGE_STATUS[stageKey];
-  if (!stage || !expected || payload.formId !== expected) return { outcome: "invalid form" };
+  const expected = process.env.VIDEOASK_FORM_ID;
+  if (!expected || payload.formId !== expected) return { outcome: "invalid form" };
 
-  const patch = stage.to === "round1_complete" ? { round1CompletedAt: new Date() } : { docsStatus: "submitted" };
   const moved = await transition(tx, {
     applicantId: current.id,
-    to: stage.to,
+    to: "round1_complete",
     actor: "videoask",
-    reason: `${stageKey} form completed`,
-    allowFrom: stage.from,
-    patch,
+    reason: "application form completed",
+    allowFrom: ["submitted"],
+    patch: { round1CompletedAt: new Date() },
   });
-  const reconciled = await reconcileIdentity(tx, current.id);
-  const [after] = await tx.select().from(applicants).where(eq(applicants.id, current.id));
-
-  // Round 1 gate: once complete, an identity check has to follow. Queue the
-  // provisioning on the completing call and on any retry that finds no link.
-  if (stage.to === "round1_complete" && after.status === "round1_complete" && !after.identityLink) {
-    await scheduleIdentitySession(tx, current.id);
+  if (!moved.ok) return { outcome: `ignored:${moved.code}`, advanced: false, status: moved.applicant?.status };
+  if (moved.applicant.track === "online") {
+    const review = await transition(tx, {
+      applicantId: current.id,
+      to: "under_review",
+      actor: "videoask",
+      reason: "online application ready for review",
+      allowFrom: ["round1_complete"],
+    });
+    if (review.ok) {
+      await enqueueEmail(tx, `email:received:${current.id}:${review.applicant.reviewCycle}`, {
+        to: review.applicant.email,
+        ...receivedEmail(review.applicant.fullName, review.applicant.language),
+      }, "received", current.id);
+      return { outcome: "advanced", advanced: true, status: review.to };
+    }
+    return { outcome: "advanced", advanced: true, status: "round1_complete" };
   }
-  return {
-    outcome: moved.ok ? "advanced" : `ignored:${moved.code}`,
-    advanced: moved.ok || reconciled,
-    status: after.status,
-  };
+
+  // Identity may already have landed before Round 1; reconcile now that the
+  // gate is open so the applicant does not wait on another provider delivery.
+  const advanced = await reconcileIdentity(tx, current.id);
+  const [after] = await tx.select().from(applicants).where(eq(applicants.id, current.id));
+  if (advanced && after.status === "under_review") {
+    await enqueueEmail(tx, `email:received:${after.id}:${after.reviewCycle}`, {
+      to: after.email,
+      ...receivedEmail(after.fullName, after.language),
+    }, "received", after.id);
+    return { outcome: "advanced", advanced: true, status: after.status };
+  }
+  if (after.status === "id_failed" || (after.status === "round1_complete" && !after.identityLink)) {
+    await scheduleIdentitySession(tx, after.id, after.version);
+  }
+  return { outcome: "advanced", advanced: true, status: after.status };
 }
 
 // --- Identity provider --------------------------------------------------------
@@ -174,6 +190,12 @@ async function processIdentity(tx: Tx, payload: IdentityPayload): Promise<Proces
   }
   if (!current) return { outcome: "unknown applicant" };
 
+  // After id_failed we clear the session so a retry can mint a new Didit link.
+  // Ignore provider callbacks until that new session exists; otherwise a
+  // redelivery of the dead session would write another decision.
+  if (current.status === "id_failed" && !current.identitySessionId) {
+    return { outcome: "no active session", status: current.status };
+  }
   // A result for a session we did not issue (or an old, replaced session) is
   // not this applicant's result. Only the active session may write a decision.
   if (event.sessionId && current.identitySessionId && event.sessionId !== current.identitySessionId) {
@@ -191,7 +213,23 @@ async function processIdentity(tx: Tx, payload: IdentityPayload): Promise<Proces
     identitySessionId: current.identitySessionId ?? event.sessionId ?? undefined,
   });
   const advanced = await reconcileIdentity(tx, current.id);
-  const [after] = await tx.select({ status: applicants.status }).from(applicants).where(eq(applicants.id, current.id));
+  const [after] = await tx.select().from(applicants).where(eq(applicants.id, current.id));
+  if (advanced && after.status === "under_review") {
+    await enqueueEmail(tx, `email:received:${after.id}:${after.reviewCycle}`, {
+      to: after.email,
+      ...receivedEmail(after.fullName, after.language),
+    }, "received", after.id);
+    if (after.identitySessionId) {
+      await enqueue(tx, {
+        kind: "identity_documents",
+        dedupeKey: `identity_documents:${after.id}:${after.identitySessionId}`,
+        applicantId: after.id,
+        payload: { applicantId: after.id, sessionId: after.identitySessionId },
+      });
+    }
+  } else if (advanced && after.status === "id_failed") {
+    await scheduleIdentitySession(tx, after.id, after.version);
+  }
   return { outcome: `identity ${IDENTITY_STATUS[event.decision]}`, advanced, status: after.status };
 }
 
@@ -215,6 +253,52 @@ async function processResend(tx: Tx, payload: ResendPayload): Promise<ProcessOut
   return { outcome: rows.length ? `delivery ${status}` : "no matching email" };
 }
 
+// --- Calendly ---------------------------------------------------------------
+
+export type CalendlyPayload = { raw: string; signature: string | null };
+
+function calendlySignatureOk(raw: string, header: string | null): boolean {
+  const secret = process.env.CALENDLY_WEBHOOK_SIGNING_KEY;
+  if (!secret || !header) return false;
+  const parts = Object.fromEntries(header.split(",").map((part) => part.split("=", 2)));
+  const timestamp = parts.t;
+  const provided = parts.v1;
+  if (!timestamp || !provided || Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return false;
+  const expected = Buffer.from(createHmac("sha256", secret).update(`${timestamp}.${raw}`).digest("hex"));
+  const given = Buffer.from(provided);
+  return expected.length === given.length && timingSafeEqual(expected, given);
+}
+
+async function processCalendly(tx: Tx, payload: CalendlyPayload): Promise<ProcessOutcome> {
+  if (!calendlySignatureOk(payload.raw, payload.signature)) return { outcome: "invalid signature" };
+  let body: Record<string, unknown>;
+  try {
+    body = JSON.parse(payload.raw) as Record<string, unknown>;
+  } catch {
+    return { outcome: "invalid json" };
+  }
+  const data = body.payload as Record<string, unknown> | undefined;
+  const tracking = data?.tracking as Record<string, unknown> | undefined;
+  const email = typeof data?.email === "string" ? data.email.toLowerCase() : null;
+  const applicantId = parseCalendlyReference(tracking?.utm_content);
+  let current = applicantId ? await lockApplicant(tx, applicantId) : undefined;
+  if (!current && email) {
+    const [byEmail] = await tx.select({ id: applicants.id }).from(applicants).where(eq(applicants.email, email));
+    if (byEmail) current = await lockApplicant(tx, byEmail.id);
+  }
+  if (!current) return { outcome: "unknown applicant" };
+  if (body.event === "invitee.canceled") {
+    await updateApplicant(tx, current.id, { interviewAt: null });
+    return { outcome: "interview canceled", status: current.status };
+  }
+  if (body.event !== "invitee.created") return { outcome: "ignored", status: current.status };
+  const event = data?.scheduled_event as Record<string, unknown> | undefined;
+  const start = typeof event?.start_time === "string" ? new Date(event.start_time) : null;
+  if (!start || Number.isNaN(start.getTime())) return { outcome: "missing interview time", status: current.status };
+  await updateApplicant(tx, current.id, { interviewAt: start });
+  return { outcome: "interview booked", status: current.status };
+}
+
 // --- Decision emails ----------------------------------------------------------
 // Queued by the review-sheet endpoint on the transition into a status, keyed by
 // applicant + status + version so a repeated poll never queues a repeat.
@@ -228,11 +312,20 @@ export async function queueDecisionEmail(
   let mail = null;
   switch (status) {
     case "rejected":
-    case "interview_no":
       mail = decisionEmail(status, null, applicant.language);
       break;
+    case "online_offered": {
+      const token = await issueAccessToken(tx, applicant.id, "switch_online", 7 * 24 * 3600);
+      mail = decisionEmail(status, `${appUrl()}/api/apply/switch-online?token=${encodeURIComponent(token.raw)}&lang=${applicant.language}`, applicant.language);
+      break;
+    }
+    case "accepted": {
+      const [full] = await tx.select().from(applicants).where(eq(applicants.id, applicant.id));
+      mail = decisionEmail(status, full ? calendlyLink(full) : null, applicant.language);
+      break;
+    }
     case "interview_yes": {
-      mail = decisionEmail("interview_yes", videoaskLink(applicant.id, "round2", applicant.language), applicant.language);
+      mail = decisionEmail(status, null, applicant.language);
       break;
     }
   }

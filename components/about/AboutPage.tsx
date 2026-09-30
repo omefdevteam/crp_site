@@ -12,6 +12,7 @@ import { TicketTab } from "../TicketTab";
 import { trail } from "@/lib/fonts";
 import { aboutImages, aboutTeamPhotos } from "@/lib/about-assets";
 import type { Pin } from "@/lib/pins";
+import { ABOUT_GLOBE_WAIT_IMAGES } from "../platform/globe-defer";
 import { PlatformGlobe } from "../platform/PlatformGlobe";
 
 function FitWidth({
@@ -267,7 +268,12 @@ export function AboutPage() {
           </p>
         </div>
         <div className="absolute left-1/2 top-[calc(50%-38.5px)] z-20 aspect-square w-[min(407px,78vw)] -translate-x-1/2 -translate-y-1/2">
-          <PlatformGlobe visibleGroups={["ambassadors"]} emphasis={null} pins={teamPins} />
+          <PlatformGlobe
+            visibleGroups={["ambassadors"]}
+            emphasis={null}
+            pins={teamPins}
+            waitForImages={ABOUT_GLOBE_WAIT_IMAGES}
+          />
         </div>
       </section>
 

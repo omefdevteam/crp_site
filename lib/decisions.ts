@@ -44,6 +44,9 @@ export async function applyDecision(db: Db, d: DecisionRow): Promise<DecisionOut
 
     const current = await lockApplicant(tx, d.applicantId);
     if (!current) return { applicantId: d.applicantId, result: "not_found" };
+    if (d.reviewCycle !== current.reviewCycle) {
+      return { applicantId: d.applicantId, result: "stale", status: current.status, version: current.version };
+    }
     if (d.version !== undefined && d.version !== current.version) {
       return { applicantId: d.applicantId, result: "stale", status: current.status, version: current.version };
     }
@@ -58,7 +61,7 @@ export async function applyDecision(db: Db, d: DecisionRow): Promise<DecisionOut
       interviewDate: parseDate(d.interviewDate),
     };
 
-    const target = targetStatus(d);
+    const target = targetStatus(d, current.track);
     let outcome: DecisionOutcome;
     if (target && target !== current.status) {
       const moved = await transition(tx, {
@@ -66,8 +69,11 @@ export async function applyDecision(db: Db, d: DecisionRow): Promise<DecisionOut
         to: target,
         actor: "excel",
         reason: d.reviewer ? `review sheet decision by ${d.reviewer}` : "review sheet decision",
-        allowFrom: decisionSourceStatuses(target),
-        patch: columns,
+        allowFrom: decisionSourceStatuses(target, d),
+        patch: {
+          ...columns,
+          ...(target === "online_offered" ? { onlineOfferedAt: new Date() } : {}),
+        },
       });
       if (moved.ok) {
         await queueDecisionEmail(tx, moved.applicant, target, moved.version);

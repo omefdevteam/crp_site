@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { requestLocale, requestPath } from "@/lib/request-locale";
 import { LanguageProvider } from "@/components/LanguageProvider";
+import { copyFor } from "@/lib/messages";
 import { outfit } from "@/lib/fonts";
 import "./globals.css";
 
@@ -15,7 +16,13 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${outfit.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col overflow-x-hidden">
-        <LanguageProvider initialLocale={locale} initialPath={await requestPath()}>{children}</LanguageProvider>
+        <LanguageProvider
+          initialLocale={locale}
+          initialPath={await requestPath()}
+          copy={copyFor(locale)}
+        >
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

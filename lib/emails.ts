@@ -148,11 +148,24 @@ export function identityEmail(name: string, link: string, language: ApplicationL
   const copy = emailCopy[language];
   return { subject: copy.identitySubject, html: render(language, [copy.greeting.replace("{name}", escapeHtml(name)), copy.identity], { label: copy.identityButton, url: link }) };
 }
-export function decisionEmail(status: "rejected" | "interview_no" | "interview_yes", link: string | null, language: ApplicationLocale): Email {
+export function receivedEmail(name: string, language: ApplicationLocale): Email {
+  const copy = emailCopy[language];
+  return { subject: copy.receivedSubject, html: render(language, [copy.greeting.replace("{name}", escapeHtml(name)), copy.received], null) };
+}
+export function identityRetryEmail(name: string, link: string, language: ApplicationLocale): Email {
+  const copy = emailCopy[language];
+  return { subject: copy.retrySubject, html: render(language, [copy.greeting.replace("{name}", escapeHtml(name)), copy.retry], { label: copy.identityButton, url: link }) };
+}
+export function decisionEmail(
+  status: "rejected" | "online_offered" | "accepted" | "interview_yes",
+  link: string | null,
+  language: ApplicationLocale,
+): Email {
   const copy = emailCopy[language];
   if (status === "rejected") return { subject: copy.rejectedSubject, html: render(language, [copy.applicant, copy.rejected], null) };
-  if (status === "interview_no") return { subject: copy.onlineSubject, html: render(language, [copy.applicant, copy.online], null) };
-  return { subject: copy.nextSubject, html: render(language, [copy.congratulations, link ? copy.documents : copy.next], link ? { label: copy.continue, url: link } : null) };
+  if (status === "online_offered") return { subject: copy.onlineSubject, html: render(language, [copy.applicant, copy.online], link ? { label: copy.onlineButton, url: link } : null) };
+  if (status === "accepted") return { subject: copy.interviewSubject, html: render(language, [copy.congratulations, copy.interview], link ? { label: copy.interviewButton, url: link } : null) };
+  return { subject: copy.selectedSubject, html: render(language, [copy.congratulations, copy.selected], null) };
 }
 
 export function captureConfirmationEmail(link: string, kind: "waitlist" | "interest"): Email {

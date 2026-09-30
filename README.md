@@ -12,6 +12,12 @@ Other scripts: `npm run build`, `npm run start`, `npm run lint`.
 
 ## Application verification
 
+Applicants complete one VideoAsk form configured by `VIDEOASK_FORM_URL` and
+`VIDEOASK_FORM_ID`. Online applications move straight to review. In-person
+applications continue through Didit; approved identity images are copied into
+private Vercel Blob storage and can only be streamed through the authenticated
+operations document route.
+
 Configure Didit's webhook destination separately in its console, pointing to
 `https://<your-domain>/api/webhooks/identity`, and set `DIDIT_WEBHOOK_SECRET`.
 The session `callback` is a browser redirect to `/apply/complete`; it is not
@@ -19,6 +25,11 @@ the webhook destination. Only authenticated webhook events record approval.
 
 Applicants who submit an email already on file can request a fresh, single-use resume link sent to that mailbox. The public form does not disclose
 existing application IDs or grant access to existing verification sessions.
+
+Accepted applicants receive the locale-specific Calendly URL. Register
+`/api/webhooks/calendly` with `node scripts/register-calendly-webhook.mjs`; the
+script needs `CALENDLY_PERSONAL_ACCESS_TOKEN` and `APP_URL`. Calendly booking
+events update `interviewAt` without changing pipeline status.
 
 > **Build-time font fetch:** the `Outfit` body font is loaded via
 > `next/font/google`, so `next build` needs network access to

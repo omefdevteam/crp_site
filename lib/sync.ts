@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Applicant } from "@/lib/db";
+import { appUrl } from "@/lib/config";
 
 type Status = Applicant["status"];
 
@@ -11,6 +12,7 @@ export const decisionRow = z.object({
   applicantId: z.uuid(),
   decisionId: z.uuid().optional(),
   version: z.coerce.number().int().nonnegative().optional(),
+  reviewCycle: z.coerce.number().int().nonnegative(),
   reviewDecision: z.enum(["accept", "reject"]).optional(),
   reviewNotes: z.string().optional(),
   reviewer: z.string().optional(),
@@ -24,35 +26,44 @@ export type DecisionRow = z.infer<typeof decisionRow>;
 
 export function normalizeDecisions(raw: unknown): unknown {
   if (!Array.isArray(raw)) return raw;
-  return raw.map((row) =>
-    row && typeof row === "object"
-      ? Object.fromEntries(
-          Object.entries(row).map(([k, v]) => [k, v === "" ? undefined : v]),
-        )
-      : row,
-  );
+  return raw.map((row) => {
+    if (!row || typeof row !== "object") return row;
+    const next = Object.fromEntries(
+      Object.entries(row).map(([k, v]) => [k, v === "" ? undefined : v]),
+    ) as Record<string, unknown>;
+    if (next.reviewCycle === undefined) next.reviewCycle = 0;
+    return next;
+  });
 }
 
 // The status a set of decisions implies. Later stages win, so an interview
 // outcome supersedes the review decision. null means no decision yet.
-export function targetStatus(d: DecisionRow): Status | null {
-  if (d.interviewOutcome === "no") return "interview_no";
+export function targetStatus(
+  d: DecisionRow,
+  track: Applicant["track"],
+): Status | null {
+  if (d.interviewOutcome === "no") return track === "in_person" ? "online_offered" : "rejected";
   if (d.interviewOutcome === "yes") return "interview_yes";
-  if (d.reviewDecision === "reject") return "rejected";
+  if (d.reviewDecision === "reject") return track === "in_person" ? "online_offered" : "rejected";
   if (d.reviewDecision === "accept") return "accepted";
   return null;
 }
 
-// Review corrections are allowed within their stage, but old spreadsheet
-// decisions must never undo an interview, document submission, or onboarding.
-export function decisionSourceStatuses(target: Status): Status[] {
-  const review: Status[] = [
-    "submitted", "round1_complete", "id_verified", "id_failed", "accepted", "rejected",
-  ];
-  if (target === "accepted" || target === "rejected") return review;
-  if (target === "interview_yes" || target === "interview_no") {
-    return [...review, "interview_yes", "interview_no"];
+// Review corrections stay inside the review stage. Interview outcomes only move
+// people who are already accepted (or correcting an interview_* status). Old
+// spreadsheet decisions must never undo document submission or onboarding.
+export function decisionSourceStatuses(
+  target: Status,
+  d: Pick<DecisionRow, "interviewOutcome">,
+): Status[] {
+  if (d.interviewOutcome) {
+    if (target === "interview_yes" || target === "online_offered" || target === "rejected") {
+      return ["accepted", "interview_yes", "interview_no"];
+    }
+    return [];
   }
+  const review: Status[] = ["under_review", "accepted", "rejected", "online_offered"];
+  if (target === "accepted" || target === "rejected" || target === "online_offered") return review;
   return [];
 }
 
@@ -66,10 +77,11 @@ export function parseDate(value: string | undefined): Date | undefined {
 // The system-owned projection of an applicant that the Excel mirror reads. The
 // decision columns are deliberately absent so the sheet never writes them back
 // to itself; `version` lets it detect its own stale rows.
-export function applicantSyncRow(a: Applicant) {
+function projectApplicant(a: Applicant, identityDocumentIds: string[]) {
   return {
     id: a.id,
     version: a.version,
+    reviewCycle: a.reviewCycle,
     submittedAt: a.createdAt,
     fullName: a.fullName,
     email: a.email,
@@ -88,8 +100,17 @@ export function applicantSyncRow(a: Applicant) {
     round1CompletedAt: a.round1CompletedAt,
     identityStatus: a.identityStatus,
     identityCheckedAt: a.identityCheckedAt,
+    identityDocuments: identityDocumentIds.map((id) => `${appUrl()}/api/ops/documents/${id}`),
     interviewAt: a.interviewAt,
     docsStatus: a.docsStatus,
     lastSynced: a.updatedAt,
   };
+}
+
+export function applicantSyncRow(a: Applicant) {
+  return projectApplicant(a, []);
+}
+
+export function applicantSyncRowWithDocuments(a: Applicant, identityDocumentIds: string[]) {
+  return projectApplicant(a, identityDocumentIds);
 }

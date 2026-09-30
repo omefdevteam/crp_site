@@ -20,21 +20,24 @@ export type Actor = "applicant" | "videoask" | "identity" | "excel" | "ops" | "s
 // listed here; everything else (webhooks, the review sheet, ops tools) asks
 // `transition` and gets refused otherwise.
 //
-//  submitted ─▶ round1_complete ─▶ id_verified/id_failed ─▶ accepted/rejected
-//    ─▶ interview_yes/interview_no ─▶ docs_submitted ─▶ onboarding ⇄ online
+//  submitted ─▶ round1_complete ─▶ id_verified/id_failed ─▶ under_review
+//    ─▶ accepted / rejected / online_offered
+//    ─▶ interview_yes ─▶ onboarding ⇄ online
 //
-// Review decisions may also land before Round 1 finishes (the team can review
-// early), corrections within a stage are allowed, `ineligible` is reachable
-// from anywhere, and ops can reopen an ineligible applicant to `submitted`.
+// Review decisions start from under_review only (plus corrections among
+// accepted / rejected / online_offered). Interview outcomes start from accepted.
+// `ineligible` is reachable from anywhere; ops can reopen to `submitted`.
 export const TRANSITIONS: Record<Status, readonly Status[]> = {
-  submitted: ["round1_complete", "accepted", "rejected", "ineligible"],
-  round1_complete: ["id_verified", "id_failed", "accepted", "rejected", "ineligible"],
-  id_verified: ["accepted", "rejected", "ineligible"],
-  id_failed: ["id_verified", "accepted", "rejected", "ineligible"],
-  accepted: ["rejected", "interview_yes", "interview_no", "ineligible"],
-  rejected: ["accepted", "interview_yes", "interview_no", "ineligible"],
-  interview_yes: ["interview_no", "docs_submitted", "ineligible"],
-  interview_no: ["interview_yes", "online", "ineligible"],
+  submitted: ["round1_complete", "ineligible"],
+  round1_complete: ["under_review", "id_verified", "id_failed", "ineligible"],
+  id_verified: ["under_review", "ineligible"],
+  id_failed: ["id_verified", "ineligible"],
+  under_review: ["accepted", "rejected", "online_offered", "ineligible"],
+  online_offered: ["under_review", "ineligible"],
+  accepted: ["interview_yes", "interview_no", "online_offered", "rejected", "ineligible"],
+  rejected: ["accepted", "online_offered", "under_review", "ineligible"],
+  interview_yes: ["onboarding", "ineligible"],
+  interview_no: ["interview_yes", "rejected", "online", "online_offered", "under_review", "ineligible"],
   docs_submitted: ["onboarding", "online", "ineligible"],
   onboarding: ["online", "ineligible"],
   online: ["onboarding", "ineligible"],

@@ -55,7 +55,7 @@ test('Spanish application emails stay Spanish and escape applicant names',()=>{
  assert.match(confirmation.html,/<html lang="es"/);
  assert.match(confirmation.html,/&lt;script&gt;/);
  assert.doesNotMatch(confirmation.html,/<script>/);
- for(const message of [email.resumeEmail('Ana','https://example.invalid','es'),email.identityEmail('Ana','https://example.invalid','es'),...['rejected','interview_no','interview_yes'].map(status=>email.decisionEmail(status,'https://example.invalid','es'))]){
+ for(const message of [email.resumeEmail('Ana','https://example.invalid','es'),email.identityEmail('Ana','https://example.invalid','es'),...['rejected','online_offered','accepted','interview_yes'].map(status=>email.decisionEmail(status,'https://example.invalid','es'))]){
   assert.match(message.html,/<html lang="es"/);
   assert.doesNotMatch(message.html,/Dear |Bonjour |All rights reserved/);
  }

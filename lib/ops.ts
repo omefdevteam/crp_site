@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, lt, sql } from "drizzle-orm";
 import {
   applicants,
   applicationEvents,
@@ -7,7 +7,7 @@ import {
   type Db,
 } from "@/lib/db";
 import { retryJob } from "@/lib/jobs";
-import { lockApplicant, transition, STATUSES, type Actor, type Status } from "@/lib/lifecycle";
+import { lockApplicant, transition, updateApplicant, STATUSES, type Actor, type Status } from "@/lib/lifecycle";
 import { requestResumeLink, scheduleIdentitySession } from "@/lib/application";
 
 // What the team sees instead of server logs: who is stuck where, which emails
@@ -55,9 +55,9 @@ export async function overview(db: Db, limit = 50) {
       .where(sql`(${applicants.status} = 'submitted' and ${applicants.createdAt} < ${new Date(now - 3 * DAY)})
         or (${applicants.identityLink} is not null and ${applicants.identityStatus} = 'pending' and ${applicants.updatedAt} < ${new Date(now - DAY)})`)
       .orderBy(asc(applicants.updatedAt)).limit(limit),
-    // Waiting on the team: identity resolved or Round 1 done, no review decision.
+    // Waiting on the team: under review with no decision for a week.
     db.select(applicantSummary).from(applicants)
-      .where(and(inArray(applicants.status, ["id_verified", "id_failed", "docs_submitted"]), isNull(applicants.reviewDecision), lt(applicants.updatedAt, new Date(now - 7 * DAY))))
+      .where(and(eq(applicants.status, "under_review"), isNull(applicants.reviewDecision), lt(applicants.updatedAt, new Date(now - 7 * DAY))))
       .orderBy(asc(applicants.updatedAt)).limit(limit),
     db.select().from(webhookEvents)
       .where(isNull(webhookEvents.processedAt))
@@ -111,13 +111,18 @@ export async function performAction(db: Db, input: OpsAction, operator: string):
       return db.transaction(async (tx) => {
         const current = await lockApplicant(tx, input.applicantId);
         if (!current) return { ok: false, detail: "applicant not found" };
-        if (!["round1_complete", "id_failed"].includes(current.status)) {
+        if (current.track !== "in_person" || !["round1_complete", "id_failed"].includes(current.status)) {
           return { ok: false, detail: `applicant is ${current.status}; identity check not due` };
         }
-        // Reset the job so the worker will (re)provision even if a prior run finished.
-        await tx.delete(jobs).where(eq(jobs.dedupeKey, `identity_session:${current.id}`));
-        await scheduleIdentitySession(tx, current.id);
-        await tx.insert(applicationEvents).values({ applicantId: current.id, fromStatus: current.status, toStatus: current.status, actor: "ops", reason: `identity session (re)provisioned by ${operator}`, version: current.version });
+        // Drop any existing Didit link: provisionIdentitySession reuses identityLink
+        // as-is, so a stuck or failed session would otherwise be emailed forever.
+        const cleared = await updateApplicant(tx, current.id, {
+          identityLink: null,
+          identitySessionId: null,
+        });
+        if (!cleared) return { ok: false, detail: "could not clear identity session" };
+        await scheduleIdentitySession(tx, current.id, cleared.version);
+        await tx.insert(applicationEvents).values({ applicantId: current.id, fromStatus: current.status, toStatus: current.status, actor: "ops", reason: `identity session (re)provisioned by ${operator}`, version: cleared.version });
         return { ok: true, detail: "identity provisioning queued" };
       });
     }

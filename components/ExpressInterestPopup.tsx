@@ -28,9 +28,13 @@ const GRAY_GRADIENT =
 const SUCCESS_GRADIENT =
   "radial-gradient(circle at 50% 50%, #D2DE38 0%, #3DADFF 100%)";
 
-export type InterestAgeGroup = "15_18" | "27_34";
+export type InterestAgeGroup = "15_18" | "19_26" | "27_34";
 
 type Phase = "idle" | "invalid" | "success";
+
+function interestDbAgeGroup(ageGroup: InterestAgeGroup): "under_19" | "19_plus" {
+  return ageGroup === "15_18" ? "under_19" : "19_plus";
+}
 
 function isValidEmail(value: string) {
   return EMAIL_RE.test(value.trim());
@@ -149,12 +153,15 @@ function Field({
 type ExpressInterestPopupProps = {
   open: boolean;
   ageGroup: InterestAgeGroup;
+  /** Defaults to apply_express_{ageGroup}. Use nominate_express_19_26 from nominate CTAs. */
+  source?: string;
   onClose: () => void;
 };
 
 export function ExpressInterestPopup({
   open,
   ageGroup,
+  source,
   onClose,
 }: ExpressInterestPopupProps) {
   const copy = useCopy();
@@ -200,8 +207,8 @@ export function ExpressInterestPopup({
     const saved = await submit(() => submitInterest({
       email: email.trim(),
       name: name.trim(),
-      ageGroup: ageGroup === "15_18" ? "under_19" : "19_plus",
-      source: `apply_express_${ageGroup}`,
+      ageGroup: interestDbAgeGroup(ageGroup),
+      source: source ?? `apply_express_${ageGroup}`,
       turnstileToken,
     }));
     if (saved) setPhase("success");
@@ -264,7 +271,6 @@ export function ExpressInterestPopup({
               fill
               sizes="536px"
               className="object-cover"
-              priority
             />
             {submitted ? (
               <div className="absolute inset-0 bg-black/45" aria-hidden />

@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { and, eq, gt, isNull, lt } from "drizzle-orm";
 import { accessTokens, type Store } from "@/lib/db";
 
-export type TokenPurpose = "resume";
+export type TokenPurpose = "resume" | "switch_online";
 
 export const RESUME_TOKEN_TTL_SECONDS = 60 * 30;
 

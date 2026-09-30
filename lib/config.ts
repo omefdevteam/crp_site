@@ -21,15 +21,10 @@ let checked = false;
 // production deploy fails loudly before it can accept an application.
 export function assertBackendConfig(): void {
   if (checked || process.env.NODE_ENV !== "production") return;
-  const required = ["DATABASE_URL", "APP_URL", "RESEND_API_KEY", "RESEND_FROM", "APP_SECRET", "OPERATIONS_TOKENS", "CRON_SECRET", "SYNC_API_SECRET", "TURNSTILE_SECRET_KEY", "NEXT_PUBLIC_TURNSTILE_SITE_KEY", "VIDEOASK_WEBHOOK_SECRET", "DIDIT_API_KEY", "DIDIT_WORKFLOW_ID", "DIDIT_WEBHOOK_SECRET", "RESEND_WEBHOOK_SECRET"];
+  const required = ["DATABASE_URL", "APP_URL", "RESEND_API_KEY", "RESEND_FROM", "APP_SECRET", "OPERATIONS_TOKENS", "CRON_SECRET", "SYNC_API_SECRET", "TURNSTILE_SECRET_KEY", "NEXT_PUBLIC_TURNSTILE_SITE_KEY", "VIDEOASK_WEBHOOK_SECRET", "VIDEOASK_FORM_URL", "VIDEOASK_FORM_ID", "DIDIT_API_KEY", "DIDIT_WORKFLOW_ID", "DIDIT_WEBHOOK_SECRET", "RESEND_WEBHOOK_SECRET", "CALENDLY_URL_EN", "CALENDLY_URL_FR", "CALENDLY_URL_ES", "CALENDLY_WEBHOOK_SIGNING_KEY", "BLOB_READ_WRITE_TOKEN"];
   const missing = required.filter((key) => !process.env[key]);
-  for (const stage of ["ROUND1", "ROUND2"]) for (const language of ["EN", "FR", "ES"]) {
-    const key = `VIDEOASK_${stage}_URL_${language}`;
-    try { if (new URL(process.env[key] ?? "").protocol !== "https:") missing.push(key); }
-    catch { missing.push(key); }
-    const formKey = `VIDEOASK_${stage}_FORM_ID_${language}`;
-    if (!/^[0-9a-f-]{36}$/i.test(process.env[formKey] ?? "")) missing.push(formKey);
-  }
+  try { if (new URL(process.env.VIDEOASK_FORM_URL ?? "").protocol !== "https:") missing.push("VIDEOASK_FORM_URL"); }
+  catch { missing.push("VIDEOASK_FORM_URL"); }
   for (const key of ["APP_SECRET", "CRON_SECRET", "SYNC_API_SECRET"]) {
     if ((process.env[key]?.length ?? 0) < 32) missing.push(`${key} (32+ characters)`);
   }

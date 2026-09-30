@@ -61,13 +61,7 @@ function WayTile({
   );
 }
 
-function PartnerHero({
-  title,
-  body,
-}: {
-  title: string;
-  body: string;
-}) {
+function PartnerHero({ title }: { title: string }) {
   const frame = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
@@ -83,7 +77,7 @@ function PartnerHero({
 
   return (
     <section className="overflow-hidden bg-cream">
-      <div className="relative flex h-[469px] items-center justify-center overflow-hidden rounded-b-[88px] px-3 pb-3 pt-[68px] desk:hidden">
+      <div className="relative flex h-[469px] items-center justify-center overflow-hidden rounded-b-[88px] px-6 desk:hidden">
         <Image
           src={partnerImages.heroPhoto}
           alt=""
@@ -93,50 +87,76 @@ function PartnerHero({
           sizes="100vw"
         />
         <h1
-          className={`${trail.className} relative z-10 w-[322px] max-w-full text-center text-[90px] uppercase leading-[0.9] tracking-[3.6px] text-white`}
+          className={`${trail.className} relative z-10 w-full max-w-[340px] text-center text-[64px] uppercase leading-[0.9] tracking-[2.56px] text-white`}
         >
           {title}
         </h1>
       </div>
-      <div ref={frame} className="relative hidden w-full desk:block" style={{ height: 1121 * scale }}>
+      <div ref={frame} className="relative hidden w-full desk:block" style={{ height: 654 * scale }}>
         <div
-          className="absolute left-0 top-0 h-[1121px] w-[1200px] origin-top-left overflow-hidden bg-cream"
+          className="absolute left-0 top-0 h-[654px] w-[1200px] origin-top-left bg-cream"
           style={{ transform: `scale(${scale})` }}
         >
-      <Image
-        src={partnerImages.heroPhoto}
-        alt=""
-        width={1200}
-        height={558}
-        priority
-        className="absolute left-0 top-0 h-[558px] w-[1200px] rounded-bl-[154px] rounded-br-[154px] object-cover"
-      />
-      <h1
-        className={`${trail.className} absolute left-[64px] top-[285.5px] z-[4] w-[1072px] text-[130px] uppercase leading-[0.9] tracking-[5.2px] text-white`}
-      >
-        {title}
-      </h1>
-      <div className="absolute left-1/2 top-[418px] z-[2] flex -translate-x-1/2 items-center justify-end gap-[48px]">
-        <p className="w-[300px] text-[32px] leading-[0.9] tracking-[-1.28px] text-white">
-          {body}
-        </p>
-        <ReachOutLink
-          compact
-          className="!h-[80px] !w-[300px] !px-8 !text-[20px] !tracking-[0.8px]"
-          light
-        />
-      </div>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={partnerImages.heroUnion}
-        alt=""
-        width={1760}
-        height={440}
-        className="absolute left-[-280px] top-[585px] z-[3] h-[440px] w-[1760px] max-w-none"
-      />
+          <Image
+            src={partnerImages.heroPhoto}
+            alt=""
+            width={1200}
+            height={558}
+            priority
+            className="absolute left-0 top-0 h-[558px] w-[1200px] rounded-bl-[154px] rounded-br-[154px] object-cover"
+          />
+          <h1
+            className={`${trail.className} absolute left-[157px] top-[210px] w-[886px] text-center text-[130px] uppercase leading-[0.9] tracking-[5.2px] text-white`}
+          >
+            {title}
+          </h1>
         </div>
       </div>
     </section>
+  );
+}
+
+function OrganizationBand({
+  title,
+  learnMore,
+}: {
+  title: string;
+  learnMore: string;
+}) {
+  return (
+    <div className="relative flex min-h-[520px] w-full flex-col items-center justify-center overflow-hidden rounded-[64px] bg-lime px-6 py-16 desk:h-[613px] desk:px-0 desk:py-0">
+      <div aria-hidden className="pointer-events-none absolute left-[8%] top-[-30%] h-[140%] w-[90%] desk:left-[25%] desk:top-[-48%] desk:h-[167%] desk:w-[94%]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img alt="" src={partnerImages.rewardsGlow} className="h-full w-full max-w-none" />
+      </div>
+      <div aria-hidden className="pointer-events-none absolute top-[-8%] left-[-8%] h-[140%] w-[90%] rotate-180 desk:top-[-11%] desk:left-[-2%] desk:h-[167%] desk:w-[94%]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img alt="" src={partnerImages.rewardsGlow} className="h-full w-full max-w-none" />
+      </div>
+      <div className="pointer-events-none absolute top-1/2 left-[-46%] aspect-[523/349] w-[62%] -translate-y-1/2 overflow-hidden rounded-[56px] desk:left-[-21.83%] desk:w-[43.58%] desk:rounded-[88px]">
+        <Image src={partnerImages.ctaOrganization} alt="" fill className="object-cover" sizes="523px" />
+      </div>
+      <div className="pointer-events-none absolute top-1/2 right-[-46%] aspect-[523/349] w-[62%] -translate-y-1/2 overflow-hidden rounded-[56px] desk:right-auto desk:left-[78.17%] desk:w-[43.58%] desk:rounded-[88px]">
+        <Image src={partnerImages.ctaOrganization} alt="" fill className="object-cover" sizes="523px" />
+      </div>
+      <div className="relative z-10 flex w-full max-w-[578px] flex-col items-center">
+        <p className="text-center text-[40px] leading-[0.8] tracking-[-1.6px] text-black desk:text-[64px] desk:tracking-[-2.56px]">
+          {title}
+        </p>
+        <div className="mt-8 flex w-full max-w-[336px] flex-col items-center">
+          <ReachOutLink
+            href="/partner/reach-out?support=organization"
+            className="!h-16 !w-full !text-[16px] desk:!h-20 desk:!text-[20px] desk:!tracking-[0.8px]"
+          />
+          <Link
+            href="/about"
+            className="relative z-10 flex h-16 items-center justify-center text-[16px] font-semibold uppercase leading-[0.9] tracking-[0.64px] text-black desk:h-20 desk:text-[20px] desk:tracking-[0.8px]"
+          >
+            {learnMore}→
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -161,7 +181,7 @@ function CtaCard({
 }) {
   return (
     <div
-      className="relative flex h-[371px] flex-1 flex-col items-start justify-between overflow-hidden rounded-[64px] p-8 desk:h-full"
+      className="relative flex h-[480px] flex-1 flex-col items-start justify-between overflow-hidden rounded-[64px] p-8 desk:h-full"
       style={{ backgroundColor: bg }}
     >
       <div
@@ -183,7 +203,7 @@ function CtaCard({
         className={`pointer-events-none absolute ${glowClass}`}
       />
       <p
-        className={`relative z-10 max-w-[12ch] text-[40px] leading-none tracking-[-1.6px] desk:text-[64px] desk:leading-[0.8] desk:tracking-[-2.56px] ${titleClass}`}
+        className={`relative z-10 w-full text-[40px] leading-[0.8] tracking-[-1.6px] desk:text-[64px] desk:tracking-[-2.56px] ${titleClass}`}
       >
         {title}
       </p>
@@ -198,7 +218,7 @@ export function PartnerPage() {
 
   return (
     <div className="bg-cream">
-      <PartnerHero title={p.heroTitle} body={p.heroBody} />
+      <PartnerHero title={p.heroTitle} />
 
       <section id="ways" className="flex justify-center bg-cream px-0 pb-3 pt-[68px] desk:px-0 desk:pb-24 desk:pt-0">
         <div className="flex w-full max-w-[632px] flex-col items-start gap-8">
@@ -271,48 +291,10 @@ export function PartnerPage() {
         </div>
       </section>
 
-      <section className="bg-cream py-24">
-        <div className="mx-auto flex h-auto w-full max-w-[1200px] flex-col desk:h-[613px] desk:flex-row">
-          <div className="relative flex h-[570px] w-full flex-col items-center justify-center gap-6 overflow-hidden rounded-[64px] bg-lime p-6 desk:hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              aria-hidden
-              src={partnerImages.rewardsGlow}
-              alt=""
-              className="pointer-events-none absolute left-[64px] top-[-67px] h-[317px] w-[348px] max-w-none"
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              aria-hidden
-              src={partnerImages.rewardsGlow}
-              alt=""
-              className="pointer-events-none absolute left-[-109px] top-[201px] h-[317px] w-[348px] max-w-none -scale-y-100"
-            />
-            <div className="relative min-h-0 w-[259px] flex-1 overflow-hidden rounded-[44px]">
-              <Image
-                src={partnerImages.ctaOrganization}
-                alt=""
-                fill
-                className="object-cover"
-                sizes="259px"
-              />
-            </div>
-            <p className="w-full text-center text-[40px] leading-none tracking-[-1.6px] text-black">
-              {p.heroBody}
-            </p>
-            <div className="flex w-full flex-col items-center px-8">
-              <ReachOutLink
-                href="/partner/reach-out?support=organization"
-                className="!h-auto !py-7 !text-[14px] !tracking-[0.56px]"
-              />
-              <Link
-                href="/about"
-                className="py-7 text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.56px] text-black"
-              >
-                {p.learnMore}→
-              </Link>
-            </div>
-          </div>
+      <section className="bg-cream py-16 desk:py-24">
+        <div className="mx-auto flex w-full max-w-[1200px] flex-col">
+          <OrganizationBand title={p.heroBody} learnMore={p.learnMore} />
+          <div className="flex flex-col desk:h-[613px] desk:flex-row">
           <CtaCard
             title={p.ambassador}
             image={partnerImages.ctaAmbassador}
@@ -343,6 +325,7 @@ export function PartnerPage() {
             fade="radial-gradient(ellipse at 50% 34%, transparent 0%, #fa8d2e 72%)"
             href="/partner/reach-out?support=speaker"
           />
+          </div>
         </div>
       </section>
     </div>
