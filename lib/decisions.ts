@@ -69,7 +69,7 @@ export async function applyDecision(db: Db, d: DecisionRow): Promise<DecisionOut
         to: target,
         actor: "excel",
         reason: d.reviewer ? `review sheet decision by ${d.reviewer}` : "review sheet decision",
-        allowFrom: decisionSourceStatuses(target),
+        allowFrom: decisionSourceStatuses(target, d),
         patch: columns,
       });
       if (moved.ok) {

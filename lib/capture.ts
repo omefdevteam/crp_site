@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { applicationLocales, type ApplicationLocale } from "@/lib/locale";
+import { applicationLocales } from "@/lib/locale";
 import { SKILL_LABELS, isSkillLabel } from "@/lib/apply-skills";
 
 // One address, one applicant: trimmed and lower-cased so "Ada@Example.com" and
@@ -137,11 +137,7 @@ function absoluteUrl(value: string): string {
 // One VideoAsk per stage per language, so a round has an English and a French
 // form. The env keys follow VIDEOASK_<STAGE>_URL_<LANG>, e.g.
 // VIDEOASK_ROUND1_URL_FR. Returns null when that form has no URL configured.
-export function videoAskBase(
-  stage: "round1" | "round2",
-  language: ApplicationLocale,
-): string | null {
-  const key = `VIDEOASK_${stage.toUpperCase()}_URL_${language.toUpperCase()}`;
-  const value = process.env[key];
+export function videoAskBase(): string | null {
+  const value = process.env.VIDEOASK_FORM_URL;
   return value ? absoluteUrl(value) : null;
 }

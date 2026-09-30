@@ -5,9 +5,11 @@ import { decisionReceipts, excelCursors, excelSyncState, getDb, type Db } from "
 import {
   APPLICANT_SYSTEM,
   EXCEL_TABLES,
+  blankTeamColumns,
   mergeRow,
   padRow,
   readApplicantDecision,
+  reviewCycleChanged,
   type Cell,
 } from "@/lib/excel-rows";
 import { decisionRow } from "@/lib/sync";
@@ -141,7 +143,10 @@ async function pullTable(db: Db, workbook: ReviewWorkbook, table: SyncTable) {
     if (!id) continue;
     const existingIndex = byId.get(id);
     const existing = existingIndex === undefined ? null : sheet.rows.find((row) => row.index === existingIndex)?.values ?? null;
-    const values = mergeRow(sheet.headers, existing, payload, writable);
+    let values = mergeRow(sheet.headers, existing, payload, writable);
+    if (table === "applicants" && reviewCycleChanged(sheet.headers, existing, payload)) {
+      values = blankTeamColumns(sheet.headers, values);
+    }
     if (existingIndex === undefined) {
       const index = sheet.rows.length;
       await workbook.addRow(excelName, values);

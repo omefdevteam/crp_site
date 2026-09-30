@@ -14,7 +14,7 @@ import {
   CONSENT_VERSION,
   type ApplicationInput,
 } from "@/lib/capture";
-import { applicationEmail, identityEmail } from "@/lib/emails";
+import { applicationEmail, identityEmail, identityRetryEmail } from "@/lib/emails";
 import { getIdentityProvider } from "@/lib/identity";
 import { enqueue, enqueueEmail } from "@/lib/jobs";
 import { videoaskLink } from "@/lib/videoask";
@@ -37,7 +37,7 @@ export async function createApplication(db: Db, input: ApplicationInput): Promis
   if (age < minApplicantAge() || age > maxApplicantAge()) return { ok: false, reason: "ineligible" };
 
   const id = randomUUID();
-  const round1Link = videoaskLink(id, "round1", language);
+  const round1Link = videoaskLink(id);
 
   return db.transaction(async (tx) => {
     const [inserted] = await tx
@@ -95,13 +95,12 @@ export function nextStepUrl(applicant: Applicant): string {
   const site = appUrl();
   switch (applicant.status) {
     case "submitted":
-      return videoaskLink(applicant.id, "round1", applicant.language) ?? `${site}/apply/complete`;
+      return videoaskLink(applicant.id) ?? `${site}/apply/complete`;
     case "round1_complete":
     case "id_failed":
-      return applicant.identityLink ?? `${site}/api/apply/verify`;
-    case "interview_yes": {
-      return videoaskLink(applicant.id, "round2", applicant.language) ?? `${site}/apply/complete`;
-    }
+      return applicant.track === "in_person"
+        ? applicant.identityLink ?? `${site}/api/apply/verify`
+        : `${site}/apply/complete`;
     default:
       return `${site}/apply/complete`;
   }
@@ -112,7 +111,7 @@ export function nextStepUrl(applicant: Applicant): string {
 // a refresh, a double webhook, or a worker retry never opens a second session.
 export async function provisionIdentitySession(db: Db, applicantId: string): Promise<{ url: string | null; created: boolean }> {
   const [existing] = await db.select().from(applicants).where(eq(applicants.id, applicantId));
-  if (!existing?.emailVerifiedAt || !["round1_complete", "id_failed"].includes(existing.status)) return { url: null, created: false };
+  if (!existing?.emailVerifiedAt || existing.track === "online" || !["round1_complete", "id_failed"].includes(existing.status)) return { url: null, created: false };
   if (existing.identityLink) return { url: existing.identityLink, created: false };
 
   const callback = `${appUrl()}/apply/complete`;
@@ -125,16 +124,20 @@ export async function provisionIdentitySession(db: Db, applicantId: string): Pro
     const updated = await updateApplicant(tx, applicantId, {
       identitySessionId: session.sessionId,
       identityLink: session.url,
-      identityStatus: fresh?.identityStatus ?? "pending",
+      identityStatus: "pending",
     });
     if (!updated) return { url: null, created: false };
-    await enqueueEmail(tx, `email:identity:${applicantId}`, { to: updated.email, ...identityEmail(updated.fullName, session.url, updated.language) }, "identity", applicantId);
+    const retry = existing.status === "id_failed";
+    const mail = retry
+      ? identityRetryEmail(updated.fullName, session.url, updated.language)
+      : identityEmail(updated.fullName, session.url, updated.language);
+    await enqueueEmail(tx, `email:identity:${applicantId}:${session.sessionId}`, { to: updated.email, ...mail }, retry ? "identity_retry" : "identity", applicantId);
     return { url: session.url, created: true };
   });
 }
 
 // Queues provisioning for the worker; used from webhook processing so a
 // provider outage there is retried rather than logged and forgotten.
-export async function scheduleIdentitySession(tx: Parameters<typeof enqueue>[0], applicantId: string): Promise<void> {
-  await enqueue(tx, { kind: "identity_session", dedupeKey: `identity_session:${applicantId}`, payload: { applicantId }, applicantId });
+export async function scheduleIdentitySession(tx: Parameters<typeof enqueue>[0], applicantId: string, attempt = 0): Promise<void> {
+  await enqueue(tx, { kind: "identity_session", dedupeKey: `identity_session:${applicantId}:${attempt}`, payload: { applicantId }, applicantId });
 }

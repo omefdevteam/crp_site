@@ -47,15 +47,21 @@ export function targetStatus(
   return null;
 }
 
-// Review corrections are allowed within their stage, but old spreadsheet
-// decisions must never undo an interview, document submission, or onboarding.
-export function decisionSourceStatuses(target: Status): Status[] {
-  const review: Status[] = ["under_review", "accepted", "rejected", "online_offered"];
-  if (target === "accepted" || target === "rejected") return review;
-  if (target === "online_offered") return [...review, "interview_no"];
-  if (target === "interview_yes") {
-    return ["accepted", "interview_yes", "interview_no"];
+// Review corrections stay inside the review stage. Interview outcomes only move
+// people who are already accepted (or correcting an interview_* status). Old
+// spreadsheet decisions must never undo document submission or onboarding.
+export function decisionSourceStatuses(
+  target: Status,
+  d: Pick<DecisionRow, "interviewOutcome">,
+): Status[] {
+  if (d.interviewOutcome) {
+    if (target === "interview_yes" || target === "online_offered" || target === "rejected") {
+      return ["accepted", "interview_yes", "interview_no"];
+    }
+    return [];
   }
+  const review: Status[] = ["under_review", "accepted", "rejected", "online_offered"];
+  if (target === "accepted" || target === "rejected" || target === "online_offered") return review;
   return [];
 }
 

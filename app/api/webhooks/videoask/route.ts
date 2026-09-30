@@ -13,8 +13,6 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const completion = readVideoaskCompletion(body);
   if (!completion) return NextResponse.json({ error: "invalid completion event" }, { status: 400 });
-  const requested = req.nextUrl.searchParams.get("stage");
-  if (requested && requested !== completion.stage) return NextResponse.json({ error: "stage mismatch" }, { status: 400 });
   const ingest = await ingestWebhook(getDb(), "videoask", `${completion.formId}:${completion.eventId}`, completion);
   return NextResponse.json({ ok: true, duplicate: ingest.duplicate, queued: ingest.queued,
     status: ingest.result?.status ?? null, advanced: ingest.result?.advanced ?? false }, { status: ingest.queued ? 202 : 200 });

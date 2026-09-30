@@ -2,7 +2,7 @@
 // system's; yellow columns belong to reviewers and must survive a pull.
 
 export const APPLICANT_SYSTEM = [
-  "id", "version", "submittedAt", "fullName", "email", "dob", "age", "track", "phone",
+  "id", "version", "reviewCycle", "submittedAt", "fullName", "email", "dob", "age", "track", "phone",
   "nationality", "basedIn", "skills", "canTravel", "hasValidPassport", "language", "status",
   "round1Link", "round1CompletedAt", "identityStatus", "identityCheckedAt", "interviewAt",
   "docsStatus", "lastSynced",
@@ -87,6 +87,30 @@ export function mergeRow(
   });
 }
 
+// A new review cycle means prior accept/reject/interview cells belong to the
+// last pass and must not ride along on the pulled system row.
+export function blankTeamColumns(headers: string[], values: Cell[]): Cell[] {
+  const next = padRow(values, headers.length);
+  for (const name of APPLICANT_TEAM) {
+    const index = headers.indexOf(name);
+    if (index >= 0) next[index] = "";
+  }
+  return next;
+}
+
+export function reviewCycleChanged(
+  headers: string[],
+  existing: Cell[] | null,
+  payload: Record<string, unknown>,
+): boolean {
+  if (!existing) return false;
+  const index = headers.indexOf("reviewCycle");
+  if (index < 0 || !Object.prototype.hasOwnProperty.call(payload, "reviewCycle")) return false;
+  const prior = cellText(existing[index]);
+  const next = cellText(formatSyncCell(payload.reviewCycle));
+  return prior !== "" && next !== "" && prior !== next;
+}
+
 function headerValue(headers: string[], values: Cell[], name: string): Cell | undefined {
   const index = headers.indexOf(name);
   return index < 0 ? undefined : values[index];
@@ -108,6 +132,8 @@ export function readApplicantDecision(headers: string[], values: Cell[]): Record
 
   const version = cellText(headerValue(headers, values, "version"));
   if (version) input.version = version;
+  const reviewCycle = cellText(headerValue(headers, values, "reviewCycle"));
+  input.reviewCycle = reviewCycle || "0";
   if (reviewDecision) input.reviewDecision = reviewDecision;
   const reviewNotes = cellText(headerValue(headers, values, "reviewNotes"));
   if (reviewNotes) input.reviewNotes = reviewNotes;
