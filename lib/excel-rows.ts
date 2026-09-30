@@ -5,7 +5,7 @@ export const APPLICANT_SYSTEM = [
   "id", "version", "reviewCycle", "submittedAt", "fullName", "email", "dob", "age", "track", "phone",
   "nationality", "basedIn", "skills", "canTravel", "hasValidPassport", "language", "status",
   "round1Link", "round1CompletedAt", "identityStatus", "identityCheckedAt", "interviewAt",
-  "docsStatus", "lastSynced",
+  "identityDocuments", "docsStatus", "lastSynced",
 ] as const;
 
 export const APPLICANT_TEAM = [

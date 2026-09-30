@@ -37,7 +37,7 @@ export const TRANSITIONS: Record<Status, readonly Status[]> = {
   accepted: ["interview_yes", "interview_no", "online_offered", "rejected", "ineligible"],
   rejected: ["accepted", "online_offered", "under_review", "ineligible"],
   interview_yes: ["onboarding", "ineligible"],
-  interview_no: ["interview_yes", "online", "online_offered", "under_review", "ineligible"],
+  interview_no: ["interview_yes", "rejected", "online", "online_offered", "under_review", "ineligible"],
   docs_submitted: ["onboarding", "online", "ineligible"],
   onboarding: ["online", "ineligible"],
   online: ["onboarding", "ineligible"],

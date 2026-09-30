@@ -70,7 +70,10 @@ export async function applyDecision(db: Db, d: DecisionRow): Promise<DecisionOut
         actor: "excel",
         reason: d.reviewer ? `review sheet decision by ${d.reviewer}` : "review sheet decision",
         allowFrom: decisionSourceStatuses(target, d),
-        patch: columns,
+        patch: {
+          ...columns,
+          ...(target === "online_offered" ? { onlineOfferedAt: new Date() } : {}),
+        },
       });
       if (moved.ok) {
         await queueDecisionEmail(tx, moved.applicant, target, moved.version);

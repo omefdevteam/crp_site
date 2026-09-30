@@ -4,6 +4,8 @@ import { getDb } from "@/lib/db";
 import { consumeAccessToken } from "@/lib/access";
 import { lockApplicant, transition } from "@/lib/lifecycle";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { enqueueEmail } from "@/lib/jobs";
+import { receivedEmail } from "@/lib/emails";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
     if (!applicantId) return null;
     const current = await lockApplicant(tx, applicantId);
     if (!current) return null;
-    return transition(tx, {
+    const result = await transition(tx, {
       applicantId: current.id,
       to: "under_review",
       actor: "applicant",
@@ -46,7 +48,6 @@ export async function POST(req: NextRequest) {
       patch: {
         track: "online",
         reviewCycle: current.reviewCycle + 1,
-        onlineOfferedAt: null,
         reviewDecision: null,
         reviewNotes: null,
         reviewer: null,
@@ -57,6 +58,13 @@ export async function POST(req: NextRequest) {
         interviewAt: null,
       },
     });
+    if (result.ok) {
+      await enqueueEmail(tx, `email:received:${result.applicant.id}:${result.applicant.reviewCycle}`, {
+        to: result.applicant.email,
+        ...receivedEmail(result.applicant.fullName, result.applicant.language),
+      }, "received", result.applicant.id);
+    }
+    return result;
   });
 
   return NextResponse.redirect(moved?.ok ? done : expired, 303);

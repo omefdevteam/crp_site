@@ -25,13 +25,14 @@ export type DecisionRow = z.infer<typeof decisionRow>;
 
 export function normalizeDecisions(raw: unknown): unknown {
   if (!Array.isArray(raw)) return raw;
-  return raw.map((row) =>
-    row && typeof row === "object"
-      ? Object.fromEntries(
-          Object.entries(row).map(([k, v]) => [k, v === "" ? undefined : v]),
-        )
-      : row,
-  );
+  return raw.map((row) => {
+    if (!row || typeof row !== "object") return row;
+    const next = Object.fromEntries(
+      Object.entries(row).map(([k, v]) => [k, v === "" ? undefined : v]),
+    ) as Record<string, unknown>;
+    if (next.reviewCycle === undefined) next.reviewCycle = 0;
+    return next;
+  });
 }
 
 // The status a set of decisions implies. Later stages win, so an interview
@@ -75,7 +76,7 @@ export function parseDate(value: string | undefined): Date | undefined {
 // The system-owned projection of an applicant that the Excel mirror reads. The
 // decision columns are deliberately absent so the sheet never writes them back
 // to itself; `version` lets it detect its own stale rows.
-export function applicantSyncRow(a: Applicant) {
+function projectApplicant(a: Applicant, identityDocumentIds: string[]) {
   return {
     id: a.id,
     version: a.version,
@@ -98,8 +99,17 @@ export function applicantSyncRow(a: Applicant) {
     round1CompletedAt: a.round1CompletedAt,
     identityStatus: a.identityStatus,
     identityCheckedAt: a.identityCheckedAt,
+    identityDocuments: identityDocumentIds.map((id) => `/api/ops/documents/${id}`),
     interviewAt: a.interviewAt,
     docsStatus: a.docsStatus,
     lastSynced: a.updatedAt,
   };
+}
+
+export function applicantSyncRow(a: Applicant) {
+  return projectApplicant(a, []);
+}
+
+export function applicantSyncRowWithDocuments(a: Applicant, identityDocumentIds: string[]) {
+  return projectApplicant(a, identityDocumentIds);
 }

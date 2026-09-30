@@ -148,10 +148,24 @@ async function processVideoask(tx: Tx, payload: VideoaskPayload): Promise<Proces
       }, "received", current.id);
       return { outcome: "advanced", advanced: true, status: review.to };
     }
-  } else {
-    await scheduleIdentitySession(tx, current.id, moved.version);
+    return { outcome: "advanced", advanced: true, status: "round1_complete" };
   }
-  return { outcome: "advanced", advanced: true, status: "round1_complete" };
+
+  // Identity may already have landed before Round 1; reconcile now that the
+  // gate is open so the applicant does not wait on another provider delivery.
+  const advanced = await reconcileIdentity(tx, current.id);
+  const [after] = await tx.select().from(applicants).where(eq(applicants.id, current.id));
+  if (advanced && after.status === "under_review") {
+    await enqueueEmail(tx, `email:received:${after.id}:${after.reviewCycle}`, {
+      to: after.email,
+      ...receivedEmail(after.fullName, after.language),
+    }, "received", after.id);
+    return { outcome: "advanced", advanced: true, status: after.status };
+  }
+  if (after.status === "id_failed" || (after.status === "round1_complete" && !after.identityLink)) {
+    await scheduleIdentitySession(tx, after.id, after.version);
+  }
+  return { outcome: "advanced", advanced: true, status: after.status };
 }
 
 // --- Identity provider --------------------------------------------------------
@@ -176,6 +190,12 @@ async function processIdentity(tx: Tx, payload: IdentityPayload): Promise<Proces
   }
   if (!current) return { outcome: "unknown applicant" };
 
+  // After id_failed we clear the session so a retry can mint a new Didit link.
+  // Ignore provider callbacks until that new session exists; otherwise a
+  // redelivery of the dead session would write another decision.
+  if (current.status === "id_failed" && !current.identitySessionId) {
+    return { outcome: "no active session", status: current.status };
+  }
   // A result for a session we did not issue (or an old, replaced session) is
   // not this applicant's result. Only the active session may write a decision.
   if (event.sessionId && current.identitySessionId && event.sessionId !== current.identitySessionId) {
@@ -199,6 +219,14 @@ async function processIdentity(tx: Tx, payload: IdentityPayload): Promise<Proces
       to: after.email,
       ...receivedEmail(after.fullName, after.language),
     }, "received", after.id);
+    if (after.identitySessionId) {
+      await enqueue(tx, {
+        kind: "identity_documents",
+        dedupeKey: `identity_documents:${after.id}:${after.identitySessionId}`,
+        applicantId: after.id,
+        payload: { applicantId: after.id, sessionId: after.identitySessionId },
+      });
+    }
   } else if (advanced && after.status === "id_failed") {
     await scheduleIdentitySession(tx, after.id, after.version);
   }
@@ -288,7 +316,7 @@ export async function queueDecisionEmail(
       break;
     case "online_offered": {
       const token = await issueAccessToken(tx, applicant.id, "switch_online", 7 * 24 * 3600);
-      mail = decisionEmail(status, `${appUrl()}/api/apply/switch-online?token=${encodeURIComponent(token.raw)}`, applicant.language);
+      mail = decisionEmail(status, `${appUrl()}/api/apply/switch-online?token=${encodeURIComponent(token.raw)}&lang=${applicant.language}`, applicant.language);
       break;
     }
     case "accepted": {
