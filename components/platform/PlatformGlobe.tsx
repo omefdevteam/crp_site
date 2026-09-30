@@ -48,27 +48,28 @@ function useGlobeReady(imageKeys: readonly string[]): boolean {
   return reduceMotion ? false : ready;
 }
 
-// Still image of the globe's first frame, so the swap to the live canvas is not noticeable.
-function GlobeLoading() {
+function GlobeStatic({ hidden }: { hidden?: boolean }) {
   return (
-    <GlobeShell>
-      <div className="absolute inset-[-16%]">
-        <Image
-          src="/images/platform-globe-static.png"
-          alt=""
-          aria-hidden
-          fill
-          sizes="(min-width: 900px) 631px, 300px"
-          className="object-contain"
-        />
-      </div>
-    </GlobeShell>
+    <div
+      className="absolute inset-[-16%] transition-opacity duration-500 ease-out"
+      style={{ opacity: hidden ? 0 : 1 }}
+      aria-hidden={hidden ? true : undefined}
+    >
+      <Image
+        src="/images/platform-globe-static.png"
+        alt=""
+        aria-hidden
+        fill
+        sizes="(min-width: 900px) 631px, 300px"
+        className="object-contain"
+      />
+    </div>
   );
 }
 
 const Globe = dynamic(() => import("./Globe"), {
   ssr: false,
-  loading: () => <GlobeLoading />,
+  loading: () => null,
 });
 
 export function PlatformGlobe({
@@ -77,7 +78,29 @@ export function PlatformGlobe({
   pins,
   waitForImages: imageKeys = HOME_GLOBE_WAIT_IMAGES,
 }: PlatformGlobeProps) {
-  const ready = useGlobeReady(imageKeys);
-  if (!ready) return <GlobeLoading />;
-  return <Globe visibleGroups={visibleGroups} emphasis={emphasis} pins={pins} />;
+  const deferReady = useGlobeReady(imageKeys);
+  const [live, setLive] = useState(false);
+
+  useEffect(() => {
+    if (!deferReady) setLive(false);
+  }, [deferReady]);
+
+  return (
+    <GlobeShell>
+      <GlobeStatic hidden={live} />
+      {deferReady ? (
+        <div
+          className="absolute inset-0 transition-opacity duration-500 ease-out"
+          style={{ opacity: live ? 1 : 0 }}
+        >
+          <Globe
+            visibleGroups={visibleGroups}
+            emphasis={emphasis}
+            pins={pins}
+            onReady={() => setLive(true)}
+          />
+        </div>
+      ) : null}
+    </GlobeShell>
+  );
 }

@@ -3,7 +3,14 @@
 import { useTexture } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useReducedMotion } from "framer-motion";
-import { Suspense, useEffect, useMemo, useRef, type RefObject } from "react";
+import {
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import {
   ClampToEdgeWrapping,
   LinearFilter,
@@ -14,7 +21,6 @@ import {
 } from "three";
 import { pins, type Pin, type PinGroup } from "@/lib/pins";
 import { GlobePin } from "./GlobePin";
-import { GlobeShell } from "./GlobeShell";
 
 const SPIN_RAD_PER_SEC = (Math.PI * 2) / 60;
 const PITCH_LIMIT = Math.PI / 3;
@@ -25,6 +31,8 @@ type GlobeProps = {
   visibleGroups: readonly PinGroup[];
   emphasis: PinGroup | null;
   pins?: readonly Pin[];
+  /** Fired once the earth texture is up and pins have been projected once. */
+  onReady?: () => void;
 };
 
 // Pin id -> its wrapper div, shared by the DOM pin layer and the projector in the canvas.
@@ -71,15 +79,18 @@ void main() {
 function GlobeScene({
   visiblePins,
   pinElsRef,
+  onProjected,
 }: {
   visiblePins: readonly Pin[];
   pinElsRef: RefObject<PinElMap>;
+  onProjected: () => void;
 }) {
   const groupRef = useRef<Group>(null);
   const yaw = useRef(0);
   const pitch = useRef(0);
   const dragging = useRef(false);
   const last = useRef({ x: 0, y: 0 });
+  const projected = useRef(false);
   const reduceMotion = useReducedMotion();
   const { camera, size } = useThree();
   const colorMap = useTexture("/textures/earth-tinted.png", (texture) => {
@@ -150,6 +161,7 @@ function GlobeScene({
     // Project each visible pin onto the 2D overlay, hiding it once it turns to the far side.
     const els = pinElsRef.current;
     if (!els) return;
+    let positioned = 0;
     for (const pin of visiblePins) {
       const el = els.get(pin.id);
       const base = pinBasePositions.get(pin.id);
@@ -158,13 +170,25 @@ function GlobeScene({
       // Camera sits on +Z facing a centred sphere, so world-space z > 0 means the point faces us.
       if (worldPos.z <= 0) {
         el.style.display = "none";
+        el.style.visibility = "hidden";
+        positioned += 1;
         continue;
       }
       el.style.display = "";
+      el.style.visibility = "visible";
       const ndc = worldPos.clone().project(camera);
       const x = ndc.x * widthHalf + widthHalf;
       const y = -(ndc.y * heightHalf) + heightHalf;
       el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      positioned += 1;
+    }
+
+    if (
+      !projected.current &&
+      (visiblePins.length === 0 || positioned === visiblePins.length)
+    ) {
+      projected.current = true;
+      queueMicrotask(onProjected);
     }
   });
 
@@ -195,13 +219,19 @@ function PinLayer({
   visiblePins,
   emphasis,
   pinElsRef,
+  revealed,
 }: {
   visiblePins: readonly Pin[];
   emphasis: PinGroup | null;
   pinElsRef: RefObject<PinElMap>;
+  revealed: boolean;
 }) {
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 overflow-hidden">
+    <div
+      className="pointer-events-none absolute inset-0 z-10 overflow-hidden transition-opacity duration-300 ease-out"
+      style={{ opacity: revealed ? 1 : 0 }}
+      aria-hidden={!revealed}
+    >
       {visiblePins.map((pin) => (
         <GlobePin
           key={pin.id}
@@ -217,32 +247,53 @@ function PinLayer({
   );
 }
 
-export default function Globe({ visibleGroups, emphasis, pins: source = pins }: GlobeProps) {
+export default function Globe({
+  visibleGroups,
+  emphasis,
+  pins: source = pins,
+  onReady,
+}: GlobeProps) {
   const pinElsRef = useRef<PinElMap>(new Map());
+  const [pinsReady, setPinsReady] = useState(false);
+  const readySent = useRef(false);
   const visiblePins = useMemo(
     () => source.filter((pin) => visibleGroups.includes(pin.group)),
     [source, visibleGroups],
   );
 
+  const handleProjected = () => {
+    setPinsReady(true);
+    if (readySent.current) return;
+    readySent.current = true;
+    onReady?.();
+  };
+
   return (
-    <GlobeShell>
-      {/* Canvas overflows the box so the sphere fills it and pins near the edge never clip. */}
-      <div className="absolute inset-[-16%]">
-        <Canvas
-          camera={{ position: [0, 0, 4.3], fov: 32 }}
-          dpr={[1, 2]}
-          gl={{ antialias: true, alpha: true }}
-          style={{ touchAction: "pan-y", overflow: "visible" }}
-          onCreated={({ gl }) => {
-            gl.setClearColor(0x000000, 0);
-          }}
-        >
-          <Suspense fallback={null}>
-            <GlobeScene visiblePins={visiblePins} pinElsRef={pinElsRef} />
-          </Suspense>
-        </Canvas>
-        <PinLayer visiblePins={visiblePins} emphasis={emphasis} pinElsRef={pinElsRef} />
-      </div>
-    </GlobeShell>
+    // Parent PlatformGlobe owns GlobeShell so the static underlay shares the same frame.
+    <div className="absolute inset-[-16%]">
+      <Canvas
+        camera={{ position: [0, 0, 4.3], fov: 32 }}
+        dpr={[1, 2]}
+        gl={{ antialias: true, alpha: true }}
+        style={{ touchAction: "pan-y", overflow: "visible" }}
+        onCreated={({ gl }) => {
+          gl.setClearColor(0x000000, 0);
+        }}
+      >
+        <Suspense fallback={null}>
+          <GlobeScene
+            visiblePins={visiblePins}
+            pinElsRef={pinElsRef}
+            onProjected={handleProjected}
+          />
+        </Suspense>
+      </Canvas>
+      <PinLayer
+        visiblePins={visiblePins}
+        emphasis={emphasis}
+        pinElsRef={pinElsRef}
+        revealed={pinsReady}
+      />
+    </div>
   );
 }
