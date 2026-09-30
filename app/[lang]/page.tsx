@@ -10,6 +10,7 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { HeroExtension } from "@/components/HeroExtension";
 import { PavilionPanel } from "@/components/PavilionPanel";
+import { PrefetchGlobe } from "@/components/PrefetchGlobe";
 import { PlatformSection } from "@/components/PlatformSection";
 import { Sponsors } from "@/components/Sponsors";
 import { Waitlist } from "@/components/Waitlist";
@@ -33,6 +34,7 @@ export default function Home() {
       </main>
       <Footer />
       <GetInvolvedPill />
+      <PrefetchGlobe />
     </div>
   </>);
 }
