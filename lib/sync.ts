@@ -11,6 +11,7 @@ export const decisionRow = z.object({
   applicantId: z.uuid(),
   decisionId: z.uuid().optional(),
   version: z.coerce.number().int().nonnegative().optional(),
+  reviewCycle: z.coerce.number().int().nonnegative(),
   reviewDecision: z.enum(["accept", "reject"]).optional(),
   reviewNotes: z.string().optional(),
   reviewer: z.string().optional(),
@@ -35,10 +36,13 @@ export function normalizeDecisions(raw: unknown): unknown {
 
 // The status a set of decisions implies. Later stages win, so an interview
 // outcome supersedes the review decision. null means no decision yet.
-export function targetStatus(d: DecisionRow): Status | null {
-  if (d.interviewOutcome === "no") return "interview_no";
+export function targetStatus(
+  d: DecisionRow,
+  track: Applicant["track"],
+): Status | null {
+  if (d.interviewOutcome === "no") return track === "in_person" ? "online_offered" : "rejected";
   if (d.interviewOutcome === "yes") return "interview_yes";
-  if (d.reviewDecision === "reject") return "rejected";
+  if (d.reviewDecision === "reject") return track === "in_person" ? "online_offered" : "rejected";
   if (d.reviewDecision === "accept") return "accepted";
   return null;
 }
@@ -46,12 +50,11 @@ export function targetStatus(d: DecisionRow): Status | null {
 // Review corrections are allowed within their stage, but old spreadsheet
 // decisions must never undo an interview, document submission, or onboarding.
 export function decisionSourceStatuses(target: Status): Status[] {
-  const review: Status[] = [
-    "submitted", "round1_complete", "id_verified", "id_failed", "accepted", "rejected",
-  ];
+  const review: Status[] = ["under_review", "accepted", "rejected", "online_offered"];
   if (target === "accepted" || target === "rejected") return review;
-  if (target === "interview_yes" || target === "interview_no") {
-    return [...review, "interview_yes", "interview_no"];
+  if (target === "online_offered") return [...review, "interview_no"];
+  if (target === "interview_yes") {
+    return ["accepted", "interview_yes", "interview_no"];
   }
   return [];
 }
@@ -70,6 +73,7 @@ export function applicantSyncRow(a: Applicant) {
   return {
     id: a.id,
     version: a.version,
+    reviewCycle: a.reviewCycle,
     submittedAt: a.createdAt,
     fullName: a.fullName,
     email: a.email,

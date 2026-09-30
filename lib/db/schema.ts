@@ -29,6 +29,8 @@ export const applicantStatus = pgEnum("applicant_status", [
   // Identity check sits after Round 1; appended so existing enum order is kept.
   "id_verified",
   "id_failed",
+  "under_review",
+  "online_offered",
 ]);
 // The identity/KYC check outcome, tracked apart from the pipeline status so the
 // team sees where a check stands even before it moves the applicant on.
@@ -97,6 +99,8 @@ export const applicants = pgTable(
     identityCheckedAt: timestamp("identity_checked_at", { withTimezone: true }),
     interviewAt: timestamp("interview_at", { withTimezone: true }),
     docsStatus: text("docs_status"),
+    reviewCycle: integer("review_cycle").notNull().default(0),
+    onlineOfferedAt: timestamp("online_offered_at", { withTimezone: true }),
     version: integer("version").notNull().default(0),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     sessionVersion: integer("session_version").notNull().default(0),
@@ -216,6 +220,28 @@ export type PartnerInquiry = typeof partnerInquiries.$inferSelect;
 export type NewPartnerInquiry = typeof partnerInquiries.$inferInsert;
 export type ConsentLog = typeof consentLog.$inferSelect;
 export type NewConsentLog = typeof consentLog.$inferInsert;
+
+export const identityDocuments = pgTable(
+  "identity_documents",
+  {
+    id: id(),
+    applicantId: uuid("applicant_id")
+      .notNull()
+      .references(() => applicants.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    pathname: text("pathname").notNull(),
+    contentType: text("content_type").notNull(),
+    size: integer("size").notNull(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    index("identity_documents_applicant_idx").on(t.applicantId),
+    uniqueIndex("identity_documents_pathname_key").on(t.pathname),
+  ],
+);
+
+export type IdentityDocument = typeof identityDocuments.$inferSelect;
+export type NewIdentityDocument = typeof identityDocuments.$inferInsert;
 
 export const applicationEvents = pgTable("application_events", {
   id: id(), createdAt: createdAt(),
