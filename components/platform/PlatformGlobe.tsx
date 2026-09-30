@@ -15,20 +15,35 @@ export type PlatformGlobeProps = {
 
 const GLOBE_DEFER_MS = 2500;
 
+function imageSrcMatches(src: string, srcIncludes: string): boolean {
+  if (src.includes(srcIncludes)) return true;
+  try {
+    const nested = new URL(src, window.location.origin).searchParams.get("url");
+    if (nested && decodeURIComponent(nested).includes(srcIncludes)) return true;
+  } catch {
+    /* ignore invalid URLs */
+  }
+  return false;
+}
+
 function waitForImage(srcIncludes: string): Promise<void> {
   return new Promise((resolve) => {
     const match = () =>
-      Array.from(document.images).find((img) => img.currentSrc.includes(srcIncludes) || img.src.includes(srcIncludes));
+      Array.from(document.images).find(
+        (img) =>
+          imageSrcMatches(img.currentSrc, srcIncludes) ||
+          imageSrcMatches(img.src, srcIncludes),
+      );
 
     const existing = match();
-    if (existing?.complete) {
+    if (existing?.complete && existing.naturalWidth > 0) {
       resolve();
       return;
     }
 
     const onLoad = () => {
       const img = match();
-      if (img?.complete) {
+      if (img?.complete && img.naturalWidth > 0) {
         cleanup();
         resolve();
       }
@@ -42,7 +57,7 @@ function waitForImage(srcIncludes: string): Promise<void> {
     const started = Date.now();
     const tick = () => {
       const img = match();
-      if (img?.complete) {
+      if (img?.complete && img.naturalWidth > 0) {
         cleanup();
         resolve();
         return;
