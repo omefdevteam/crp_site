@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { Applicant } from "@/lib/db";
+import { appUrl } from "@/lib/config";
 
 type Status = Applicant["status"];
 
@@ -99,7 +100,7 @@ function projectApplicant(a: Applicant, identityDocumentIds: string[]) {
     round1CompletedAt: a.round1CompletedAt,
     identityStatus: a.identityStatus,
     identityCheckedAt: a.identityCheckedAt,
-    identityDocuments: identityDocumentIds.map((id) => `/api/ops/documents/${id}`),
+    identityDocuments: identityDocumentIds.map((id) => `${appUrl()}/api/ops/documents/${id}`),
     interviewAt: a.interviewAt,
     docsStatus: a.docsStatus,
     lastSynced: a.updatedAt,

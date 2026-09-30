@@ -134,9 +134,7 @@ function absoluteUrl(value: string): string {
   return /^https?:\/\//i.test(value) ? value : `https://${value}`;
 }
 
-// One VideoAsk per stage per language, so a round has an English and a French
-// form. The env keys follow VIDEOASK_<STAGE>_URL_<LANG>, e.g.
-// VIDEOASK_ROUND1_URL_FR. Returns null when that form has no URL configured.
+// All locales and tracks use the same VideoAsk form.
 export function videoAskBase(): string | null {
   const value = process.env.VIDEOASK_FORM_URL;
   return value ? absoluteUrl(value) : null;

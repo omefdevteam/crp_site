@@ -43,7 +43,6 @@ export async function startDatabase() {
       if (path.dirname(path.resolve(databaseDir)) !== path.resolve(os.tmpdir()) || !path.basename(databaseDir).startsWith("crp-pg-")) {
         throw new Error("refusing to remove a directory outside the test database location");
       }
-      const stopping = cluster.stop();
       // embedded-postgres uses taskkill /t on Windows, which can stall in a
       // restricted shell. pg_ctl signals this exact cluster without WMI.
       if (process.platform === "win32" && fs.existsSync(path.join(databaseDir, "postmaster.pid"))) {
@@ -53,8 +52,9 @@ export async function startDatabase() {
         } catch (err) {
           if (fs.existsSync(path.join(databaseDir, "postmaster.pid"))) throw err;
         }
+      } else {
+        await cluster.stop();
       }
-      await stopping;
       // Windows keeps file handles briefly after the process exits.
       for (let i = 0; i < 5; i++) {
         try {
