@@ -271,7 +271,6 @@ export function ExpressInterestPopup({
               fill
               sizes="536px"
               className="object-cover"
-              priority
             />
             {submitted ? (
               <div className="absolute inset-0 bg-black/45" aria-hidden />

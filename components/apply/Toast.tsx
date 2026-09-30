@@ -35,7 +35,7 @@ export function Toast({
           }`}
         >
           {err ? (
-            <span className="grid size-6 place-items-center rounded-full bg-[#e4002b] text-[15px] font-bold leading-none text-white">
+            <span className="grid size-6 place-items-center rounded-full bg-[#e4002b] text-[15px] font-semibold leading-none text-white">
               !
             </span>
           ) : (

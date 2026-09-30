@@ -18,7 +18,6 @@ function FeaturedVideo() {
         fill
         sizes="(min-width: 900px) 680px, 100vw"
         className="object-cover"
-        priority
       />
       {/* HOME sits on the right half, matching Figma (overflow clipped by the card). */}
       <span

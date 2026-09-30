@@ -4,7 +4,7 @@ import localFont from "next/font/local";
 export const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
-  weight: ["200", "400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
 });
 
 export const trail = localFont({

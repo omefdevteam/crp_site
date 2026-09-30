@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { SectionReveal } from "./SectionReveal";
 import { useCopy } from "./LanguageProvider";
@@ -96,10 +97,14 @@ export function Hero() {
           }}
         >
           {/* Sized by width, then offset so the head lands on --hero-head-y. */}
-          <img
-            src="/images/hero.jpg?v=1"
+          <Image
+            src="/images/hero.jpg"
             alt={copy.hero.photoAlt}
-            className="absolute left-1/2 max-w-none -translate-x-1/2"
+            width={1024}
+            height={682}
+            priority
+            sizes="(min-width: 900px) 360vw, 730vw"
+            className="absolute left-1/2 max-w-none -translate-x-1/2 h-auto"
             style={{
               width: "var(--hero-img-w)",
               top: `calc(var(--hero-head-y) + var(--hero-h) - var(--hero-peek-t) - ${HEAD_FROM_TOP} * var(--hero-img-w))`,
