@@ -6,8 +6,8 @@ import {
   AgeSelectionLayout,
   APPLY_GRADIENT,
 } from "./age-selection/AgeSelectionLayout";
+import { ExpressInterestPopup } from "./ExpressInterestPopup";
 import { useCopy } from "./LanguageProvider";
-import { NominatePopup } from "./NominatePopup";
 
 const CTA_REVEAL =
   "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none";
@@ -25,7 +25,7 @@ function CtaArrow({ className = "" }: { className?: string }) {
   );
 }
 
-function NominateCta({ onNominate }: { onNominate: () => void }) {
+function NominateCta({ onExpress }: { onExpress: () => void }) {
   const copy = useCopy();
   const label =
     "text-[16px] font-semibold uppercase leading-[0.9] tracking-[0.64px] mix-blend-hard-light whitespace-nowrap desk:text-[20px] desk:tracking-[0.8px]";
@@ -36,15 +36,15 @@ function NominateCta({ onNominate }: { onNominate: () => void }) {
     >
       <button
         type="button"
-        onClick={onNominate}
-        aria-label={copy.a11y.youthAmbassadorCard}
+        onClick={onExpress}
+        aria-label={copy.a11y.expressInterest}
         className="relative flex h-[64px] min-w-0 items-center justify-center overflow-hidden rounded-full desk:h-[80px]"
         style={{ backgroundImage: APPLY_GRADIENT }}
       >
         <span
           className={`${label} px-4 text-white transition-opacity ${CTA_REVEAL} group-hover:opacity-0 group-focus-within:opacity-0`}
         >
-          {copy.apply.nominate}
+          {copy.apply.interest}
         </span>
         <CtaArrow
           className={`pointer-events-none absolute opacity-0 transition-opacity ${CTA_REVEAL} group-hover:opacity-100 group-focus-within:opacity-100`}
@@ -70,19 +70,23 @@ function NominateCta({ onNominate }: { onNominate: () => void }) {
 
 export function NominatePage() {
   const copy = useCopy();
-  const [nominateOpen, setNominateOpen] = useState(false);
-
-  if (nominateOpen) {
-    return <NominatePopup onClose={() => setNominateOpen(false)} />;
-  }
+  const [interestOpen, setInterestOpen] = useState(false);
 
   return (
-    <AgeSelectionLayout
-      title={copy.nominateLanding.title}
-      subtitle={copy.apply.subtitle}
-      headline={copy.nominateLanding.headline}
-      body={copy.nominateLanding.body}
-      cta={<NominateCta onNominate={() => setNominateOpen(true)} />}
-    />
+    <>
+      <AgeSelectionLayout
+        title={copy.nominateLanding.title}
+        subtitle={copy.apply.subtitle}
+        headline={copy.nominateLanding.headline}
+        body={copy.nominateLanding.body}
+        cta={<NominateCta onExpress={() => setInterestOpen(true)} />}
+      />
+      <ExpressInterestPopup
+        open={interestOpen}
+        ageGroup="19_26"
+        source="nominate_express_19_26"
+        onClose={() => setInterestOpen(false)}
+      />
+    </>
   );
 }
