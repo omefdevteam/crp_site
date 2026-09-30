@@ -176,7 +176,7 @@ export async function fetchDiditDocuments(sessionId: string): Promise<IdentityDo
   const visit = (value: unknown, path: string[]) => {
     if (typeof value === "string" && /^https:\/\//i.test(value)) {
       const kind = path.join("_").toLowerCase().replace(/[^a-z0-9_-]+/g, "_").slice(-80);
-      if (/(image|document|front|back|selfie|portrait)/.test(kind)) found.set(value, { kind, url: value });
+      if (/(image|document|front|back|selfie|portrait|visa|passport)/.test(kind)) found.set(value, { kind, url: value });
       return;
     }
     if (Array.isArray(value)) {

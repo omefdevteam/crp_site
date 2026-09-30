@@ -41,8 +41,7 @@ export const identityStatus = pgEnum("identity_status", [
   "review",
 ]);
 export const track = pgEnum("track", ["in_person", "online"]);
-// The language the applicant chose at the pre-application popup. It decides which
-// French/English VideoAsk they were sent to, and which the Round 2 email links to.
+// Website locale for applicant emails. VideoAsk language is chosen inside the form.
 export const appLanguage = pgEnum("app_language", ["en", "fr", "es"]);
 export const ageGroup = pgEnum("age_group", ["under_19", "19_plus"]);
 export const reviewDecision = pgEnum("review_decision", ["accept", "reject"]);
