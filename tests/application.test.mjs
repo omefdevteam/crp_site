@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { after, before } from "node:test";
 import pg from "pg";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { loader } from "./helpers.mjs";
 import { startDatabase } from "./db.mjs";
@@ -21,12 +21,16 @@ before(async () => {
   process.env.VIDEOASK_WEBHOOK_SECRET = "videoask";
   process.env.OPERATIONS_SECRET = "ops"; // Legacy credential must not authorize operations.
   process.env.OPERATIONS_TOKENS = JSON.stringify([{ id: "tester", tokenHash: createHash("sha256").update("test-operator-token-at-least-32-characters").digest("hex") }]);
-  for (const stage of ["ROUND1", "ROUND2"]) for (const lang of ["EN", "FR", "ES"]) {
-    process.env[`VIDEOASK_${stage}_FORM_ID_${lang}`] = `${stage}-${lang}-fixture`;
+  for (const lang of ["EN", "FR", "ES"]) {
+    process.env[`VIDEOASK_${lang}`] = undefined;
   }
+  process.env.VIDEOASK_FORM_ID = "FORM-fixture";
+  process.env.VIDEOASK_FORM_URL = "https://videoask.invalid/form";
   process.env.CRON_SECRET = "cron";
-  process.env.VIDEOASK_ROUND1_URL_EN = "https://videoask.invalid/r1-en";
-  process.env.VIDEOASK_ROUND2_URL_EN = "https://videoask.invalid/r2-en";
+  process.env.CALENDLY_URL_EN = "https://calendly.invalid/en";
+  process.env.CALENDLY_URL_FR = "https://calendly.invalid/fr";
+  process.env.CALENDLY_URL_ES = "https://calendly.invalid/es";
+  process.env.CALENDLY_WEBHOOK_SIGNING_KEY = "calendly-test-secret";
   sql = new pg.Client({ connectionString: db.url });
   await sql.connect();
   h = harness();
@@ -105,13 +109,12 @@ function harness() {
   });
   const routes = {
     identity: (body, extra = {}) => load("app/api/webhooks/identity/route.ts").POST(req("/api/webhooks/identity", { body: JSON.stringify(body), ...extra })),
-    videoask: (stage, applicantId, body = {}) => {
-      const formStage = stage || "round1";
-      const reference = load("lib/videoask.ts").videoaskReference(applicantId, formStage, "en");
-      return load("app/api/webhooks/videoask/route.ts").POST(req(`/api/webhooks/videoask?stage=${stage}`, {
+    videoask: (applicantId, body = {}) => {
+      const reference = load("lib/videoask.ts").videoaskReference(applicantId);
+      return load("app/api/webhooks/videoask/route.ts").POST(req("/api/webhooks/videoask", {
         headers: { "x-webhook-secret": "videoask" }, body: JSON.stringify({
           event_id: randomUUID(), event_type: "form_response", contact: { status: "completed", variables: { application_ref: reference } },
-          form: { form_id: process.env[`VIDEOASK_${formStage.toUpperCase()}_FORM_ID_EN`] }, ...body,
+          form: { form_id: process.env.VIDEOASK_FORM_ID }, ...body,
         }),
       }));
     },
@@ -121,6 +124,16 @@ function harness() {
     verify: (cookies, query = "") => load("app/api/apply/verify/route.ts").GET(req(`/api/apply/verify${query}`, { cookies })),
     previewResume: (token) => load("app/api/apply/resume/route.ts").GET(req(`/api/apply/resume?token=${encodeURIComponent(token)}`)),
     resume: (token) => load("app/api/apply/resume/route.ts").POST(req("/api/apply/resume", { body: new URLSearchParams({ token }).toString() })),
+    switchOnline: (token) => load("app/api/apply/switch-online/route.ts").POST(req("/api/apply/switch-online", { body: new URLSearchParams({ token }).toString() })),
+    calendly: (payload) => {
+      const raw = JSON.stringify(payload);
+      const timestamp = Math.floor(Date.now() / 1000);
+      const signature = createHmac("sha256", process.env.CALENDLY_WEBHOOK_SIGNING_KEY).update(`${timestamp}.${raw}`).digest("hex");
+      return load("app/api/webhooks/calendly/route.ts").POST(req("/api/webhooks/calendly", {
+        headers: { "calendly-webhook-signature": `t=${timestamp},v1=${signature}` },
+        body: raw,
+      }));
+    },
     cron: () => load("app/api/cron/jobs/route.ts").GET(req("/api/cron/jobs", { headers: { authorization: "Bearer cron" } })),
     excel: () => load("app/api/cron/excel/route.ts").GET(req("/api/cron/excel", { headers: { authorization: "Bearer cron" } })),
     ops: (body) => load("app/api/ops/route.ts").POST(req("/api/ops", { headers: { authorization: "Bearer test-operator-token-at-least-32-characters", "x-operator": "impersonated" }, body: JSON.stringify(body) })),
@@ -242,7 +255,7 @@ test("the verify hand-off trusts the signed session, never the echoed applicant 
   const premature = await h.verify({ crp_session: signSession(a.id, 1) });
   assert.equal(premature.url, "https://example.invalid/apply/complete");
   assert.equal((await row("applicants", a.id)).status, "submitted");
-  await h.videoask("round1", a.id);
+  await h.videoask(a.id);
   const first = await h.verify({ crp_session: signSession(a.id, 1) });
   assert.match(first.url, /^https:\/\/identity\.invalid\/session-/);
   const second = await h.verify({ crp_session: signSession(a.id, 1) });
@@ -293,19 +306,19 @@ test("the worker delivers queued email with an idempotency key, backs off on fai
 
 test("a VideoAsk webhook without a query stage uses its signed form reference", async () => {
   const a = await h.apply();
-  const res = await h.videoask("", a.id, { event_id: "evt-no-stage" });
+  const res = await h.videoask(a.id, { event_id: "evt-no-stage" });
   assert.equal(res.body.advanced, true);
   assert.equal(res.body.status, "round1_complete");
 });
 
 test("webhook deliveries are recorded once and replays are answered without reprocessing", async () => {
   const a = await h.apply();
-  const first = await h.videoask("round1", a.id, { event_id: "evt-1" });
+  const first = await h.videoask(a.id, { event_id: "evt-1" });
   assert.equal(first.body.advanced, true);
   assert.equal(first.body.status, "round1_complete");
-  const replay = await h.videoask("round1", a.id, { event_id: "evt-1" });
+  const replay = await h.videoask(a.id, { event_id: "evt-1" });
   assert.equal(replay.body.duplicate, true);
-  assert.equal(await count("webhook_events", "provider = 'videoask' and event_key = $1", [`${process.env.VIDEOASK_ROUND1_FORM_ID_EN}:evt-1`]), 1);
+  assert.equal(await count("webhook_events", "provider = 'videoask' and event_key = $1", [`${process.env.VIDEOASK_FORM_ID}:evt-1`]), 1);
   assert.equal(await count("application_events", "applicant_id = $1 and to_status = 'round1_complete'", [a.id]), 1);
   // Round 1 done: identity provisioning is queued for the worker.
   const queued = (await jobsFor(a.id)).find((j) => j.kind === "identity_session");
@@ -321,11 +334,11 @@ for (const decision of ["approved", "declined"]) {
     test(`${decision} converges when deliveries are ${order}`, async () => {
       const a = await h.apply();
       const identity = () => h.identity({ reference: a.id, decision, eventId: `${a.id}-${order}-id` });
-      const round1 = () => h.videoask("round1", a.id, { event_id: `${a.id}-${order}-r1` });
+      const round1 = () => h.videoask(a.id, { event_id: `${a.id}-${order}-r1` });
       if (order === "identity-first") { await identity(); await round1(); }
       else if (order === "round1-first") { await round1(); await identity(); }
       else await Promise.all([identity(), round1()]);
-      const expected = decision === "approved" ? "id_verified" : "id_failed";
+      const expected = decision === "approved" ? "under_review" : "id_failed";
       assert.equal((await row("applicants", a.id)).status, expected);
       await round1();
       await h.identity({ reference: a.id, decision, eventId: `${a.id}-${order}-id2` });
@@ -338,7 +351,7 @@ for (const decision of ["approved", "declined"]) {
 
 test("identity events for another session or from the past are ignored", async () => {
   const a = await h.apply();
-  await h.videoask("round1", a.id);
+  await h.videoask(a.id);
   const { signSession } = h.load("lib/session.ts");
   await h.verify({ crp_session: signSession(a.id, 1) });
   const { identity_session_id: session } = await row("applicants", a.id);
@@ -349,33 +362,45 @@ test("identity events for another session or from the past are ignored", async (
 
   const newer = await h.identity({ reference: a.id, sessionId: session, decision: "declined", occurredAt: "2026-09-20T12:00:00Z", eventId: "x2" });
   assert.equal(newer.body.advanced, true);
+  const failed = await row("applicants", a.id);
+  assert.equal(failed.status, "id_failed");
+  assert.equal(failed.identity_link, null);
+  assert.equal(failed.identity_session_id, null);
+  // Dead-session redeliveries must not stick while a retry session is pending.
+  const orphaned = await h.identity({ reference: a.id, sessionId: session, decision: "approved", occurredAt: "2026-09-20T13:00:00Z", eventId: "x3" });
+  assert.equal(orphaned.body.outcome, "no active session");
   assert.equal((await row("applicants", a.id)).status, "id_failed");
-  const older = await h.identity({ reference: a.id, sessionId: session, decision: "approved", occurredAt: "2026-09-20T11:00:00Z", eventId: "x3" });
+
+  await h.cron();
+  const retried = await row("applicants", a.id);
+  assert.match(retried.identity_link, /^https:\/\/identity\.invalid\//);
+  assert.ok(retried.identity_session_id);
+  assert.notEqual(retried.identity_session_id, session);
+  assert.equal((await jobsFor(a.id)).filter((j) => j.payload.template === "identity_retry").length, 1);
+
+  const older = await h.identity({ reference: a.id, sessionId: retried.identity_session_id, decision: "declined", occurredAt: "2026-09-20T11:00:00Z", eventId: "x4" });
   assert.equal(older.body.outcome, "stale");
-  assert.equal((await row("applicants", a.id)).identity_status, "failed");
-  // A genuinely newer approval still lifts a failed check.
-  await h.identity({ reference: a.id, sessionId: session, decision: "approved", occurredAt: "2026-09-20T13:00:00Z", eventId: "x4" });
-  assert.equal((await row("applicants", a.id)).status, "id_verified");
+  // A genuinely newer approval on the active retry session lifts into review.
+  await h.identity({ reference: a.id, sessionId: retried.identity_session_id, decision: "approved", occurredAt: "2026-09-20T14:00:00Z", eventId: "x5" });
+  assert.equal((await row("applicants", a.id)).status, "under_review");
 });
 
 test("late identity and round1 events preserve onboarding", async () => {
   const a = await h.apply();
   await setStatus(a.id, "onboarding");
   await h.identity({ reference: a.id, decision: "approved", eventId: `${a.id}-late` });
-  await h.videoask("round1", a.id);
+  await h.videoask(a.id);
   assert.equal((await row("applicants", a.id)).status, "onboarding");
 });
 
-test("round2 only advances an invited applicant", async () => {
+test("a second VideoAsk completion does not advance past review", async () => {
   const a = await h.apply();
   await setStatus(a.id, "interview_yes");
-  await h.videoask("round2", a.id);
-  const done = await row("applicants", a.id);
-  assert.equal(done.status, "docs_submitted");
-  assert.equal(done.docs_status, "submitted");
+  await h.videoask(a.id);
+  assert.equal((await row("applicants", a.id)).status, "interview_yes");
   const b = await h.apply();
   await setStatus(b.id, "rejected");
-  await h.videoask("round2", b.id);
+  await h.videoask(b.id);
   assert.equal((await row("applicants", b.id)).status, "rejected");
 });
 
@@ -419,6 +444,39 @@ test("a valid interview decision queues one email across repeated polls, and sta
   assert.match(event.reason, /Sam/);
 });
 
+test("an in-person rejection offers online and switching starts a clean review cycle", async () => {
+  const a = await h.apply({ track: "in_person" });
+  await setStatus(a.id, "under_review");
+  const decision = await h.decisions([{ applicantId: a.id, reviewCycle: 0, reviewDecision: "reject" }]);
+  assert.equal(decision.body.outcomes[0].status, "online_offered");
+  const database = h.load("lib/db/index.ts").getDb();
+  const token = await database.transaction((tx) => h.load("lib/access.ts").issueAccessToken(tx, a.id, "switch_online", 600));
+  const switched = await h.switchOnline(token.raw);
+  assert.match(switched.url, /switch=ok/);
+  const applicant = await row("applicants", a.id);
+  assert.equal(applicant.track, "online");
+  assert.equal(applicant.status, "under_review");
+  assert.equal(applicant.review_cycle, 1);
+  assert.ok(applicant.online_offered_at);
+  assert.equal(applicant.review_decision, null);
+  assert.equal((await jobsFor(a.id)).filter((job) => job.payload.template === "received").length, 1);
+});
+
+test("Calendly booking and cancellation only update the interview time", async () => {
+  const a = await h.apply();
+  await setStatus(a.id, "accepted");
+  const email = (await row("applicants", a.id)).email;
+  const booking = await h.calendly({
+    event: "invitee.created",
+    payload: { email, scheduled_event: { start_time: "2026-10-20T14:00:00Z" }, tracking: {} },
+  });
+  assert.equal(booking.body.outcome, "interview booked");
+  assert.equal((await row("applicants", a.id)).interview_at.toISOString(), "2026-10-20T14:00:00.000Z");
+  assert.equal((await row("applicants", a.id)).status, "accepted");
+  await h.calendly({ event: "invitee.canceled", payload: { email, tracking: {} } });
+  assert.equal((await row("applicants", a.id)).interview_at, null);
+});
+
 test("ops recovery writes the same completion columns as the webhooks", async () => {
   const a = await h.apply();
   const r1 = await h.ops({ action: "transition", applicantId: a.id, to: "round1_complete", reason: "form done" });
@@ -433,10 +491,10 @@ test("ops recovery writes the same completion columns as the webhooks", async ()
   assert.equal(afterId.status, "id_verified");
   assert.equal(afterId.identity_status, "verified");
 
-  await setStatus(a.id, "interview_yes");
-  const docs = await h.ops({ action: "transition", applicantId: a.id, to: "docs_submitted", reason: "form done" });
-  assert.equal(docs.status, 200);
-  assert.equal((await row("applicants", a.id)).docs_status, "submitted");
+  await setStatus(a.id, "under_review");
+  const review = await h.ops({ action: "transition", applicantId: a.id, to: "accepted", reason: "approved" });
+  assert.equal(review.status, 200);
+  assert.equal((await row("applicants", a.id)).status, "accepted");
 });
 
 test("the lifecycle refuses onboarding a traveller without a verified identity", async () => {
@@ -494,7 +552,7 @@ test("the sync feed pages by revision without gaps and by timestamp with a curso
 
 test("the ops overview surfaces failed emails and stuck identity checks", async () => {
   const a = await h.apply();
-  await h.videoask("round1", a.id);
+  await h.videoask(a.id);
   await sql.query("update applicants set updated_at = now() - interval '2 hours' where id = $1", [a.id]);
   const [job] = await jobsFor(a.id);
   await sql.query("update jobs set status = 'failed', last_error = 'x' where id = $1", [job.id]);
@@ -638,6 +696,8 @@ test("excel cron pulls an applicant, pushes one accept, and replays the same dec
     assert.equal(applicantRow()[at("reviewDecision")], "");
     assert.equal(applicantRow()[at("skills")], "[\"Agriculture & Food\"]");
 
+    await setStatus(applicant.id, "under_review");
+    await h.excel();
     applicantRow()[at("reviewDecision")] = "accept";
     applicantRow()[at("reviewNotes")] = "keep me";
     const pushed = await h.excel();
@@ -748,6 +808,8 @@ test("queued recovery links get their lifetime at delivery and retry the same em
 test("decision ids cannot be reused for another applicant, including concurrent requests", async () => {
   const a = await h.apply();
   const b = await h.apply();
+  await setStatus(a.id, "under_review");
+  await setStatus(b.id, "under_review");
   const decisionId = randomUUID();
   const results = await Promise.all([a, b].map((applicant) => h.decisions([{ applicantId: applicant.id, decisionId, version: 0, reviewDecision: "accept" }])));
   assert.deepEqual(results.map((result) => result.body.outcomes[0].result).sort(), ["applied", "conflict"]);
@@ -757,13 +819,15 @@ test("Excel rotates past 200 completed or invalid decisions to reach later appli
   const database = h.load("lib/db/index.ts").getDb();
   const a = await h.apply();
   const b = await h.apply();
+  await setStatus(a.id, "under_review");
+  await setStatus(b.id, "under_review");
   const decisionId = randomUUID();
   await h.decisions([{ applicantId: a.id, decisionId, version: 0, reviewDecision: "accept" }]);
   const excel = h.load("lib/excel-rows.ts");
   const headers = excel.APPLICANT_COLUMNS;
   const values = (payload) => headers.map((key) => payload[key] ?? "");
-  const rows = Array.from({ length: 200 }, (_, index) => ({ index, values: values({ id: a.id, version: 1, decisionId, reviewDecision: index % 2 ? "invalid" : "accept" }) }));
-  rows.push({ index: 200, values: values({ id: b.id, version: 0, reviewDecision: "accept" }) });
+  const rows = Array.from({ length: 200 }, (_, index) => ({ index, values: values({ id: a.id, version: 1, reviewCycle: 0, decisionId, reviewDecision: index % 2 ? "invalid" : "accept" }) }));
+  rows.push({ index: 200, values: values({ id: b.id, version: 0, reviewCycle: 0, reviewDecision: "accept" }) });
   const workbook = {
     async readTable(name) { return name === "Applicants" ? { headers, rows } : { headers: ["id"], rows: [] }; },
     async writeRow(name, index, next) { if (name === "Applicants") rows[index].values = next; },
@@ -772,7 +836,7 @@ test("Excel rotates past 200 completed or invalid decisions to reach later appli
   await sql.query("update excel_sync_state set decision_offset = 0, locked_until = null");
   const { tickExcel } = h.load("lib/excel-sync.ts");
   await tickExcel(database, workbook);
-  assert.equal((await row("applicants", b.id)).status, "submitted");
+  assert.equal((await row("applicants", b.id)).status, "under_review");
   await tickExcel(database, workbook);
   assert.equal((await row("applicants", b.id)).status, "accepted");
 });
@@ -808,7 +872,7 @@ test("registration grants no access until email confirmation and resuming revoke
   const { signSession } = h.load("lib/session.ts");
   const before = await h.verify({ crp_session: signSession(a.id, 0) });
   assert.equal(before.url, "https://example.invalid/apply");
-  const blockedEvent = await h.videoask("round1", a.id);
+  const blockedEvent = await h.videoask(a.id);
   assert.equal(blockedEvent.body.advanced, false);
   assert.equal((await row("applicants", a.id)).status, "submitted");
   assert.equal(await count("jobs", "applicant_id = $1 and kind = 'identity_session'", [a.id]), 0);
@@ -837,7 +901,7 @@ test("registration grants no access until email confirmation and resuming revoke
 
 test("VideoAsk rejects forged references, wrong forms, abandoned and unrelated events", async () => {
   const a = await h.apply();
-  const valid = h.load("lib/videoask.ts").videoaskReference(a.id, "round1", "en");
+  const valid = h.load("lib/videoask.ts").videoaskReference(a.id);
   for (const change of [
     { event_type: "form_contact_message" },
     { contact: { status: "completed", variables: [null, "invalid"] } },
@@ -846,13 +910,17 @@ test("VideoAsk rejects forged references, wrong forms, abandoned and unrelated e
     { contact: { status: "completed", variables: { application_ref: valid.slice(0, -2) + "XX" } } },
     { applicant_id: a.id, contact: { status: "completed", answers: [{ input_text: valid }] } },
   ]) {
-    const result = await h.videoask("round1", a.id, change);
+    const result = await h.videoask(a.id, change);
     assert.equal(result.status, 400);
   }
-  const mismatch = h.load("lib/videoask.ts").videoaskReference(a.id, "round2", "en");
-  assert.equal((await h.videoask("round1", a.id, { contact: { status: "completed", variables: { application_ref: mismatch } } })).status, 400);
+  // A cryptographically valid reference for someone else is accepted as that
+  // other applicant's event and must not advance this one.
+  const mismatch = h.load("lib/videoask.ts").videoaskReference("11111111-1111-4111-8111-111111111111");
+  const other = await h.videoask(a.id, { contact: { status: "completed", variables: { application_ref: mismatch } } });
+  assert.equal(other.status, 200);
+  assert.equal(other.body.advanced, false);
   assert.equal((await row("applicants", a.id)).status, "submitted");
-  assert.equal((await h.videoask("round1", a.id)).body.advanced, true);
+  assert.equal((await h.videoask(a.id)).body.advanced, true);
 });
 
 test("operations credentials bind the audit actor and reject legacy shared credentials", async () => {
@@ -903,9 +971,7 @@ for (const kind of ["waitlist", "interest"]) {
 }
 
 
-test("Spanish applicants confirm ownership before form-bound Spanish rounds advance", async () => {
-  process.env.VIDEOASK_ROUND1_URL_ES = "https://videoask.invalid/r1-es";
-  process.env.VIDEOASK_ROUND2_URL_ES = "https://videoask.invalid/r2-es";
+test("Spanish applicants confirm ownership before the form advances", async () => {
   const a = await h.apply({ language: "es", unverified: true });
   assert.equal(a.ok, true);
   assert.equal((await row("applicants", a.id)).language, "es");
@@ -925,13 +991,11 @@ test("Spanish applicants confirm ownership before form-bound Spanish rounds adva
   const confirmed = await h.resume(link.searchParams.get("token"));
   assert.equal(confirmed.setCookies.find(([name]) => name === "crp-locale")[1], "es");
   const { videoaskReference, videoaskLink } = h.load("lib/videoask.ts");
-  assert.match(videoaskLink(a.id, "round1", "es"), /r1-es#application_ref=/);
-  const send = (stage, formId) => h.load("app/api/webhooks/videoask/route.ts").POST(h.req("/api/webhooks/videoask", {
-    headers: { "x-webhook-secret": "videoask" }, body: JSON.stringify({ event_id: randomUUID(), event_type: "form_response", form: { form_id: formId }, contact: { status: "completed", variables: { application_ref: videoaskReference(a.id, stage, "es") } } }),
+  assert.match(videoaskLink(a.id), /form#application_ref=/);
+  const send = (formId, reference = videoaskReference(a.id)) => h.load("app/api/webhooks/videoask/route.ts").POST(h.req("/api/webhooks/videoask", {
+    headers: { "x-webhook-secret": "videoask" }, body: JSON.stringify({ event_id: randomUUID(), event_type: "form_response", form: { form_id: formId }, contact: { status: "completed", variables: { application_ref: reference } } }),
   }));
-  assert.equal((await send("round1", process.env.VIDEOASK_ROUND1_FORM_ID_EN)).status, 400);
-  assert.equal((await send("round1", process.env.VIDEOASK_ROUND1_FORM_ID_ES)).body.advanced, true);
-  await setStatus(a.id, "interview_yes");
-  assert.equal((await send("round2", process.env.VIDEOASK_ROUND2_FORM_ID_ES)).body.advanced, true);
-  assert.equal((await row("applicants", a.id)).status, "docs_submitted");
+  assert.equal((await send("wrong-form")).status, 400);
+  assert.equal((await send(process.env.VIDEOASK_FORM_ID)).body.advanced, true);
+  assert.equal((await row("applicants", a.id)).status, "round1_complete");
 });

@@ -1,4 +1,6 @@
-import { getDb } from "@/lib/db";
+import { eq } from "drizzle-orm";
+import { applicants, getDb, identityDocuments } from "@/lib/db";
+import { put } from "@vercel/blob";
 import { deliverEmail } from "@/lib/email";
 import { provisionIdentitySession } from "@/lib/application";
 import { purgeExpiredTokens } from "@/lib/access";
@@ -9,11 +11,15 @@ import {
   runDueJobs,
   type EmailJobPayload,
   type IdentitySessionJobPayload,
+  type IdentityDocumentsJobPayload,
   type JobHandler,
   type JobKind,
   type WebhookJobPayload,
 } from "@/lib/jobs";
 import { processWebhookEvent, requeueUnprocessedWebhooks } from "@/lib/webhooks";
+import { fetchDiditDocuments } from "@/lib/identity";
+import { recordChange } from "@/lib/sync-log";
+import { applicantSyncRowWithDocuments } from "@/lib/sync";
 
 // One handler per job kind. Handlers must be idempotent: the worker may run a
 // job again after a crash or an expired lock, and dedupe keys only stop the same
@@ -33,6 +39,39 @@ export const handlers: Record<JobKind, JobHandler> = {
     const result = await provisionIdentitySession(db, applicantId);
     if (result.url) return { status: "done", providerId: null, deliveryStatus: result.created ? "created" : "existing" };
     return { status: "retry", error: "identity provider did not return a session" };
+  },
+
+  async identity_documents(job, db) {
+    const { applicantId, sessionId } = job.payload as IdentityDocumentsJobPayload;
+    if (!sessionId) return { status: "failed", error: "identity session is missing" };
+    const sources = await fetchDiditDocuments(sessionId);
+    if (!sources.length) return { status: "retry", error: "Didit returned no identity documents" };
+    for (const [index, source] of sources.entries()) {
+      const response = await fetch(source.url);
+      if (!response.ok) return { status: "retry", error: `identity document download failed: ${response.status}` };
+      const body = Buffer.from(await response.arrayBuffer());
+      const contentType = response.headers.get("content-type")?.split(";")[0] || "application/octet-stream";
+      const extension = contentType.split("/")[1]?.replace(/[^a-z0-9]+/gi, "") || "bin";
+      const pathname = `identity/${applicantId}/${source.kind}-${index}.${extension}`;
+      await put(pathname, body, { access: "private", contentType, allowOverwrite: true });
+      await db.insert(identityDocuments).values({
+        applicantId,
+        kind: source.kind,
+        pathname,
+        contentType,
+        size: body.byteLength,
+      }).onConflictDoUpdate({
+        target: identityDocuments.pathname,
+        set: { contentType, size: body.byteLength, fetchedAt: new Date() },
+      });
+    }
+    const [applicant] = await db.select().from(applicants).where(eq(applicants.id, applicantId));
+    const documents = await db.select({ id: identityDocuments.id }).from(identityDocuments)
+      .where(eq(identityDocuments.applicantId, applicantId));
+    if (applicant) {
+      await recordChange(db, "applicants", applicantId, "update", applicantSyncRowWithDocuments(applicant, documents.map((document) => document.id)));
+    }
+    return { status: "done", deliveryStatus: `${sources.length} documents stored` };
   },
 
   async webhook(job, db) {

@@ -161,3 +161,32 @@ export function getIdentityProvider(): IdentityProvider {
   const name = (process.env.IDENTITY_PROVIDER ?? "didit").toLowerCase();
   return providers[name] ?? didit;
 }
+
+export type IdentityDocumentSource = { kind: string; url: string };
+
+export async function fetchDiditDocuments(sessionId: string): Promise<IdentityDocumentSource[]> {
+  const apiKey = process.env.DIDIT_API_KEY;
+  if (!apiKey) throw new Error("DIDIT_API_KEY is not set");
+  const response = await fetch(`https://verification.didit.me/v3/session/${encodeURIComponent(sessionId)}/decision/`, {
+    headers: { "x-api-key": apiKey },
+  });
+  if (!response.ok) throw new Error(`Didit decision fetch failed: ${response.status}`);
+  const body: unknown = await response.json();
+  const found = new Map<string, IdentityDocumentSource>();
+  const visit = (value: unknown, path: string[]) => {
+    if (typeof value === "string" && /^https:\/\//i.test(value)) {
+      const kind = path.join("_").toLowerCase().replace(/[^a-z0-9_-]+/g, "_").slice(-80);
+      if (/(image|document|front|back|selfie|portrait|visa|passport)/.test(kind)) found.set(value, { kind, url: value });
+      return;
+    }
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => visit(item, [...path, String(index)]));
+      return;
+    }
+    if (value && typeof value === "object") {
+      for (const [key, child] of Object.entries(value)) visit(child, [...path, key]);
+    }
+  };
+  visit(body, []);
+  return [...found.values()];
+}
