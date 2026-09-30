@@ -1,18 +1,62 @@
 "use client";
 
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { COUNTRIES, type Country } from "@/lib/countries";
 import { trail } from "@/lib/fonts";
 import { CountryDropdown } from "../apply/CountryDropdown";
-import { PLACEHOLDER } from "../apply/fieldStyles";
 import { useCopy } from "../LanguageProvider";
+
+function useDesk() {
+  const [desk, setDesk] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 900px)");
+    const apply = () => setDesk(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+  return desk;
+}
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const US = COUNTRIES.find((c) => c.code === "US") ?? COUNTRIES[0];
 
-const FIELD =
-  `${PLACEHOLDER} w-full rounded-[48px] border border-black/12 bg-white text-[14px] font-semibold uppercase tracking-[0.56px] text-black outline-none`;
-const FIELD_SM = `${FIELD} h-[63px] px-6`;
+const PILL =
+  "w-full border border-black/12 bg-white font-semibold uppercase leading-[0.9] text-black outline-none placeholder:font-semibold placeholder:uppercase placeholder:leading-[0.9] placeholder:text-black/48";
+const PILL_TYPE =
+  "text-[12px] tracking-[0.48px] placeholder:text-[12px] placeholder:tracking-[0.48px] desk:text-[14px] desk:tracking-[0.56px] desk:placeholder:text-[14px] desk:placeholder:tracking-[0.56px]";
+const FIELD_SM = `${PILL} ${PILL_TYPE} h-[61px] rounded-[48px] px-6 desk:h-[63px]`;
+
+function MobileTile({
+  icon,
+  label,
+  href,
+}: {
+  icon: string;
+  label: string;
+  href?: string;
+}) {
+  const body = (
+    <>
+      <span className="grid size-8 shrink-0 place-items-center rounded-[12px] bg-cream">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={icon} alt="" width={12} height={12} className="size-3" />
+      </span>
+      <p className="w-full whitespace-nowrap text-center text-[12px] font-semibold uppercase leading-[0.9] tracking-[0.96px] text-black/64">
+        {label}
+      </p>
+    </>
+  );
+  const className = "flex min-w-0 flex-1 flex-col items-center gap-3 rounded-[24px] p-3";
+  if (href) {
+    return (
+      <a href={href} className={className}>
+        {body}
+      </a>
+    );
+  }
+  return <div className={className}>{body}</div>;
+}
 
 function ContactRow({
   icon,
@@ -75,6 +119,7 @@ function EmailRow({ email }: { email: string }) {
 export function ContactPage() {
   const copy = useCopy();
   const c = copy.contactPage;
+  const desk = useDesk();
   const [name, setName] = useState("");
   const [organization, setOrganization] = useState("");
   const [email, setEmail] = useState("");
@@ -109,15 +154,15 @@ export function ContactPage() {
   }
 
   return (
-    <section className="overflow-x-hidden bg-cream px-5 pb-16 pt-24 desk:px-16 desk:py-[88px]">
-      <div className="mx-auto flex min-h-[640px] min-w-0 max-w-[1072px] flex-col overflow-hidden rounded-[88px] bg-white px-6 py-10 desk:h-[629px] desk:min-h-0 desk:flex-row desk:items-end desk:rounded-[154px] desk:px-10 desk:py-16">
-        <div className="flex flex-col gap-2 desk:h-[501px] desk:w-[558px] desk:shrink-0 desk:-mr-[109px] desk:gap-0">
+    <section className="overflow-x-hidden bg-cream px-3 pb-3 pt-[68px] desk:px-16 desk:py-[88px]">
+      <div className="mx-auto flex w-full min-w-0 max-w-[1072px] flex-col overflow-hidden rounded-[88px] bg-white px-6 py-8 desk:h-[629px] desk:min-h-0 desk:flex-row desk:items-end desk:rounded-[154px] desk:px-10 desk:py-16">
+        <div className="mb-[-19px] flex flex-col desk:mb-0 desk:h-[501px] desk:w-[558px] desk:shrink-0 desk:-mr-[109px]">
           <h1
-            className={`${trail.className} text-[clamp(56px,12vw,130px)] uppercase leading-[0.9] tracking-[0.04em] text-black desk:flex-1 desk:tracking-[5.2px]`}
+            className={`${trail.className} text-[64px] uppercase leading-[0.9] tracking-[2.56px] text-black desk:flex-1 desk:text-[clamp(56px,12vw,130px)] desk:tracking-[5.2px]`}
           >
             {c.title}
           </h1>
-          <div className="mt-6 flex flex-col desk:mt-0">
+          <div className="mt-6 hidden flex-col desk:mt-0 desk:flex">
             <EmailRow email={c.email} />
             <ContactRow icon="/icons/contact/map-pin.svg" label={c.address} />
             <ContactRow icon="/icons/contact/phone.svg" label={c.phone} />
@@ -126,7 +171,7 @@ export function ContactPage() {
 
         <form
           onSubmit={onSubmit}
-          className="relative z-10 mt-8 flex w-full flex-col gap-2 desk:mt-0 desk:h-[420px] desk:flex-1 desk:items-end desk:justify-center"
+          className="relative z-10 flex w-full flex-col gap-2 desk:h-[420px] desk:flex-1 desk:items-end desk:justify-center"
         >
           <input
             required
@@ -159,8 +204,8 @@ export function ContactPage() {
               aria-label={c.emailField}
               className={`${FIELD_SM} desk:min-w-0 desk:flex-1 desk:w-auto`}
             />
-            <div className={`${FIELD_SM} flex items-center gap-4 pl-4 pr-6 desk:min-w-0 desk:flex-1 desk:w-auto`}>
-              <CountryDropdown variant="inline" value={dial} onChange={setDial} />
+            <div className={`${PILL} ${PILL_TYPE} flex h-[61px] items-center gap-4 rounded-[48px] pl-4 pr-10 desk:h-[63px] desk:min-w-0 desk:flex-1 desk:w-auto desk:pr-6`}>
+              <CountryDropdown compact={!desk} variant="inline" value={dial} onChange={setDial} />
               <input
                 required
                 type="tel"
@@ -170,7 +215,7 @@ export function ContactPage() {
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
                 aria-label={c.mobile}
-                className={`${PLACEHOLDER} min-w-0 flex-1 bg-transparent text-[14px] font-semibold uppercase tracking-[0.56px] text-black outline-none`}
+                className={`${PILL_TYPE} min-w-0 flex-1 bg-transparent uppercase text-black outline-none placeholder:font-semibold placeholder:uppercase placeholder:text-black/48`}
               />
             </div>
           </div>
@@ -181,17 +226,22 @@ export function ContactPage() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             aria-label={c.message}
-            rows={4}
-            className={`${FIELD} min-h-[120px] w-full flex-1 resize-none rounded-[31.5px] px-6 py-6 desk:min-h-0`}
+            className={`${PILL} ${PILL_TYPE} h-[171px] w-full resize-none rounded-[31.5px] py-6 pl-6 pr-8 desk:h-auto desk:min-h-0 desk:flex-1`}
           />
           <button
             type="submit"
             disabled={!ready}
-            className="mt-1 h-14 w-full shrink-0 rounded-full bg-black text-[16px] font-semibold uppercase tracking-[0.64px] text-white transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-32 disabled:hover:scale-100 desk:mt-0 desk:h-16 desk:w-[284px]"
+            className="h-16 w-full shrink-0 rounded-full bg-black text-[16px] font-semibold uppercase tracking-[0.64px] text-white transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] disabled:opacity-32 disabled:hover:scale-100 desk:w-[284px]"
           >
             {c.send}
           </button>
         </form>
+
+        <div className="mt-4 flex w-full desk:hidden">
+          <MobileTile href={`mailto:${c.email}`} icon="/icons/contact/at.svg" label={c.emailLabel} />
+          <MobileTile icon="/icons/contact/map-pin.svg" label={c.addressLabel} />
+          <MobileTile icon="/icons/contact/phone.svg" label={c.phoneLabel} />
+        </div>
       </div>
     </section>
   );

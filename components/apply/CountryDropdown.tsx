@@ -16,9 +16,13 @@ function Caret() {
   );
 }
 
-function Flag({ code, lazy = false }: { code: string; lazy?: boolean }) {
+function Flag({ code, lazy = false, compact = false }: { code: string; lazy?: boolean; compact?: boolean }) {
   return (
-    <span className="inline-flex size-6 shrink-0 overflow-hidden rounded-full bg-black/5 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)]">
+    <span
+      className={`inline-flex shrink-0 overflow-hidden bg-black/5 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.12)] ${
+        compact ? "size-5 rounded-[8px]" : "size-6 rounded-full"
+      }`}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={`/flags/${code.toLowerCase()}.svg`}
@@ -53,11 +57,13 @@ export function CountryDropdown({
   label,
   value,
   onChange,
+  compact = false,
 }: {
   variant: "field" | "inline";
   label?: string;
   value: Country | null;
   onChange: (country: Country) => void;
+  compact?: boolean;
 }) {
   const tr = useText();
   const { locale } = useLanguage();
@@ -239,8 +245,20 @@ export function CountryDropdown({
           )
         ) : (
           <>
-            {value ? <Flag code={value.code} /> : <span className="inline-block size-6 rounded-full bg-black/5" />}
-            <span className="text-[14px] font-semibold text-black/60">{value?.dial ?? "+"}</span>
+            {value ? (
+              <Flag code={value.code} compact={compact} />
+            ) : (
+              <span className={`inline-block bg-black/5 ${compact ? "size-5 rounded-[8px]" : "size-6 rounded-full"}`} />
+            )}
+            <span
+              className={
+                compact
+                  ? "text-[12px] font-semibold uppercase leading-[0.9] tracking-[0.48px] text-black/48"
+                  : "text-[14px] font-semibold text-black/60"
+              }
+            >
+              {value?.dial ?? "+"}
+            </span>
           </>
         )}
         <Caret />

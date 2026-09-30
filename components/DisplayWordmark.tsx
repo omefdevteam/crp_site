@@ -23,8 +23,8 @@ export function DisplayWordmark({
       break;
     case "platform":
       theClass =
-        "text-[18px] font-semibold uppercase tracking-[1.02px] text-lime mix-blend-hard-light [text-shadow:0_0_5.7px_rgba(0,0,0,0.25)] desk:text-[26px]";
-      wordClass = `${trail.className} uppercase leading-[0.9] tracking-[0.04em] text-lime text-[clamp(64px,20.8vw,115px)] desk:text-[115px] desk:tracking-[4.6px]`;
+        "text-[18px] font-semibold uppercase tracking-[0.72px] text-lime mix-blend-hard-light [text-shadow:0_0_4px_rgba(0,0,0,0.25)] desk:text-[26px] desk:tracking-[1.02px] desk:[text-shadow:0_0_5.7px_rgba(0,0,0,0.25)]";
+      wordClass = `${trail.className} uppercase whitespace-nowrap leading-[0.9] tracking-[0.04em] text-lime text-[81px] desk:text-[115px] desk:tracking-[4.6px]`;
       break;
     case "md":
       theClass = "eyebrow text-lime";
@@ -36,7 +36,7 @@ export function DisplayWordmark({
     }
   }
 
-  const stackGap = size === "platform" ? "gap-4" : "";
+  const stackGap = size === "platform" ? "gap-[11px] desk:gap-4" : "";
 
   return (
     <div className={`flex flex-col items-center text-center ${stackGap} ${className}`}>
