@@ -327,8 +327,8 @@ export function PlatformSection() {
             <ComingSoonBadge className="platform-soon-badge !hidden desk:!block" />
             <div className="absolute top-[300px] left-[calc(50%-50cqw)] z-20 w-[100cqw] desk:top-[42.5%] desk:left-1/2 desk:w-max desk:-translate-x-1/2">
               <div className="flex w-full flex-col items-stretch gap-[17px] text-center desk:items-center desk:gap-6">
-                <div className="w-full overflow-x-auto no-scrollbar desk:w-auto desk:overflow-visible">
-                  <div className="flex justify-start desk:justify-center">
+                <div className="w-full overflow-x-auto no-scrollbar touch-pan-x desk:w-auto desk:overflow-visible">
+                  <div className="flex w-max justify-start desk:w-auto desk:justify-center">
                     <GroupTabs
                       activeGroup={activeGroup}
                       mode={mode}
