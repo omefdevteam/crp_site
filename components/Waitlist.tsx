@@ -5,6 +5,7 @@ import {
   type ChangeEvent,
   type FormEvent,
   useId,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -77,8 +78,10 @@ export function Waitlist() {
   const { pending, error, challengeKey, submit } = useCaptureSubmission();
   const errorId = useId();
   const reduceMotion = useReducedMotion() === true;
+  const sectionRef = useRef<HTMLElement>(null);
   const colRef = useRef<HTMLDivElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
+  const [showTurnstile, setShowTurnstile] = useState(false);
   const [email, setEmail] = useState("");
   const [phase, setPhase] = useState<WaitlistPhase>("idle");
   const [pillWidth, setPillWidth] = useState<number | "100%">("100%");
@@ -92,6 +95,17 @@ export function Waitlist() {
     duration: reduceMotion ? 0 : MORPH_DURATION,
     ease: MORPH_EASE,
   };
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowTurnstile(entry.isIntersecting),
+      { threshold: 0.2 },
+    );
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
 
   useLayoutEffect(() => {
     const col = colRef.current;
@@ -145,6 +159,7 @@ export function Waitlist() {
 
   return (
     <section
+      ref={sectionRef}
       id="waitlist"
       data-nav-tone="dark"
       className="bg-ink px-5 py-16 text-white desk:px-8 desk:py-24"
@@ -319,9 +334,9 @@ export function Waitlist() {
           </div>
         </div>
 
-        <div className="flex justify-center">
+        {showTurnstile ? (
           <Turnstile key={challengeKey} onToken={setTurnstileToken} />
-        </div>
+        ) : null}
         {error ? (
           <p role="alert" className="text-center text-sm text-white">
             {copy.waitlist.saveError}
