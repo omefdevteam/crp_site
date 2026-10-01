@@ -173,7 +173,7 @@ export const GlobePin = forwardRef<HTMLDivElement, GlobePinProps>(function Globe
     <div
       ref={ref}
       className="pointer-events-none absolute left-0 top-0"
-      style={{ zIndex: 20 }}
+      style={{ zIndex: 20, visibility: "hidden" }}
     >
       <div style={{ transform: photo ? "translate(-50%, -100%)" : "translate(-50%, -50%)" }}>
         <motion.button

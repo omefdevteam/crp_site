@@ -299,35 +299,36 @@ export function PlatformSection() {
       ref={sectionRef}
       id="platform"
       data-nav-tone="dark"
-      className="relative isolate overflow-visible pt-14 snap-section desk:h-svh desk:pt-0"
+      className="relative isolate h-[954px] overflow-x-clip pt-0 snap-section desk:h-svh desk:overflow-visible desk:pt-0"
     >
       <PlatformBackdrop />
 
-      <div className="relative mx-auto flex h-full max-w-[1200px] flex-col items-center">
-        <div className="relative z-20 flex w-full max-w-[955px] flex-col items-center px-5 text-center leading-[0.9] desk:px-0 desk:pt-[12svh]">
+      <div className="relative mx-auto flex h-full w-full max-w-[1200px] flex-col items-center @container">
+        <ComingSoonBadge className="absolute top-px right-[-81px] z-30 w-[162px] desk:!hidden" />
+        <div className="relative z-20 flex w-full flex-col items-center gap-[11px] px-0 pt-[96px] text-center leading-[0.9] desk:max-w-[955px] desk:gap-0 desk:px-0 desk:pt-[12svh]">
           <DisplayWordmark
             word="Platform"
             size="platform"
             className="relative z-0 shrink-0"
           />
-          <p className="relative z-20 text-[22px] font-normal tracking-[-0.04em] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.4)] desk:text-[48px] desk:tracking-[-1.92px] desk:drop-shadow-none">
+          <p className="relative z-20 w-[285px] text-[28px] font-normal tracking-[-1.12px] text-white desk:w-auto desk:text-[48px] desk:tracking-[-1.92px]">
             {copy.platform.subtitle}
           </p>
         </div>
 
-        <div className="relative z-10 mt-[calc(min(92vw,500px)*0.16+1.25rem)] w-full desk:absolute desk:left-1/2 desk:top-[42.5%] desk:mt-0 desk:size-[min(631px,78.4svh)] desk:-translate-x-1/2">
-          <div className="relative mx-auto aspect-square w-[min(92vw,500px)] desk:size-full">
-            <div className="absolute inset-0 desk:left-1/2 desk:top-1/2 desk:size-[75.75%] desk:-translate-x-1/2 desk:-translate-y-1/2">
+        <div className="absolute top-[341px] left-1/2 z-10 size-[474px] -translate-x-1/2 desk:top-[42.5%] desk:size-[min(631px,78.4svh)]">
+          <div className="relative size-full">
+            <div className="absolute inset-0 desk:top-1/2 desk:left-1/2 desk:size-[75.75%] desk:-translate-x-1/2 desk:-translate-y-1/2">
               <PlatformGlobe
                 visibleGroups={visibleGroups}
                 emphasis={mode === "manual" ? activeGroup : null}
               />
             </div>
-            <ComingSoonBadge className="platform-soon-badge" />
-            <div className="absolute left-1/2 top-[36%] z-20 w-screen -translate-x-1/2 overflow-x-auto no-scrollbar desk:top-[42.5%] desk:w-max desk:overflow-visible">
-              <div className="flex w-full flex-col items-center gap-4 text-center desk:gap-6">
-                <div className="w-full overflow-x-auto no-scrollbar desk:w-auto desk:overflow-visible">
-                  <div className="flex justify-center">
+            <ComingSoonBadge className="platform-soon-badge !hidden desk:!block" />
+            <div className="absolute top-[300px] left-[calc(50%-50cqw)] z-20 w-[100cqw] desk:top-[42.5%] desk:left-1/2 desk:w-max desk:-translate-x-1/2">
+              <div className="flex w-full flex-col items-stretch gap-[17px] text-center desk:items-center desk:gap-6">
+                <div className="w-full overflow-x-auto no-scrollbar touch-pan-x desk:w-auto desk:overflow-visible">
+                  <div className="flex w-max justify-start desk:w-auto desk:justify-center">
                     <GroupTabs
                       activeGroup={activeGroup}
                       mode={mode}
@@ -350,7 +351,7 @@ export function PlatformSection() {
                     />
                   </div>
                 </div>
-                <p className="text-center text-[16px] font-normal leading-[0.9] tracking-[-0.04em] text-white desk:w-[422px] desk:text-[24px] desk:leading-[0.9] desk:tracking-[-0.96px]">
+                <p className="w-full text-center text-[20px] font-normal leading-[0.9] tracking-[-0.8px] text-white desk:w-[422px] desk:text-[24px] desk:tracking-[-0.96px]">
                   {copy.platform.groups[activeGroup].blurb}
                 </p>
               </div>

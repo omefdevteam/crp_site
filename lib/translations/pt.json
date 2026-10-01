@@ -117,6 +117,9 @@
   "contactPage": {
     "title": "Contacte-nos",
     "email": "email@gmail.com",
+    "emailLabel": "E-mail",
+    "addressLabel": "Morada",
+    "phoneLabel": "Telefone",
     "address": "Morada do escritório",
     "phone": "Telefone",
     "name": "*Nome",
