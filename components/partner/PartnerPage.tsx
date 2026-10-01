@@ -213,7 +213,7 @@ function CtaCard({
 }) {
   return (
     <div
-      className="relative flex h-[371px] flex-1 flex-col items-start justify-between overflow-hidden rounded-[64px] p-8 desk:h-full"
+      className="relative flex h-[371px] flex-none flex-col items-start justify-between overflow-hidden rounded-[64px] p-8 desk:h-full desk:flex-1"
       style={{ backgroundColor: bg }}
     >
       <div
