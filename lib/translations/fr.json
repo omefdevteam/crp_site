@@ -117,6 +117,9 @@
   "contactPage": {
     "title": "Contactez-nous",
     "email": "email@gmail.com",
+    "emailLabel": "E-mail",
+    "addressLabel": "Adresse",
+    "phoneLabel": "Téléphone",
     "address": "Adresse du bureau",
     "phone": "Téléphone",
     "name": "*Nom",
