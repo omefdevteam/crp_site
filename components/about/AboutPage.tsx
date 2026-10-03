@@ -183,7 +183,8 @@ function TeamCard({
       <TicketTab
         placement="top"
         ink
-        label={<span className="max-w-[168px] whitespace-normal">{role}</span>}
+        label={role}
+        labelPx={roleLabelSize(role)}
       />
     </article>
   );
