@@ -7,6 +7,8 @@ type TicketTabProps = {
   className?: string;
   /** Black chip with light type — Figma team tabs on photos. */
   ink?: boolean;
+  /** Overrides the chip's type size so a long label can stay on one line. */
+  labelPx?: number;
 };
 
 // Concave corner that blends the chip into the surface it sits on, so it has
@@ -33,6 +35,7 @@ export function TicketTab({
   size = "sm",
   className = "",
   ink = false,
+  labelPx,
 }: TicketTabProps) {
   const isTop = placement === "top";
   const isLarge = size === "lg";
@@ -104,6 +107,7 @@ export function TicketTab({
           className={`relative z-[1] inline-flex items-center justify-center text-center font-semibold uppercase leading-[0.9] ${chip} ${
             typeof label === "string" ? "whitespace-nowrap" : ""
           }`}
+          style={labelPx === undefined ? undefined : { fontSize: labelPx }}
         >
           <span className={`mix-blend-hard-light ${labelTone}`}>{label}</span>
         </span>

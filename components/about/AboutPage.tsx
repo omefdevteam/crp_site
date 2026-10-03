@@ -142,6 +142,17 @@ function WorkTitle({
   );
 }
 
+const ROLE_TEXT_MAX = 128;
+const ROLE_SIZE = 13.5;
+const ROLE_ADVANCE = 0.62;
+
+function roleLabelSize(role: string): number {
+  const natural = role.length * ROLE_SIZE * ROLE_ADVANCE;
+  if (natural <= ROLE_TEXT_MAX) return ROLE_SIZE;
+  const fitted = ROLE_TEXT_MAX / (role.length * ROLE_ADVANCE);
+  return Math.max(7, Math.round(fitted * 10) / 10);
+}
+
 function TeamCard({
   photo,
   name,
