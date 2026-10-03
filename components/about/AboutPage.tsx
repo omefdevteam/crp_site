@@ -10,7 +10,8 @@ import Image from "next/image";
 import { useCopy } from "../LanguageProvider";
 import { TicketTab } from "../TicketTab";
 import { trail } from "@/lib/fonts";
-import { aboutImages, aboutTeamPhotos } from "@/lib/about-assets";
+import { aboutImages } from "@/lib/about-assets";
+import { aboutTeam, type AboutTeamMember } from "@/lib/about-team";
 import type { Pin } from "@/lib/pins";
 import { ABOUT_GLOBE_WAIT_IMAGES } from "../platform/globe-defer";
 import { PlatformGlobe } from "../platform/PlatformGlobe";
@@ -162,40 +163,34 @@ function TeamCard({
       className={`relative h-[200px] w-[200px] shrink-0 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${wide}`}
     >
       <div className="absolute inset-0 overflow-hidden rounded-[64px]">
-        <Image src={photo} alt="" fill className="object-cover" sizes="320px" />
+        <Image src={photo} alt={name} fill className="object-cover" sizes="320px" />
         <div className={`absolute inset-0 bg-black/48 transition-opacity duration-500 ${clear}`} />
-        <p className="absolute bottom-6 left-0 right-0 px-8 text-center text-[24px] leading-none tracking-[-0.96px] text-white">
+        <p className="absolute bottom-5 left-0 right-0 px-5 text-center text-[18px] leading-[1.05] tracking-[-0.72px] text-white">
           {name}
         </p>
       </div>
-      <TicketTab placement="top" ink label={role} />
+      <TicketTab
+        placement="top"
+        ink
+        label={<span className="max-w-[168px] whitespace-normal">{role}</span>}
+      />
     </article>
   );
 }
 
 const TEAM_SEATS = ["left", "lead", "right"] as const;
 
-function TeamRow({
-  photos,
-  quotes,
-  name,
-  role,
-}: {
-  photos: readonly string[];
-  quotes: readonly string[];
-  name: string;
-  role: string;
-}) {
+function TeamRow({ members }: { members: readonly AboutTeamMember[] }) {
   return (
     <div className="flex w-full items-center justify-center">
       {TEAM_SEATS.map((seat, index) => {
-        const photo = photos[index];
-        if (!photo) return null;
+        const member = members[index];
+        if (!member) return null;
         const groupClass = seat === "left" ? "group/left" : seat === "lead" ? "group/lead" : "group/right";
         return (
-          <div key={photo} className={`${groupClass} flex items-center`}>
-            <TeamCard expand={seat} photo={photo} name={name} role={role} />
-            <TeamQuote group={seat} quote={quotes[index] ?? ""} />
+          <div key={member.id} className={`${groupClass} flex items-center`}>
+            <TeamCard expand={seat} photo={member.image} name={member.name} role={member.role} />
+            <TeamQuote group={seat} quote={member.quote} />
           </div>
         );
       })}
@@ -226,25 +221,23 @@ export function AboutPage() {
   const copy = useCopy();
   const a = copy.aboutUs;
   const statementLines = a.statement.split("\n");
-  const teamPins: Pin[] = aboutTeamPhotos.map((image, index) => {
-    const band = (index + 0.5) / aboutTeamPhotos.length;
+  const teamPins: Pin[] = aboutTeam.map((member, index) => {
+    const band = (index + 0.5) / aboutTeam.length;
     return {
-      id: `team-${index + 1}`,
+      id: member.id,
       kind: "photo",
       group: "ambassadors",
-      city: a.memberName,
+      city: member.name,
       lat: Math.asin(1 - 2 * band) * (180 / Math.PI) * 0.72,
       lng: ((index * 137.508) % 360) - 180,
-      image,
+      image: member.image,
     };
   });
-  const teamRows: { photos: string[]; quotes: string[] }[] = [];
-  for (let i = 0; i < aboutTeamPhotos.length; i += 3) {
-    teamRows.push({
-      photos: aboutTeamPhotos.slice(i, i + 3),
-      quotes: [0, 1, 2].map((offset) => a.teamQuotes[i + offset] ?? a.teamQuotes[(i + offset) % a.teamQuotes.length] ?? ""),
-    });
+  const teamRows: AboutTeamMember[][] = [];
+  for (let i = 0; i < aboutTeam.length; i += 3) {
+    teamRows.push(aboutTeam.slice(i, i + 3));
   }
+  const teamGridHeight = teamRows.length * 200;
 
   return (
     <div className="overflow-x-hidden bg-cream">
@@ -482,16 +475,10 @@ export function AboutPage() {
           {a.teamTitle}
         </h2>
         <div className="mx-auto mt-12 max-w-[1000px] desk:mt-12">
-          <FitWidth designWidth={1000} designHeight={1400} cap>
-            <div className="flex h-[1400px] w-[1000px] flex-col items-center">
+          <FitWidth designWidth={1000} designHeight={teamGridHeight} cap>
+            <div className="flex w-[1000px] flex-col items-center" style={{ height: teamGridHeight }}>
               {teamRows.map((row) => (
-                <TeamRow
-                  key={row.photos.join()}
-                  photos={row.photos}
-                  quotes={row.quotes}
-                  name={a.memberName}
-                  role={a.memberRole}
-                />
+                <TeamRow key={row.map((member) => member.id).join()} members={row} />
               ))}
             </div>
           </FitWidth>
