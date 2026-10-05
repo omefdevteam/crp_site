@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -10,7 +11,8 @@ import Image from "next/image";
 import { useCopy } from "../LanguageProvider";
 import { TicketTab } from "../TicketTab";
 import { trail } from "@/lib/fonts";
-import { aboutImages, aboutTeamPhotos } from "@/lib/about-assets";
+import { aboutImages } from "@/lib/about-assets";
+import { aboutTeam, type AboutTeamMember } from "@/lib/about-team";
 import type { Pin } from "@/lib/pins";
 import { ABOUT_GLOBE_WAIT_IMAGES } from "../platform/globe-defer";
 import { PlatformGlobe } from "../platform/PlatformGlobe";
@@ -141,61 +143,138 @@ function WorkTitle({
   );
 }
 
+// 80% of the 200px card, minus the ears and the chip's side padding, with a little slack so type doesn't clip.
+const TICKET_TEXT_MAX = 160 - (19.125 - 2) * 2 - 18 * 2 - 4;
+const TICKET_TYPE = 12;
+
+const SHORTER_ROLE: Readonly<Record<string, string>> = {
+  "Founder & President": "Founder & Pres.",
+  "Executive Producer": "Exec. Producer",
+  "Sponsors Relations Director": "Sponsors Director",
+  "Interactive Experience Advisor": "Experience Advisor",
+  "Francophone Programs Advocate": "Francophone Adv.",
+  "Climate Programming": "Climate Programs",
+  "Head of Technology": "Head of Tech",
+  "Coordinating Producer": "Coord. Producer",
+  "Intern & Volunteer Coordinator": "Volunteer Coord.",
+  "Social Media Manager": "Social Manager",
+};
+
+function estimateTextWidth(text: string, px: number): number {
+  return text.length * px * 0.66;
+}
+
+function sizeToFit(text: string, widthAt: (text: string, px: number) => number): number {
+  if (widthAt(text, TICKET_TYPE) <= TICKET_TEXT_MAX) return TICKET_TYPE;
+  let px = 11.75;
+  while (px > 6 && widthAt(text, px) > TICKET_TEXT_MAX) px -= 0.25;
+  return px;
+}
+
+function fittedRole(role: string, widthAt: (text: string, px: number) => number): { text: string; px: number } {
+  const full = sizeToFit(role, widthAt);
+  if (full >= 8) return { text: role, px: full };
+  const shorter = SHORTER_ROLE[role];
+  if (shorter === undefined) return { text: role, px: full };
+  return { text: shorter, px: sizeToFit(shorter, widthAt) };
+}
+
+function useTicketLabel(role: string) {
+  const cardRef = useRef<HTMLElement>(null);
+  const [label, setLabel] = useState(() => fittedRole(role, estimateTextWidth));
+
+  useLayoutEffect(() => {
+    const fit = () => {
+      const family = cardRef.current
+        ? getComputedStyle(cardRef.current).fontFamily
+        : getComputedStyle(document.body).fontFamily;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      setLabel(
+        fittedRole(role, (text, px) => {
+          const upper = text.toUpperCase();
+          ctx.font = `600 ${px}px ${family}`;
+          return ctx.measureText(upper).width + Math.max(0, upper.length - 1) * px * 0.04;
+        }),
+      );
+    };
+    fit();
+    let cancel = false;
+    void document.fonts.ready.then(() => {
+      if (!cancel) fit();
+    }).catch(() => undefined);
+    return () => {
+      cancel = true;
+    };
+  }, [role]);
+
+  return { cardRef, ...label };
+}
+
 function TeamCard({
   photo,
   name,
   role,
   expand,
+  imagePosition,
 }: {
   photo: string;
   name: string;
   role: string;
   expand?: "left" | "lead" | "right";
+  imagePosition?: string;
 }) {
   const wide =
     expand === "left" ? "group-hover/left:w-[320px]" : expand === "lead" ? "group-hover/lead:w-[320px]" : expand === "right" ? "group-hover/right:w-[320px]" : "";
   const clear =
     expand === "left" ? "group-hover/left:opacity-0" : expand === "lead" ? "group-hover/lead:opacity-0" : expand === "right" ? "group-hover/right:opacity-0" : "";
+  const ticket = useTicketLabel(role);
 
   return (
     <article
+      ref={ticket.cardRef}
+      aria-label={`${name}. ${role}`}
       className={`relative h-[200px] w-[200px] shrink-0 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${wide}`}
     >
       <div className="absolute inset-0 overflow-hidden rounded-[64px]">
-        <Image src={photo} alt="" fill className="object-cover" sizes="320px" />
+        <Image
+          src={photo}
+          alt={name}
+          fill
+          className="object-cover"
+          style={imagePosition ? { objectPosition: imagePosition } : undefined}
+          sizes="320px"
+        />
         <div className={`absolute inset-0 bg-black/48 transition-opacity duration-500 ${clear}`} />
-        <p className="absolute bottom-6 left-0 right-0 px-8 text-center text-[24px] leading-none tracking-[-0.96px] text-white">
+        <p className="absolute bottom-5 left-0 right-0 px-5 text-center text-[18px] leading-[1.05] tracking-[-0.72px] text-white">
           {name}
         </p>
+        <TicketTab placement="top" ink label={ticket.text} labelPx={ticket.px} maxWidth={160} />
       </div>
-      <TicketTab placement="top" ink label={role} />
     </article>
   );
 }
 
 const TEAM_SEATS = ["left", "lead", "right"] as const;
 
-function TeamRow({
-  photos,
-  quotes,
-  name,
-  role,
-}: {
-  photos: readonly string[];
-  quotes: readonly string[];
-  name: string;
-  role: string;
-}) {
+function TeamRow({ members }: { members: readonly AboutTeamMember[] }) {
   return (
     <div className="flex w-full items-center justify-center">
       {TEAM_SEATS.map((seat, index) => {
-        const photo = photos[index];
-        if (!photo) return null;
+        const member = members[index];
+        if (!member) return null;
         const groupClass = seat === "left" ? "group/left" : seat === "lead" ? "group/lead" : "group/right";
         return (
-          <div key={photo} className={`${groupClass} flex items-center`}>
-            <TeamCard expand={seat} photo={photo} name={name} role={role} />
-            <TeamQuote group={seat} quote={quotes[index] ?? ""} />
+          <div key={member.id} className={`${groupClass} flex items-center`}>
+            <TeamCard
+              expand={seat}
+              photo={member.image}
+              name={member.name}
+              role={member.role}
+              imagePosition={member.imagePosition}
+            />
+            <TeamQuote group={seat} quote={member.quote} />
           </div>
         );
       })}
@@ -216,7 +295,7 @@ function TeamQuote({ quote, group }: { quote: string; group: "left" | "lead" | "
   return (
     <div className={`w-0 overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${open}`}>
       <p className={`w-[280px] -translate-x-8 p-8 text-[20px] leading-[1.2] tracking-[-0.8px] text-white opacity-0 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${shown}`}>
-        {quote}
+        {`“${quote}”`}
       </p>
     </div>
   );
@@ -226,25 +305,24 @@ export function AboutPage() {
   const copy = useCopy();
   const a = copy.aboutUs;
   const statementLines = a.statement.split("\n");
-  const teamPins: Pin[] = aboutTeamPhotos.map((image, index) => {
-    const band = (index + 0.5) / aboutTeamPhotos.length;
+  const teamPins: Pin[] = aboutTeam.map((member, index) => {
+    const band = (index + 0.5) / aboutTeam.length;
+    const place = "place" in member ? member.place : undefined;
     return {
-      id: `team-${index + 1}`,
+      id: member.id,
       kind: "photo",
       group: "ambassadors",
-      city: a.memberName,
-      lat: Math.asin(1 - 2 * band) * (180 / Math.PI) * 0.72,
-      lng: ((index * 137.508) % 360) - 180,
-      image,
+      city: member.name,
+      lat: place ? place.lat : Math.asin(1 - 2 * band) * (180 / Math.PI) * 0.72,
+      lng: place ? place.lng : ((index * 137.508) % 360) - 180,
+      image: member.image,
     };
   });
-  const teamRows: { photos: string[]; quotes: string[] }[] = [];
-  for (let i = 0; i < aboutTeamPhotos.length; i += 3) {
-    teamRows.push({
-      photos: aboutTeamPhotos.slice(i, i + 3),
-      quotes: [0, 1, 2].map((offset) => a.teamQuotes[i + offset] ?? a.teamQuotes[(i + offset) % a.teamQuotes.length] ?? ""),
-    });
+  const teamRows: AboutTeamMember[][] = [];
+  for (let i = 0; i < aboutTeam.length; i += 3) {
+    teamRows.push(aboutTeam.slice(i, i + 3));
   }
+  const teamGridHeight = teamRows.length * 200;
 
   return (
     <div className="overflow-x-hidden bg-cream">
@@ -482,16 +560,10 @@ export function AboutPage() {
           {a.teamTitle}
         </h2>
         <div className="mx-auto mt-12 max-w-[1000px] desk:mt-12">
-          <FitWidth designWidth={1000} designHeight={1400} cap>
-            <div className="flex h-[1400px] w-[1000px] flex-col items-center">
+          <FitWidth designWidth={1000} designHeight={teamGridHeight} cap>
+            <div className="flex w-[1000px] flex-col items-center" style={{ height: teamGridHeight }}>
               {teamRows.map((row) => (
-                <TeamRow
-                  key={row.photos.join()}
-                  photos={row.photos}
-                  quotes={row.quotes}
-                  name={a.memberName}
-                  role={a.memberRole}
-                />
+                <TeamRow key={row.map((member) => member.id).join()} members={row} />
               ))}
             </div>
           </FitWidth>

@@ -20,27 +20,3 @@ export const aboutImages = {
   partnersGlow: "/images/about/partners-glow.svg",
   arrowUp: "/images/about/arrow-up.svg",
 } as const;
-
-export const aboutTeamPhotos = [
-  "/images/about/team-01.png",
-  "/images/about/team-02.png",
-  "/images/about/team-03.png",
-  "/images/about/team-04.png",
-  "/images/about/team-05.png",
-  "/images/about/team-06.png",
-  "/images/about/team-07.png",
-  "/images/about/team-08.png",
-  "/images/about/team-09.png",
-  "/images/about/team-10.png",
-  "/images/about/team-11.png",
-  "/images/about/team-12.png",
-  "/images/about/team-13.png",
-  "/images/about/team-14.png",
-  "/images/about/team-15.png",
-  "/images/about/team-16.png",
-  "/images/about/team-17.png",
-  "/images/about/team-18.png",
-  "/images/about/team-19.png",
-  "/images/about/team-20.png",
-  "/images/about/team-21.png",
-] as const;

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { programIcons, programPhotos } from "@/lib/program-assets";
+import { aboutTeam } from "@/lib/about-team";
+import { programIcons } from "@/lib/program-assets";
 import { TicketTab } from "../TicketTab";
 import { useCopy } from "../LanguageProvider";
 import { FigmaImg } from "./FigmaImg";
@@ -27,20 +28,17 @@ type TestimonialBase = {
   image: string;
 };
 
-const TESTIMONIALS: TestimonialBase[] = [
-  {
-    name: "Joseph Lawrence Hammond",
-    image: programPhotos.testimonial.manager,
-  },
-  {
-    name: "Gemma Gutierrez",
-    image: programPhotos.testimonial.coordinator,
-  },
-  {
-    name: "Itsopo-Ngolet Shtella",
-    image: programPhotos.testimonial.projectLead,
-  },
-];
+const TESTIMONIAL_IDS = [
+  "joseph-raymond-hammond",
+  "gemma-gutierrez",
+  "sthella-ngolet",
+] as const;
+
+const TESTIMONIALS: TestimonialBase[] = TESTIMONIAL_IDS.map((id) => {
+  const member = aboutTeam.find((person) => person.id === id);
+  if (!member) throw new Error(`Missing team member ${id}`);
+  return { name: member.name, image: member.image };
+});
 
 type Testimonial = TestimonialBase & {
   role: string;

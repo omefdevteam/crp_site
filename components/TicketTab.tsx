@@ -7,6 +7,10 @@ type TicketTabProps = {
   className?: string;
   /** Black chip with light type — Figma team tabs on photos. */
   ink?: boolean;
+  /** Overrides the chip's type size so a long label can stay on one line. */
+  labelPx?: number;
+  /** Caps the whole tab, ears included. Height stays the Figma team-tab size. */
+  maxWidth?: number;
 };
 
 // Concave corner that blends the chip into the surface it sits on, so it has
@@ -33,9 +37,12 @@ export function TicketTab({
   size = "sm",
   className = "",
   ink = false,
+  labelPx,
+  maxWidth,
 }: TicketTabProps) {
   const isTop = placement === "top";
   const isLarge = size === "lg";
+  const capped = maxWidth !== undefined;
 
   const tone = ink
     ? "text-black"
@@ -49,17 +56,25 @@ export function TicketTab({
 
   const earSize = isLarge
     ? "h-[19px] w-[19px] desk:h-[38.25px] desk:w-[38.25px]"
-    : "h-[19px] w-[19px]";
+    : capped
+      ? "h-[19.125px] w-[19.125px]"
+      : "h-[19px] w-[19px]";
 
   const chip = isLarge
     ? isTop
       ? "h-[33px] px-[18px] text-[13.5px] rounded-b-[13.5px] tracking-[0.96px] bg-current desk:h-[65.25px] desk:px-[36px] desk:text-[24px] desk:rounded-b-[27px]"
       : "h-[33px] px-[18px] text-[13.5px] rounded-t-[13.5px] tracking-[0.96px] bg-current desk:h-[65.25px] desk:px-[36px] desk:text-[24px] desk:rounded-t-[27px]"
-    : `min-h-[33px] px-[18px] py-[11px] text-[13.5px] tracking-[0.04em] bg-current ${
-        isTop
-          ? "rounded-b-[13.5px]"
-          : "rounded-t-[13.5px] [text-shadow:0_0_4.5px_rgba(0,0,0,0.25)]"
-      }`;
+    : capped
+      ? `h-[32.625px] min-w-0 overflow-hidden px-[18px] text-[12px] tracking-[0.04em] bg-current ${
+          isTop
+            ? "rounded-b-[13.5px]"
+            : "rounded-t-[13.5px] [text-shadow:0_0_4.5px_rgba(0,0,0,0.25)]"
+        }`
+      : `min-h-[33px] px-[18px] py-[11px] text-[13.5px] tracking-[0.04em] bg-current ${
+          isTop
+            ? "rounded-b-[13.5px]"
+            : "rounded-t-[13.5px] [text-shadow:0_0_4.5px_rgba(0,0,0,0.25)]"
+        }`;
 
   const labelTone = ink
     ? "text-white/72 [text-shadow:0_0_4.5px_rgba(0,0,0,0.25)]"
@@ -88,9 +103,10 @@ export function TicketTab({
       } ${className}`}
     >
       <div
-        className={`relative flex ${tone} ${
+        className={`relative flex min-w-0 ${capped ? "w-max shrink-0" : ""} ${tone} ${
           isTop ? "items-start" : "items-end"
         }`}
+        style={capped ? { maxWidth } : undefined}
       >
         {/* Bleed strip under the docked edge of this ticket only. */}
         <span
@@ -101,11 +117,14 @@ export function TicketTab({
         />
         <Ear className={leftEar} />
         <span
-          className={`relative z-[1] inline-flex items-center justify-center text-center font-semibold uppercase leading-[0.9] ${chip} ${
-            typeof label === "string" ? "whitespace-nowrap" : ""
-          }`}
+          className={`relative z-[1] items-center justify-center text-center font-semibold uppercase leading-[0.9] ${
+            capped ? "flex min-w-0" : "inline-flex"
+          } ${chip} ${typeof label === "string" || capped ? "whitespace-nowrap" : ""}`}
+          style={labelPx === undefined ? undefined : { fontSize: labelPx }}
         >
-          <span className={`mix-blend-hard-light ${labelTone}`}>{label}</span>
+          <span className={`mix-blend-hard-light ${capped ? "min-w-0 truncate" : ""} ${labelTone}`}>
+            {label}
+          </span>
         </span>
         <Ear className={rightEar} />
       </div>
