@@ -217,11 +217,13 @@ function TeamCard({
   name,
   role,
   expand,
+  imagePosition,
 }: {
   photo: string;
   name: string;
   role: string;
   expand?: "left" | "lead" | "right";
+  imagePosition?: string;
 }) {
   const wide =
     expand === "left" ? "group-hover/left:w-[320px]" : expand === "lead" ? "group-hover/lead:w-[320px]" : expand === "right" ? "group-hover/right:w-[320px]" : "";
@@ -236,13 +238,20 @@ function TeamCard({
       className={`relative h-[200px] w-[200px] shrink-0 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${wide}`}
     >
       <div className="absolute inset-0 overflow-hidden rounded-[64px]">
-        <Image src={photo} alt={name} fill className="object-cover" sizes="320px" />
+        <Image
+          src={photo}
+          alt={name}
+          fill
+          className="object-cover"
+          style={imagePosition ? { objectPosition: imagePosition } : undefined}
+          sizes="320px"
+        />
         <div className={`absolute inset-0 bg-black/48 transition-opacity duration-500 ${clear}`} />
         <p className="absolute bottom-5 left-0 right-0 px-5 text-center text-[18px] leading-[1.05] tracking-[-0.72px] text-white">
           {name}
         </p>
+        <TicketTab placement="top" ink label={ticket.text} labelPx={ticket.px} maxWidth={160} />
       </div>
-      <TicketTab placement="top" ink label={ticket.text} labelPx={ticket.px} maxWidth={160} />
     </article>
   );
 }
@@ -258,7 +267,13 @@ function TeamRow({ members }: { members: readonly AboutTeamMember[] }) {
         const groupClass = seat === "left" ? "group/left" : seat === "lead" ? "group/lead" : "group/right";
         return (
           <div key={member.id} className={`${groupClass} flex items-center`}>
-            <TeamCard expand={seat} photo={member.image} name={member.name} role={member.role} />
+            <TeamCard
+              expand={seat}
+              photo={member.image}
+              name={member.name}
+              role={member.role}
+              imagePosition={member.imagePosition}
+            />
             <TeamQuote group={seat} quote={member.quote} />
           </div>
         );
@@ -280,7 +295,7 @@ function TeamQuote({ quote, group }: { quote: string; group: "left" | "lead" | "
   return (
     <div className={`w-0 overflow-hidden transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${open}`}>
       <p className={`w-[280px] -translate-x-8 p-8 text-[20px] leading-[1.2] tracking-[-0.8px] text-white opacity-0 transition duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${shown}`}>
-        {quote}
+        {`“${quote}”`}
       </p>
     </div>
   );
@@ -292,13 +307,14 @@ export function AboutPage() {
   const statementLines = a.statement.split("\n");
   const teamPins: Pin[] = aboutTeam.map((member, index) => {
     const band = (index + 0.5) / aboutTeam.length;
+    const place = "place" in member ? member.place : undefined;
     return {
       id: member.id,
       kind: "photo",
       group: "ambassadors",
       city: member.name,
-      lat: Math.asin(1 - 2 * band) * (180 / Math.PI) * 0.72,
-      lng: ((index * 137.508) % 360) - 180,
+      lat: place ? place.lat : Math.asin(1 - 2 * band) * (180 / Math.PI) * 0.72,
+      lng: place ? place.lng : ((index * 137.508) % 360) - 180,
       image: member.image,
     };
   });

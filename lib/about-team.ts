@@ -4,9 +4,12 @@ export type AboutTeamMember = {
   role: string;
   quote: string;
   image: string;
+  imagePosition?: string;
+  place?: { lat: number; lng: number };
 };
 
 const photo = (file: string) => `/images/about/team/${file}` as const;
+const blankAvatar = photo("avatar-blank.jpg");
 
 export const aboutTeam = [
   {
@@ -22,6 +25,7 @@ export const aboutTeam = [
     role: "Executive Producer",
     quote: "Global producer creating impactful cultural events and experiences.",
     image: photo("taylor-rankin.jpg"),
+    place: { lat: 39.0, lng: -104.5 },
   },
   {
     id: "stefania-passamonte",
@@ -29,6 +33,7 @@ export const aboutTeam = [
     role: "In-house Counsel",
     quote: "International counsel guiding governance, compliance, and partnerships.",
     image: photo("stefania-passamonte.jpg"),
+    imagePosition: "center 12%",
   },
   {
     id: "nathan-khrupalo",
@@ -50,6 +55,7 @@ export const aboutTeam = [
     role: "Creative Director",
     quote: "Creative strategist using art and storytelling for social change.",
     image: photo("tochukwu-macfoy.jpg"),
+    place: { lat: 11.2, lng: 12.0 },
   },
   {
     id: "sutu-campbell",
@@ -64,6 +70,7 @@ export const aboutTeam = [
     role: "UX Designer",
     quote: "Product designer creating intuitive, accessible digital experiences.",
     image: photo("anirudha-ghosh.jpg"),
+    place: { lat: 22.6, lng: 79.0 },
   },
   {
     id: "faithful-kobina-quayson",
@@ -71,6 +78,7 @@ export const aboutTeam = [
     role: "Web Developer",
     quote: "Web developer converting curated designs into functional web products.",
     image: photo("faithful-kobina-quayson.jpg"),
+    place: { lat: 6.8, lng: -2.0 },
   },
   {
     id: "sthella-ngolet",
@@ -85,6 +93,7 @@ export const aboutTeam = [
     role: "Youth Programs",
     quote: "Youth advocate empowering the next generation of climate leaders.",
     image: photo("gemma-gutierrez.jpg"),
+    place: { lat: 39.0, lng: -89.5 },
   },
   {
     id: "analyah-dos-santos",
@@ -99,6 +108,7 @@ export const aboutTeam = [
     role: "Head of Technology",
     quote: "Technology strategist powering secure, connected global experiences.",
     image: photo("rowland-jones.jpg"),
+    place: { lat: 7.9, lng: -0.2 },
   },
   {
     id: "vanessa-helou",
@@ -106,6 +116,22 @@ export const aboutTeam = [
     role: "Coordinating Producer",
     quote: "Creative producer coordinating global events, partners, and media.",
     image: photo("vanessa-helou.jpg"),
+  },
+  {
+    id: "chiamaka-chukwudi",
+    name: "Chiamaka Chukwudi",
+    role: "Production Coordinator",
+    quote: "Production coordinator delivering complex international events.",
+    image: blankAvatar,
+    place: { lat: 7.4, lng: 4.2 },
+  },
+  {
+    id: "oyelese-oreoluwa-daniel",
+    name: "Oyelese Oreoluwa Daniel",
+    role: "Event Coordinator",
+    quote: "Event coordinator ensuring smooth logistics and delegate experiences.",
+    image: blankAvatar,
+    place: { lat: 10.4, lng: 10.2 },
   },
   {
     id: "danielle-kyony",
@@ -121,6 +147,7 @@ export const aboutTeam = [
     quote:
       "Digital storyteller focused on turning ideas into clear, engaging content that connects brands with their audiences.",
     image: photo("angel-mordi.jpg"),
+    place: { lat: 9.4, lng: 8.4 },
   },
   {
     id: "gift-adedayo",
@@ -128,5 +155,27 @@ export const aboutTeam = [
     role: "Brand Designer",
     quote: "Designer who loves turning ideas into clear visual solutions.",
     image: photo("gift-adedayo.jpg"),
+    place: { lat: 8.6, lng: 6.4 },
+  },
+  {
+    id: "kim-dauthel",
+    name: "Kim Dauthel",
+    role: "member",
+    quote: "...",
+    image: photo("kim-dauthel.jpg"),
+  },
+  {
+    id: "mehdi-yann",
+    name: "Mehdi-Yann",
+    role: "member",
+    quote: "...",
+    image: photo("mehdi-yann.jpg"),
+  },
+  {
+    id: "naquetta-ricks",
+    name: "Naquetta Ricks",
+    role: "member",
+    quote: "...",
+    image: photo("naquetta-ricks.jpg"),
   },
 ] as const satisfies readonly AboutTeamMember[];
