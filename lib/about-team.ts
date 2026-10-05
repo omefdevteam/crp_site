@@ -158,20 +158,6 @@ export const aboutTeam = [
     place: { lat: 8.6, lng: 6.4 },
   },
   {
-    id: "kim-dauthel",
-    name: "Kim Dauthel",
-    role: "member",
-    quote: "...",
-    image: photo("kim-dauthel.jpg"),
-  },
-  {
-    id: "mehdi-yann",
-    name: "Mehdi-Yann",
-    role: "member",
-    quote: "...",
-    image: photo("mehdi-yann.jpg"),
-  },
-  {
     id: "naquetta-ricks",
     name: "Naquetta Ricks",
     role: "member",
