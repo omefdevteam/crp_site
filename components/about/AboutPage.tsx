@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -142,15 +143,73 @@ function WorkTitle({
   );
 }
 
-const ROLE_TEXT_MAX = 128;
-const ROLE_SIZE = 13.5;
-const ROLE_ADVANCE = 0.62;
+// 80% of the 200px card, minus the ears and the chip's side padding, with a little slack so type doesn't clip.
+const TICKET_TEXT_MAX = 160 - (19.125 - 2) * 2 - 18 * 2 - 4;
+const TICKET_TYPE = 12;
 
-function roleLabelSize(role: string): number {
-  const natural = role.length * ROLE_SIZE * ROLE_ADVANCE;
-  if (natural <= ROLE_TEXT_MAX) return ROLE_SIZE;
-  const fitted = ROLE_TEXT_MAX / (role.length * ROLE_ADVANCE);
-  return Math.max(7, Math.round(fitted * 10) / 10);
+const SHORTER_ROLE: Readonly<Record<string, string>> = {
+  "Founder & President": "Founder & Pres.",
+  "Executive Producer": "Exec. Producer",
+  "Sponsors Relations Director": "Sponsors Director",
+  "Interactive Experience Advisor": "Experience Advisor",
+  "Francophone Programs Advocate": "Francophone Adv.",
+  "Climate Programming": "Climate Programs",
+  "Head of Technology": "Head of Tech",
+  "Coordinating Producer": "Coord. Producer",
+  "Intern & Volunteer Coordinator": "Volunteer Coord.",
+  "Social Media Manager": "Social Manager",
+};
+
+function estimateTextWidth(text: string, px: number): number {
+  return text.length * px * 0.66;
+}
+
+function sizeToFit(text: string, widthAt: (text: string, px: number) => number): number {
+  if (widthAt(text, TICKET_TYPE) <= TICKET_TEXT_MAX) return TICKET_TYPE;
+  let px = 11.75;
+  while (px > 6 && widthAt(text, px) > TICKET_TEXT_MAX) px -= 0.25;
+  return px;
+}
+
+function fittedRole(role: string, widthAt: (text: string, px: number) => number): { text: string; px: number } {
+  const full = sizeToFit(role, widthAt);
+  if (full >= 8) return { text: role, px: full };
+  const shorter = SHORTER_ROLE[role];
+  if (shorter === undefined) return { text: role, px: full };
+  return { text: shorter, px: sizeToFit(shorter, widthAt) };
+}
+
+function useTicketLabel(role: string) {
+  const cardRef = useRef<HTMLElement>(null);
+  const [label, setLabel] = useState(() => fittedRole(role, estimateTextWidth));
+
+  useLayoutEffect(() => {
+    const fit = () => {
+      const family = cardRef.current
+        ? getComputedStyle(cardRef.current).fontFamily
+        : getComputedStyle(document.body).fontFamily;
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      setLabel(
+        fittedRole(role, (text, px) => {
+          const upper = text.toUpperCase();
+          ctx.font = `600 ${px}px ${family}`;
+          return ctx.measureText(upper).width + Math.max(0, upper.length - 1) * px * 0.04;
+        }),
+      );
+    };
+    fit();
+    let cancel = false;
+    void document.fonts.ready.then(() => {
+      if (!cancel) fit();
+    }).catch(() => undefined);
+    return () => {
+      cancel = true;
+    };
+  }, [role]);
+
+  return { cardRef, ...label };
 }
 
 function TeamCard({
@@ -168,9 +227,12 @@ function TeamCard({
     expand === "left" ? "group-hover/left:w-[320px]" : expand === "lead" ? "group-hover/lead:w-[320px]" : expand === "right" ? "group-hover/right:w-[320px]" : "";
   const clear =
     expand === "left" ? "group-hover/left:opacity-0" : expand === "lead" ? "group-hover/lead:opacity-0" : expand === "right" ? "group-hover/right:opacity-0" : "";
+  const ticket = useTicketLabel(role);
 
   return (
     <article
+      ref={ticket.cardRef}
+      aria-label={`${name}. ${role}`}
       className={`relative h-[200px] w-[200px] shrink-0 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${wide}`}
     >
       <div className="absolute inset-0 overflow-hidden rounded-[64px]">
@@ -180,12 +242,7 @@ function TeamCard({
           {name}
         </p>
       </div>
-      <TicketTab
-        placement="top"
-        ink
-        label={role}
-        labelPx={roleLabelSize(role)}
-      />
+      <TicketTab placement="top" ink label={ticket.text} labelPx={ticket.px} maxWidth={160} />
     </article>
   );
 }
