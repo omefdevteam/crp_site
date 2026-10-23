@@ -116,7 +116,7 @@ test("social links are one English-only entry each, with plain labels and help",
     assert.equal(leaf.english, "");
     assert.equal(leaf.format, "link");
     assert.equal(sectionLabel(leaf.section), "Social links");
-    assert.match(copyHelp("social", leaf.key), /https:\/\/.*every language.*empty to hide/);
+    assert.match(copyHelp("social", leaf.key), /https:\/\/.*every language.*empty to show the .* icon in the footer without a link/);
   }
   assert.equal(copyHelp("page", "hero.line1Accent"), null);
   assert.ok(catalog.parseCopyRef({ catalog: "social", locale: "en", key: "instagram" }));
@@ -189,7 +189,7 @@ function footerMarkup(social, locale = "en") {
   return { html: renderToStaticMarkup(React.createElement(Footer)), getInTouch: messages[locale].footer.getInTouch };
 }
 
-test("the footer shows only icons with a valid link, opening in a new tab, in every locale", () => {
+test("the footer links only icons with a valid link, opening in a new tab, in every locale", () => {
   const social = {
     instagram: "https://www.instagram.com/crp",
     linkedin: "",
@@ -207,25 +207,33 @@ test("the footer shows only icons with a valid link, opening in a new tab, in ev
     }
     assert.match(html, /aria-label="Instagram"/);
     assert.match(html, /aria-label="Discord"/);
-    for (const hidden of ["LinkedIn", "X", "YouTube", "TikTok"]) assert.doesNotMatch(html, new RegExp(`aria-label="${hidden}"`), hidden);
-    for (const icon of ["linkedin", "x", "youtube", "tiktok"]) assert.doesNotMatch(html, new RegExp(`/icons/social/${icon}\\.svg`), icon);
+    // Networks without a valid link still show, as a plain tile that isn't a link.
+    for (const plain of ["LinkedIn", "X", "YouTube", "TikTok"]) assert.match(html, new RegExp(`<span role="img" aria-label="${plain}"`), plain);
+    for (const icon of ["linkedin", "x", "youtube", "tiktok"]) assert.match(html, new RegExp(`/icons/social/${icon}\\.svg`), icon);
     assert.doesNotMatch(html, /javascript:|http:\/\/x\.com/);
     assert.ok(html.includes(getInTouch), locale);
   }
 });
 
-test("the footer hides every empty link, and the Get in touch row when none are set", () => {
-  const { html, getInTouch } = footerMarkup({});
-  assert.doesNotMatch(html, /\/icons\/social\//);
-  assert.doesNotMatch(html, /target="_blank"/);
-  assert.equal(html.includes(getInTouch), false);
-  const empty = footerMarkup({ instagram: "", linkedin: "", x: "", youtube: "", tiktok: "", discord: "" });
-  assert.doesNotMatch(empty.html, /\/icons\/social\//);
+test("the footer shows all six icons and Get in touch, without links, when none are set", () => {
+  for (const social of [{}, { instagram: "", linkedin: "", x: "", youtube: "", tiktok: "", discord: " " }]) {
+    for (const locale of locales) {
+      const { html, getInTouch } = footerMarkup(social, locale);
+      assert.ok(html.includes(getInTouch), locale);
+      for (const key of SOCIAL_KEYS) assert.match(html, new RegExp(`/icons/social/${key}\\.svg`), key);
+      assert.equal([...html.matchAll(/<span role="img" aria-label="/g)].length, 6, locale);
+      assert.doesNotMatch(html, /target="_blank"/);
+      assert.doesNotMatch(html, /<a href="https:/);
+    }
+  }
 
   const footer = loader(nextMocks)("components/Footer.tsx");
-  assert.deepEqual(footer.visibleSocials({ x: "https://x.com/crp", tiktok: " " }).map((item) => [item.key, item.href]), [["x", "https://x.com/crp"]]);
+  assert.deepEqual(
+    footer.footerSocials({ x: "https://x.com/crp", tiktok: " ", youtube: "http://youtube.com/crp" }).map((item) => [item.key, item.href]),
+    [["instagram", null], ["linkedin", null], ["x", "https://x.com/crp"], ["youtube", null], ["tiktok", null], ["discord", null]],
+  );
   const all = Object.fromEntries(SOCIAL_KEYS.map((key) => [key, `https://${key}.example.org/crp`]));
-  assert.deepEqual(footer.visibleSocials(all).map((item) => item.key), [...SOCIAL_KEYS]);
+  assert.deepEqual(footer.footerSocials(all).map((item) => item.href), SOCIAL_KEYS.map((key) => `https://${key}.example.org/crp`));
 });
 
 test("the editor shows a social link as one labelled input with a help line", async () => {

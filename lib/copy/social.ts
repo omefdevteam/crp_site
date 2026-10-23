@@ -6,7 +6,7 @@ export const SOCIAL_KEYS = ["instagram", "linkedin", "x", "youtube", "tiktok", "
 export type SocialKey = (typeof SOCIAL_KEYS)[number];
 export type SocialLinks = Readonly<Partial<Record<SocialKey, string>>>;
 
-/** Bundled defaults: empty means the icon is hidden until a link is published. */
+/** Bundled defaults: empty means the icon shows without a link until one is published. */
 export const SOCIAL_DEFAULTS: Readonly<Record<SocialKey, string>> = {
   instagram: "",
   linkedin: "",
@@ -23,7 +23,7 @@ export type SocialLinkCheck =
   | { readonly ok: false; readonly reason: "too-long" | "not-https" | "not-a-link" };
 
 /**
- * Empty (or only spaces) is allowed and means "hide the icon". Anything else
+ * Empty (or only spaces) is allowed and means "show the icon without a link". Anything else
  * must be an absolute https:// address the URL parser accepts, with a real
  * host name and no user name or password in it. javascript:, data:, http:
  * and every other scheme are refused.
