@@ -220,6 +220,7 @@ function ApplyFooter() {
       <div className="flex flex-col items-center justify-between gap-10 desk:flex-row desk:items-start desk:gap-0">
         <Logo
           tone="color"
+          loading="lazy"
           imgClassName="mx-auto h-12 w-auto object-contain desk:mx-0 desk:h-[121px] desk:w-[341px] desk:object-left"
         />
         {/* Mobile: titles and links wrap at spaces (e.g. "Informations légales") so the row never

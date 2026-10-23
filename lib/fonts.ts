@@ -1,5 +1,4 @@
 import { Geist, Outfit } from "next/font/google";
-import localFont from "next/font/local";
 
 export const outfit = Outfit({
   variable: "--font-outfit",
@@ -16,10 +15,15 @@ export const geist = Geist({
   preload: false,
 });
 
-export const trail = localFont({
-  src: "../public/TrailFree-p7ARD.otf",
-  display: "swap",
-  adjustFontFallback: "Times New Roman",
-  // Only used below the fold, so skip the preload and its unused-preload warning.
-  preload: false,
-});
+/**
+ * Trail display face. Declared by hand in app/globals.css (not next/font) so it
+ * has one stable URL that the pages whose main heading is set in Trail can
+ * preload (<TrailPreload />). With next/font a preloaded copy gets its own
+ * hashed URL, so a per-page preload would download the font twice.
+ * globals.css also holds the size-adjusted fallbacks that keep fitted titles
+ * inside their edges until Trail arrives.
+ */
+export const trail = { className: "font-trail" } as const;
+
+/** Public URL of the Trail file; keep in sync with app/globals.css and next.config.ts. */
+export const TRAIL_SRC = "/TrailFree-p7ARD.otf";
