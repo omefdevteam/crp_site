@@ -402,7 +402,7 @@ export function copyHelp(catalog: CatalogId, key: string): string | null {
   if (catalog !== "social") return null;
   const name = SOCIAL_NAMES[key];
   if (!name) return null;
-  return `Paste the full address of our ${name} page, starting with https://. It is used in every language. Leave it empty to hide the ${name} icon in the footer.`;
+  return `Paste the full address of our ${name} page, starting with https://. It is used in every language. Leave it empty to show the ${name} icon in the footer without a link.`;
 }
 
 // Heading of the version-history panel. A single-value section (social links)

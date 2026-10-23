@@ -23,8 +23,9 @@ const SECTION_HREFS = [
 
 /**
  * Profile links come from Website text > Social links (one value for every
- * language). An icon shows only when its link is set and is a safe https://
- * address; empty or bad values are left out.
+ * language). All six icons always show. A network whose link is set and is a
+ * safe https:// address renders as a link; an empty or bad value renders as a
+ * plain, non-clickable tile.
  */
 const SOCIAL: readonly { key: SocialKey; name: string; icon: string }[] = [
   { key: "instagram", name: "Instagram", icon: "/icons/social/instagram.svg" },
@@ -35,12 +36,9 @@ const SOCIAL: readonly { key: SocialKey; name: string; icon: string }[] = [
   { key: "discord", name: "Discord", icon: "/icons/social/discord.svg" },
 ];
 
-/** The icons to show, in footer order: only networks with a valid https link. */
-export function visibleSocials(links: SocialLinks): { key: SocialKey; name: string; icon: string; href: string }[] {
-  return SOCIAL.flatMap((item) => {
-    const href = socialHref(links[item.key]);
-    return href ? [{ ...item, href }] : [];
-  });
+/** Every icon, in footer order, with its link (null when none is set or it isn't a valid https link). */
+export function footerSocials(links: SocialLinks): { key: SocialKey; name: string; icon: string; href: string | null }[] {
+  return SOCIAL.map((item) => ({ ...item, href: socialHref(links[item.key]) }));
 }
 
 const HEADING =
@@ -61,7 +59,7 @@ export function Footer({
   pillSpace?: boolean;
 } = {}) {
   const copy = useCopy();
-  const socials = visibleSocials(useSocialLinks());
+  const socials = footerSocials(useSocialLinks());
   const tr = useText();
   const { openPreferences } = useConsent();
   const year = new Date().getFullYear();
@@ -114,29 +112,37 @@ export function Footer({
               ))}
             </div>
 
-            {socials.length > 0 ? (
-              <div className="flex flex-col gap-3 desk:flex-row desk:items-center desk:justify-end">
-                {/* 69px wraps "GET IN / TOUCH"; a longer word ("MANTENHA-SE") widens it instead of running under the icons. */}
-                <h3 className={`${HEADING} desk:w-[69px] desk:min-w-min`}>{getInTouch}</h3>
-                <ul className="flex w-full desk:w-auto">
-                  {socials.map(({ key, name, icon, href }) => (
-                    // Fewer than six tiles: cap the width so they keep the full-row size.
-                    <li key={key} className={socials.length < SOCIAL.length ? `${TILE} max-w-16` : TILE}>
-                      <a
-                        href={href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={name}
-                        className="flex size-full items-center justify-center rounded-[12px] transition-transform duration-300 hover:scale-105"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={icon} alt="" width={24} height={24} className="size-6" />
-                      </a>
+            <div className="flex flex-col gap-3 desk:flex-row desk:items-center desk:justify-end">
+              {/* 69px wraps "GET IN / TOUCH"; a longer word ("MANTENHA-SE") widens it instead of running under the icons. */}
+              <h3 className={`${HEADING} desk:w-[69px] desk:min-w-min`}>{getInTouch}</h3>
+              <ul className="flex w-full desk:w-auto">
+                {socials.map(({ key, name, icon, href }) => {
+                  const img = (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={icon} alt="" width={24} height={24} className="size-6" />
+                  );
+                  return (
+                    <li key={key} className={TILE}>
+                      {href ? (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={name}
+                          className="flex size-full items-center justify-center rounded-[12px] transition-transform duration-300 hover:scale-105"
+                        >
+                          {img}
+                        </a>
+                      ) : (
+                        <span role="img" aria-label={name} className="flex size-full items-center justify-center">
+                          {img}
+                        </span>
+                      )}
                     </li>
-                  ))}
-                </ul>
-              </div>
-            ) : null}
+                  );
+                })}
+              </ul>
+            </div>
           </div>
         </div>
 

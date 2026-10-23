@@ -151,7 +151,7 @@ function WorkTitle({
 const TICKET_TEXT_MAX = 160 - (19.125 - 2) * 2 - 18 * 2 - 4;
 const TICKET_TYPE = 12;
 
-// Keyed by the English role; both sides are translated through ui-*.json.
+// Keyed by the English role; both sides are translated through ui-*.json (as are the quotes).
 const SHORTER_ROLE: Readonly<Record<string, string>> = {
   "Founder & President": "Founder & Pres.",
   "Executive Producer": "Exec. Producer",
@@ -176,14 +176,19 @@ function sizeToFit(text: string, widthAt: (text: string, px: number) => number):
   return px;
 }
 
-/** A team member with role (and its short form) in the page language. */
+/** A team member with role (and its short form) and quote in the page language. */
 type TeamMember = AboutTeamMember & { shortRole?: string };
 
 function useTeam(): TeamMember[] {
   const tr = useText();
   return aboutTeam.map((member) => {
     const shorter = SHORTER_ROLE[member.role];
-    return { ...member, role: tr(member.role), shortRole: shorter === undefined ? undefined : tr(shorter) };
+    return {
+      ...member,
+      role: tr(member.role),
+      quote: tr(member.quote),
+      shortRole: shorter === undefined ? undefined : tr(shorter),
+    };
   });
 }
 

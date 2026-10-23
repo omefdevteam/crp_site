@@ -286,7 +286,7 @@ export function mergePage(published: PublishedCopy, locale: Locale): Messages {
 /**
  * Footer social links: the published value, else the bundled default (empty).
  * Each one is checked again here, so a value that isn't a safe https link
- * never reaches the page; such a link is left out and its icon stays hidden.
+ * never reaches the page; such a link is left out and its icon shows without a link.
  */
 export function socialLinks(published: PublishedCopy): SocialLinks {
   const values: Record<string, string> = { ...SOCIAL_DEFAULTS };

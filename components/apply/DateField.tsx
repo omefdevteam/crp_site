@@ -151,7 +151,7 @@ export function DateField({
             className={
               lg
                 ? LABEL_LG
-                : `${LABEL} ${mobileTall ? "max-desk:text-[12px] max-desk:tracking-[0.48px]" : ""}`
+                : `${LABEL} desk:whitespace-nowrap ${mobileTall ? "max-desk:text-[12px] max-desk:tracking-[0.48px]" : ""}`
             }
           >
             {tr("*D.O.B")}

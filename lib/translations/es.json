@@ -308,7 +308,7 @@
         "3 encuentros individuales con un mentor",
         "3 sesiones para desarrollar una propuesta concreta que llevar a la cumbre"
       ],
-      "antalyaLead": "En Antalya, los embajadores seleccionados recibirán",
+      "antalyaLead": "En Antalya, las personas seleccionadas recibirán",
       "antalya": [
         "Viaje y alojamiento cubiertos",
         "Dietas diarias",
@@ -358,7 +358,7 @@
         {
           "title": "4 semanas",
           "badge": "En línea",
-          "description": "Antes de la COP recibirás formación en narración, políticas públicas, negociación y medios. Algunos embajadores participan exclusivamente en línea y siguen plenamente integrados en los proyectos del pabellón y en la red que construimos juntos."
+          "description": "Antes de la COP recibirás formación en narración, políticas públicas, negociación y medios. Algunas personas del programa participan exclusivamente en línea y siguen plenamente integradas en los proyectos del pabellón y en la red que construimos en común."
         },
         {
           "title": "1 semana en Antalya",
@@ -405,12 +405,12 @@
         {
           "date": "14 OCT. – 16 NOV.",
           "label": "Decisión",
-          "body": "Te comunicaremos la decisión por correo electrónico. Si no resultas seleccionado en esta convocatoria, te propondremos otras formas de participar."
+          "body": "Te comunicaremos la decisión por correo electrónico. Si tu solicitud no resulta seleccionada en esta convocatoria, te propondremos otras formas de participar."
         },
         {
           "date": "14 OCT. – 16 NOV.",
           "label": "Entrevista y documentación",
-          "body": "Si resultas seleccionado, organizaremos una llamada individual. Después recibirás por correo las instrucciones para enviar tu pasaporte y firmar el consentimiento de viaje."
+          "body": "Si tu solicitud resulta seleccionada, organizaremos una llamada individual. Después recibirás por correo las instrucciones para enviar tu pasaporte y firmar el consentimiento de viaje."
         },
         {
           "date": "14 OCT. – 16 NOV.",
@@ -433,7 +433,7 @@
         },
         {
           "q": "¿Tengo que viajar a la COP31 para participar?",
-          "a": "No. Algunos embajadores participan exclusivamente en línea y siguen plenamente integrados en los proyectos del pabellón y en nuestra red."
+          "a": "No. Algunas personas del programa participan exclusivamente en línea y siguen plenamente integradas en los proyectos del pabellón y en nuestra red."
         },
         {
           "q": "¿Qué cubre la beca?",
@@ -445,7 +445,7 @@
         },
         {
           "q": "¿Cómo es el proceso de solicitud?",
-          "a": "Envías tu solicitud, participas en una primera entrevista si quedas preseleccionado y recibes una decisión por correo. Si resultas seleccionado, sigues con una llamada individual, la documentación y el consentimiento de viaje antes de confirmar tu modalidad."
+          "a": "Envías tu solicitud, participas en una primera entrevista si pasas la preselección y recibes una decisión por correo. Si tu solicitud resulta seleccionada, sigues con una llamada individual, la documentación y el consentimiento de viaje antes de confirmar tu modalidad."
         },
         {
           "q": "¿Qué actividades realizaré?",
@@ -453,7 +453,7 @@
         },
         {
           "q": "¿Qué ocurre después de presentar la solicitud?",
-          "a": "Te enviaremos la decisión por correo. Si resultas seleccionado, completarás las entrevistas y la documentación, participarás en las 3 semanas de formación y seguirás conectado a través de proyectos y de la red después de la cumbre. Si no, te propondremos otras formas de participar."
+          "a": "Te enviaremos la decisión por correo. Si tu solicitud resulta seleccionada, completarás las entrevistas y la documentación, participarás en las 3 semanas de formación y mantendrás el contacto a través de proyectos y de la red después de la cumbre. Si no, te propondremos otras formas de participar."
         },
         {
           "q": "¿Con quién puedo contactar si tengo preguntas?",
@@ -464,7 +464,7 @@
     "testimonials": [
       {
         "role": "Director\nde programa",
-        "quote": "«Esta iniciativa ofrece a jóvenes defensores del clima herramientas esenciales para la COP31»."
+        "quote": "«Esta iniciativa ofrece a jóvenes que defienden el clima herramientas esenciales para la COP31»."
       },
       {
         "role": "Programas\njuveniles",
@@ -472,7 +472,7 @@
       },
       {
         "role": "Programas\nfrancófonos",
-        "quote": "«Esta iniciativa ofrece a jóvenes defensores del clima herramientas esenciales para la COP31»."
+        "quote": "«Esta iniciativa ofrece a jóvenes que defienden el clima herramientas esenciales para la COP31»."
       }
     ]
   },
@@ -480,8 +480,8 @@
     "title": "Programa de Jóvenes Embajadores",
     "subtitle": "Unimos voces de todo el mundo",
     "location": "COP31, Antalya, Turquía",
-    "headline": "Como embajador, nos acompañarás en el camino hacia la protección jurídica de los refugiados climáticos.",
-    "body": "Representarás a tu comunidad, abrirás conversaciones sobre la movilidad climática y conectarás con participantes de todo el mundo. Juntos reforzaremos tus habilidades, daremos voz a tus ideas y contribuiremos a soluciones para la movilidad climática.",
+    "headline": "Como parte del programa, nos acompañarás en el camino hacia la protección jurídica de las personas refugiadas por el clima.",
+    "body": "Representarás a tu comunidad, abrirás conversaciones sobre la movilidad climática y conectarás con participantes de todo el mundo. En equipo, reforzaremos tus habilidades, daremos voz a tus ideas y contribuiremos a soluciones para la movilidad climática.",
     "benefits": {
       "travel": "Viaje, visado, alojamiento y dietas totalmente cubiertos",
       "accreditationBefore": "Acreditación oficial de la CMNUCC y acceso al pabellón de la ",
@@ -508,8 +508,8 @@
   },
   "nominateLanding": {
     "title": "Proponer a alguien para el Programa de Jóvenes Embajadores",
-    "headline": "Los embajadores nos acompañan en el camino hacia la protección jurídica de los refugiados climáticos.",
-    "body": "Representan a sus comunidades, abren conversaciones sobre la movilidad climática y conectan con participantes de todo el mundo. Juntos reforzamos sus habilidades, damos voz a sus ideas y contribuimos a soluciones para la movilidad climática."
+    "headline": "Quienes participan en el programa nos acompañan en el camino hacia la protección jurídica de las personas refugiadas por el clima.",
+    "body": "Representan a sus comunidades, abren conversaciones sobre la movilidad climática y conectan con participantes de todo el mundo. En equipo, reforzamos sus habilidades, damos voz a sus ideas y contribuimos a soluciones para la movilidad climática."
   },
   "privacyPage": {
     "title": "Privacy policy",
@@ -544,7 +544,7 @@
       "description": "Solicita una plaza en el Programa de Jóvenes Embajadores en Antalya o muestra tu interés en oportunidades para otras edades."
     },
     "nominate": {
-      "title": "Proponer candidatos al Programa de Jóvenes Embajadores",
+      "title": "Proponer candidaturas al Programa de Jóvenes Embajadores",
       "description": "Propón a una persona de 19 a 26 años para el Programa de Jóvenes Embajadores del Climate Refugee Pavilion en Antalya."
     },
     "contact": {

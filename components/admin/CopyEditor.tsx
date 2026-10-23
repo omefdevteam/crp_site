@@ -154,7 +154,7 @@ export function CopyEditor({
                   value="reset"
                   pendingLabel="Resetting"
                   title="Go back to the default text?"
-                  message={single ? "The link is removed and its icon is hidden. You can restore it from earlier versions." : "Your edits to this language are replaced. You can restore them from earlier versions."}
+                  message={single ? "The link is removed and its icon shows without a link. You can restore it from earlier versions." : "Your edits to this language are replaced. You can restore them from earlier versions."}
                   confirmLabel="Reset"
                 >
                   Reset to default
