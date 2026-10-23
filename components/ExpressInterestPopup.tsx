@@ -84,40 +84,24 @@ function CheckIcon() {
 /**
  * Outer fills available space as a square; inner stays at the 536² Figma layout
  * and scales uniformly so input width (442), padding (40), and radius (48/154)
- * shrink together.
+ * shrink together. The parent is a size container, so the edge is
+ * min(parent width, parent height, 536) in CSS and tan(atan2(edge, 536px)) is the
+ * scale: right on the frame the popup opens (a JS-measured size painted at 536 first).
  */
+const EDGE = `min(100cqw, 100cqh, ${DESIGN}px)`;
+
 function ScaledInterestCard({ children }: { children: ReactNode }) {
-  const outerRef = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState(DESIGN);
-
-  useEffect(() => {
-    const el = outerRef.current;
-    const parent = el?.parentElement;
-    if (!el || !parent) return;
-    const measure = () => {
-      const avail = Math.min(parent.clientWidth, parent.clientHeight, DESIGN);
-      if (avail > 0) setSize(avail);
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(parent);
-    return () => ro.disconnect();
-  }, []);
-
-  const scale = size / DESIGN;
-
   return (
     <div
-      ref={outerRef}
       className="relative mx-auto shrink-0"
-      style={{ width: size, height: size }}
+      style={{ width: EDGE, height: EDGE }}
     >
       <div
         className="absolute left-0 top-0 overflow-hidden"
         style={{
           width: DESIGN,
           height: DESIGN,
-          transform: `scale(${scale})`,
+          transform: `scale(tan(atan2(${EDGE}, ${DESIGN}px)))`,
           transformOrigin: "top left",
           borderRadius: 154,
         }}
@@ -265,7 +249,7 @@ export function ExpressInterestPopup({
           </button>
         </div>
 
-        <div className="flex min-h-0 w-full flex-1 items-center justify-center">
+        <div className="flex min-h-0 w-full flex-1 items-center justify-center [container-type:size]">
           <ScaledInterestCard>
             <Image
               src="/images/apply/interest-bg.jpg"

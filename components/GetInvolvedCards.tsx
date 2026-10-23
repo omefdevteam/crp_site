@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  type FormEvent,
-  type ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type FormEvent, type ReactNode, useState } from "react";
 import { motion, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "@/components/LocaleLink";
@@ -33,6 +27,10 @@ const REVEAL =
 /**
  * Outer box fills available space; inner stays at the 536² Figma layout and
  * scales uniformly so radius, ticket, type, and CTAs shrink together.
+ * The scale is min(1, outer width / 536), worked out in CSS: an absolute layer
+ * the size of the outer is a container, and tan(atan2(100cqw, 536px)) turns
+ * its width into a plain number. So the card is already the right size on the
+ * frame the popup opens (a JS-measured scale painted at 1× first).
  */
 function ScaledDesignCard({
   className = "",
@@ -43,35 +41,21 @@ function ScaledDesignCard({
   overflowVisible?: boolean;
   children: ReactNode;
 }) {
-  const outerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    const el = outerRef.current;
-    if (!el) return;
-    const measure = () => {
-      const w = el.clientWidth;
-      if (w > 0) setScale(Math.min(1, w / DESIGN));
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
   return (
-    <div ref={outerRef} className={`relative aspect-square ${className}`}>
-      <div
-        className={`absolute left-0 top-0 ${overflowVisible ? "overflow-visible" : "overflow-hidden"}`}
-        style={{
-          width: DESIGN,
-          height: DESIGN,
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          borderRadius: 154,
-        }}
-      >
-        {children}
+    <div className={`relative aspect-square ${className}`}>
+      <div className="absolute inset-0 [container-type:inline-size]">
+        <div
+          className={`absolute left-0 top-0 ${overflowVisible ? "overflow-visible" : "overflow-hidden"}`}
+          style={{
+            width: DESIGN,
+            height: DESIGN,
+            transform: `scale(min(1, tan(atan2(100cqw, ${DESIGN}px))))`,
+            transformOrigin: "top left",
+            borderRadius: 154,
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
