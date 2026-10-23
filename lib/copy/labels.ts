@@ -5,6 +5,7 @@ import type { CatalogId } from "@/lib/copy/catalog";
 // through {n} (and {m} for a second position).
 
 export const SECTION_LABELS: Readonly<Record<string, string>> = {
+  social: "Social links",
   a11y: "Accessibility",
   nav: "Top menu",
   hero: "Home banner",
@@ -365,11 +366,33 @@ const APP_EMAIL: Readonly<Record<string, string>> = {
   next: "Next step: message",
 };
 
+const SOCIAL_NAMES: Readonly<Record<string, string>> = {
+  instagram: "Instagram",
+  linkedin: "LinkedIn",
+  x: "X",
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  discord: "Discord",
+};
+
+const SOCIAL: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(SOCIAL_NAMES).map(([key, name]) => [key, `${name} link`]),
+);
+
 export const KEY_LABELS: Readonly<Record<Exclude<CatalogId, "ui">, Readonly<Record<string, string>>>> = {
   page: PAGE,
   ackEmail: ACK_EMAIL,
   appEmail: APP_EMAIL,
+  social: SOCIAL,
 };
+
+/** A short line under the field, for fields that need one. */
+export function copyHelp(catalog: CatalogId, key: string): string | null {
+  if (catalog !== "social") return null;
+  const name = SOCIAL_NAMES[key];
+  if (!name) return null;
+  return `Paste the full address of our ${name} page, starting with https://. It is used in every language. Leave it empty to hide the ${name} icon in the footer.`;
+}
 
 export function labelPattern(key: string): string {
   return key.replace(/\.\d+(?=\.|$)/g, ".#");

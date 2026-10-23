@@ -16,6 +16,7 @@ const ERRORS: Record<string, string> = {
   placeholders: "Not saved. Keep the words in curly brackets, like {name}, the same as English.",
   "line-break": "An email subject must be one line.",
   "too-long": "Not saved. The text is too long.",
+  link: "Not saved. Use a full web address that starts with https://, for example https://www.instagram.com/ourpage, up to 2048 characters. Leave it empty to hide the icon.",
   conflict: "Someone else changed this text. Reload and try again.",
   missing: "Nothing to publish yet.",
   forbidden: "You can't publish.",
