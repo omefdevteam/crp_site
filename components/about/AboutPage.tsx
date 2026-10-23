@@ -82,7 +82,7 @@ function Glow({
   return (
     <div aria-hidden className={className}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="" src={src} className="absolute max-w-none" style={{ inset }} />
+      <img loading="lazy" decoding="async" alt="" src={src} className="absolute max-w-none" style={{ inset }} />
     </div>
   );
 }
@@ -116,7 +116,7 @@ function GlassOrb({
         style={{ backdropFilter: `blur(${pad * 0.75}px)` }}
       />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img alt="" src={icon} className="relative size-full" style={{ width: pad, height: pad }} />
+      <img loading="lazy" decoding="async" alt="" src={icon} className="relative size-full" style={{ width: pad, height: pad }} />
     </div>
   );
 }
@@ -422,6 +422,8 @@ function MobileWorkCards({ cards }: { cards: readonly WorkCardCopy[] }) {
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
+            loading="lazy"
+            decoding="async"
             alt=""
             src={aboutImages.workRings}
             className="pointer-events-none absolute right-[7.15px] top-[calc(50%-0.56px)] size-[213.848px] max-w-none -translate-y-1/2"
@@ -518,7 +520,7 @@ function MobileHomeBanner({ topics, caption }: { topics: readonly string[]; capt
       <div className="relative flex min-h-0 flex-1 overflow-hidden rounded-[16.9px] bg-white/12 p-1">
         <div className="relative h-full min-w-0 flex-1 overflow-hidden rounded-[14.3px] bg-white">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={aboutImages.homeSlide} alt="" className="absolute inset-0 size-full object-cover" />
+          <img loading="lazy" decoding="async" src={aboutImages.homeSlide} alt="" className="absolute inset-0 size-full object-cover" />
           <div className="pointer-events-none absolute bottom-[-0.5px] left-1/2 h-[130px] w-[385px] -translate-x-1/2 bg-gradient-to-t from-black to-transparent backdrop-blur-[3.9px] [mask-image:linear-gradient(to_top,#000_40%,transparent)]" />
           <p
             aria-hidden
@@ -697,6 +699,8 @@ export function AboutPage() {
                   />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
+                    loading="lazy"
+                    decoding="async"
                     alt=""
                     src={aboutImages.workRings}
                     className="pointer-events-none absolute right-[51px] top-1/2 size-[292px] -translate-y-1/2"
@@ -808,12 +812,16 @@ export function AboutPage() {
               <div className="relative h-full min-h-0 min-w-0 flex-1 overflow-hidden rounded-[44px] bg-white">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src={aboutImages.homeSlide}
                   alt=""
                   className="absolute inset-0 size-full object-cover"
                 />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src={aboutImages.homeSlide}
                   alt=""
                   aria-hidden
