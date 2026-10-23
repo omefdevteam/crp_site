@@ -1,6 +1,7 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useState } from "react";
+import { type FormEvent, type ReactNode, useRef, useState } from "react";
+import { useCssScaleFallback } from "@/lib/cssScale";
 import { motion, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "@/components/LocaleLink";
@@ -41,10 +42,28 @@ function ScaledDesignCard({
   overflowVisible?: boolean;
   children: ReactNode;
 }) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  // Without CSS trig/container units, set the same min(1, width / 536) in JS before paint.
+  useCssScaleFallback(
+    () => layerRef.current,
+    () => {
+      const layer = layerRef.current;
+      const inner = innerRef.current;
+      if (!layer || !inner) return;
+      const w = layer.clientWidth;
+      if (w > 0) inner.style.transform = `scale(${Math.min(1, w / DESIGN)})`;
+    },
+  );
+
   return (
     <div className={`relative aspect-square ${className}`}>
-      <div className="absolute inset-0 [container-type:inline-size]">
+      <div
+        ref={layerRef}
+        className="absolute inset-0 [container-type:inline-size]"
+      >
         <div
+          ref={innerRef}
           className={`absolute left-0 top-0 ${overflowVisible ? "overflow-visible" : "overflow-hidden"}`}
           style={{
             width: DESIGN,

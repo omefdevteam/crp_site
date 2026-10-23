@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { useCssScaleFallback } from "@/lib/cssScale";
 import { trail } from "@/lib/fonts";
 import { submitInterest } from "@/lib/actions";
 import { Turnstile, TURNSTILE_SITE_KEY } from "./Turnstile";
@@ -91,12 +92,32 @@ function CheckIcon() {
 const EDGE = `min(100cqw, 100cqh, ${DESIGN}px)`;
 
 function ScaledInterestCard({ children }: { children: ReactNode }) {
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  // Without CSS trig/container units, measure the parent in JS before paint (the old path).
+  useCssScaleFallback(
+    () => outerRef.current?.parentElement,
+    () => {
+      const outer = outerRef.current;
+      const parent = outer?.parentElement;
+      const inner = innerRef.current;
+      if (!outer || !parent || !inner) return;
+      const avail = Math.min(parent.clientWidth, parent.clientHeight, DESIGN);
+      if (avail <= 0) return;
+      outer.style.width = `${avail}px`;
+      outer.style.height = `${avail}px`;
+      inner.style.transform = `scale(${avail / DESIGN})`;
+    },
+  );
+
   return (
     <div
+      ref={outerRef}
       className="relative mx-auto shrink-0"
       style={{ width: EDGE, height: EDGE }}
     >
       <div
+        ref={innerRef}
         className="absolute left-0 top-0 overflow-hidden"
         style={{
           width: DESIGN,
