@@ -653,6 +653,7 @@ export function AboutPage() {
             pins={teamPins}
             waitForImages={ABOUT_GLOBE_WAIT_IMAGES}
             initialYaw={globeYaw}
+            staticPriority
           />
         </div>
       </section>

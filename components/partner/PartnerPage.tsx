@@ -52,7 +52,7 @@ function WayTile({
       {glow ? (
         <div aria-hidden className={`pointer-events-none absolute ${glowClass}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img loading="lazy" decoding="async" alt="" src={glow} className="absolute max-w-none" style={{ inset: "-36% -31%" }} />
+          <img alt="" src={glow} className="absolute max-w-none" style={{ inset: "-36% -31%" }} />
         </div>
       ) : null}
       <p className="relative text-center text-[13.5px] font-semibold uppercase leading-[0.9] tracking-[0.54px] desk:text-[16px] desk:tracking-[1.28px]">
@@ -291,8 +291,6 @@ export function PartnerPage() {
             <div aria-hidden className="pointer-events-none absolute left-[42px] top-[-166px] h-[317px] w-[348px] desk:left-[-32px] desk:top-[-392px] desk:h-[634px] desk:w-[696px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                loading="lazy"
-                decoding="async"
                 alt=""
                 src={partnerImages.rewardsGlow}
                 className="absolute max-w-none"
