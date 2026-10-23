@@ -9,7 +9,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { localePath, persistLocale, type Locale } from "@/lib/locale";
+import { usePathname } from "next/navigation";
+import { isLocale, localePath, persistLocale, publicPaths, type Locale } from "@/lib/locale";
+import { useHydrated } from "@/lib/useHydrated";
 import type { Messages } from "@/lib/messages";
 import type { UiOverrides } from "@/lib/ui-messages";
 import type { SocialLinks } from "@/lib/copy/social";
@@ -24,6 +26,14 @@ type LanguageContextValue = {
 };
 
 const NO_SOCIAL: SocialLinks = {};
+
+/** The unprefixed public path for a URL path, as the proxy's x-site-path ("/" for anything else). */
+export function sitePath(pathname: string): string {
+  const segments = pathname.split("/");
+  if (isLocale(segments[1])) segments.splice(1, 1);
+  const path = segments.join("/").replace(/\/$/, "") || "/";
+  return (publicPaths as readonly string[]).includes(path) ? path : "/";
+}
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
@@ -43,6 +53,10 @@ export function LanguageProvider({
   children: ReactNode;
 }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
+  // Client-side navigation keeps this provider mounted, so follow the URL once hydrated.
+  const pathname = usePathname();
+  const hydrated = useHydrated();
+  const path = hydrated && pathname ? sitePath(pathname) : initialPath;
 
   const setLocale = useCallback((next: Locale) => {
     persistLocale(next);
@@ -56,8 +70,8 @@ export function LanguageProvider({
   }, [locale]);
 
   const value = useMemo<LanguageContextValue>(
-    () => ({ locale, setLocale, copy, ui, social, path: initialPath }),
-    [locale, setLocale, copy, ui, social, initialPath],
+    () => ({ locale, setLocale, copy, ui, social, path }),
+    [locale, setLocale, copy, ui, social, path],
   );
 
   return (

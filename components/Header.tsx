@@ -4,8 +4,8 @@ import { useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { mobileNavLinks, navLinks } from "@/lib/nav";
 import { LanguageDropdown } from "./LanguageDropdown";
-import { localePath } from "@/lib/locale";
-import { useLanguage, useCopy } from "./LanguageProvider";
+import Link from "@/components/LocaleLink";
+import { useCopy } from "./LanguageProvider";
 import { Logo } from "./Logo";
 
 const TOP_LOCK_PX = 64;
@@ -55,7 +55,6 @@ export function Header({
   mobileLogoTone?: "color";
 }) {
   const copy = useCopy();
-  const { locale } = useLanguage();
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [scrolledUp, setScrolledUp] = useState(false);
@@ -187,13 +186,13 @@ export function Header({
             <ul className="flex flex-col gap-[8px]">
               {mobileNavLinks.map((link) => (
                 <li key={link.href}>
-                  <a
-                    href={localePath(link.href, locale)}
+                  <Link
+                    href={link.href}
                     onClick={() => setOpen(false)}
                     className="flex h-[61px] w-full items-center justify-center text-center text-[14px] font-semibold uppercase leading-[13px] tracking-[0.56px] text-white mix-blend-hard-light transition-colors duration-300 hover:text-white/70 [text-shadow:0_0_4px_rgba(0,0,0,0.25)]"
                   >
                     {copy.nav[link.key]}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -216,15 +215,15 @@ export function Header({
             }`}
           >
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.href}
-                href={localePath(link.href, locale)}
+                href={link.href}
                 className={`whitespace-nowrap ${
                   showPill ? "hover:text-white/80" : "hover:text-black/70"
                 } ${instant ? "" : "transition-colors duration-300"}`}
               >
                 {copy.nav[link.key]}
-              </a>
+              </Link>
             ))}
           </nav>
 
