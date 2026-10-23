@@ -26,6 +26,17 @@ const SPIN_RAD_PER_SEC = (Math.PI * 2) / 60;
 const PITCH_LIMIT = Math.PI / 3;
 const RADIUS = 1;
 const PIN_RADIUS = 1.02;
+const EARTH_TEXTURE = "/textures/earth-tinted.png";
+
+/**
+ * Warm the earth texture through the same loader cache useTexture reads, so a
+ * prefetch and the mounted globe share one request (a plain `new Image()` is a
+ * no-cors fetch, while three loads with crossOrigin="anonymous": two cache
+ * keys, two downloads).
+ */
+export function preloadGlobeTexture(): void {
+  useTexture.preload(EARTH_TEXTURE);
+}
 
 type GlobeProps = {
   visibleGroups: readonly PinGroup[];
@@ -97,7 +108,7 @@ function GlobeScene({
   const projected = useRef(false);
   const reduceMotion = useReducedMotion();
   const { camera, size } = useThree();
-  const colorMap = useTexture("/textures/earth-tinted.png", (texture) => {
+  const colorMap = useTexture(EARTH_TEXTURE, (texture) => {
     // Sampled raw and written straight out, so GLSL needs no sRGB decode/encode.
     texture.colorSpace = NoColorSpace;
     texture.wrapS = RepeatWrapping;
