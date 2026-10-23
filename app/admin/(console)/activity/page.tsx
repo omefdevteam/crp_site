@@ -1,8 +1,12 @@
-import Link from "next/link";
+import type { Metadata } from "next";
+import { Button } from "@/components/admin/Button";
+import { When } from "@/components/admin/When";
 import { card } from "@/components/admin/marks";
 import { loadActivity, parseActivityCursor } from "@/lib/admin/activity";
 import { getDb } from "@/lib/db";
 import { requireStaff } from "@/lib/staff/gate";
+
+export const metadata: Metadata = { title: "Activity" };
 
 export default async function ActivityPage({ searchParams }: { searchParams: Promise<{ at?: string; id?: string }> }) {
   await requireStaff("activity.read");
@@ -10,12 +14,9 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
   const page = await loadActivity(getDb(), parseActivityCursor(params.at, params.id));
   const next = page.next ? `/admin/activity?at=${encodeURIComponent(page.next.at)}&id=${encodeURIComponent(page.next.id)}` : null;
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Activity</h1>
-        <p className="mt-1 max-w-3xl text-sm leading-6 text-black/70">
-          Staff changes, CSV exports, and copy publishes. Editors keep publish history on the copy desk. This page is for admins.
-        </p>
       </div>
       <section className={card}>
         {page.rows.length === 0 ? <p className="text-sm text-black/60">No activity yet.</p> : (
@@ -31,16 +32,20 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
               <tbody>
                 {page.rows.map((row) => (
                   <tr key={row.id}>
-                    <td className="border-t border-black/10 py-2 pr-4">{row.at.slice(0, 16).replace("T", " ")}</td>
-                    <td className="border-t border-black/10 py-2 pr-4">{row.actor}</td>
-                    <td className="border-t border-black/10 py-2">{row.label}</td>
+                    <td className="border-t border-black/10 py-3 pr-4"><When stamp={row.at.slice(0, 16).replace("T", " ")} /></td>
+                    <td className="border-t border-black/10 py-3 pr-4">{row.actor}</td>
+                    <td className="border-t border-black/10 py-3">{row.label}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-        {next ? <Link className="mt-4 inline-block rounded-full text-sm font-semibold underline outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2" href={next}>Older</Link> : null}
+        {next ? (
+          <div className="mt-4">
+            <Button href={next} variant="outline">Older</Button>
+          </div>
+        ) : null}
       </section>
     </div>
   );

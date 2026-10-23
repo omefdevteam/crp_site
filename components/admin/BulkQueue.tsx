@@ -1,21 +1,24 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { confirmBulkAction, previewBulkAction } from "@/app/admin/(console)/records/actions";
 import { AdminSelect } from "@/components/admin/AdminSelect";
-import { focusRing, pill, quiet } from "@/components/admin/marks";
+import { Button } from "@/components/admin/Button";
+import { RecordTable } from "@/components/admin/RecordTable";
+import { ResultLine } from "@/components/admin/ResultLine";
 import type { RecordRow } from "@/lib/admin/records";
+import { languageLabel } from "@/lib/admin/labels";
+import { bulkDecisionKey } from "@/lib/review/bulk-key";
 import type { ConfirmMove } from "@/lib/sync";
 
 const MOVES: readonly { readonly move: ConfirmMove; readonly label: string }[] = [
-  { move: { field: "reviewDecision", value: "accept", to: "accepted" }, label: "Accept to Accepted" },
-  { move: { field: "reviewDecision", value: "reject", to: "rejected" }, label: "Reject to Rejected" },
-  { move: { field: "reviewDecision", value: "reject", to: "online_offered" }, label: "Reject to Online offered" },
-  { move: { field: "interviewOutcome", value: "yes", to: "interview_yes" }, label: "Interview yes" },
-  { move: { field: "interviewOutcome", value: "no", to: "rejected" }, label: "Interview no to Rejected" },
-  { move: { field: "interviewOutcome", value: "no", to: "online_offered" }, label: "Interview no to Online offered" },
+  { move: { field: "reviewDecision", value: "accept", to: "accepted" }, label: "Accept" },
+  { move: { field: "reviewDecision", value: "reject", to: "rejected" }, label: "Reject (online applicants)" },
+  { move: { field: "reviewDecision", value: "reject", to: "online_offered" }, label: "Reject, offer an online place (in-person applicants)" },
+  { move: { field: "interviewOutcome", value: "yes", to: "interview_yes" }, label: "Passed interview" },
+  { move: { field: "interviewOutcome", value: "no", to: "rejected" }, label: "Did not pass interview, reject" },
+  { move: { field: "interviewOutcome", value: "no", to: "online_offered" }, label: "Did not pass interview, offer an online place" },
 ];
 
 const RESULT: Record<string, string> = {
@@ -25,9 +28,9 @@ const RESULT: Record<string, string> = {
   not_found: "Not found",
   unchanged: "Unchanged",
   replayed: "Already confirmed",
-  conflict: "Conflict",
-  staff_held: "Held",
-  staff_kept: "Kept",
+  conflict: "Changed elsewhere",
+  staff_held: "On hold",
+  staff_kept: "Kept as is",
 };
 
 export function BulkQueue({ headers, rows }: { headers: readonly string[]; rows: readonly RecordRow[] }) {
@@ -40,8 +43,9 @@ export function BulkQueue({ headers, rows }: { headers: readonly string[]; rows:
   const [counts, setCounts] = useState<{ apply: number; stale: number; notAllowed: number; notFound: number } | null>(null);
   const [languages, setLanguages] = useState<readonly { language: string; apply: number }[]>([]);
   const [decisionIds, setDecisionIds] = useState<Record<string, string>>({});
-  const [results, setResults] = useState<readonly { applicantId: string; result: string }[]>([]);
+  const [results, setResults] = useState<readonly { applicantId: string; result: string; name: string }[]>([]);
   const choice = MOVES[moveIndex]?.move;
+  const names = new Map(rows.map((row) => [row.id, row.cells[0] ?? ""]));
   const picked = rows.filter((row) => selected.includes(row.id) && typeof row.version === "number" && typeof row.reviewCycle === "number");
   const key = `${picked.map((row) => `${row.id}:${row.version}`).sort().join(",")}::${choice ? `${choice.field}:${choice.value}:${choice.to}` : ""}`;
   const ready = Boolean(choice && picked.length > 0 && previewKey === key && counts);
@@ -56,8 +60,13 @@ export function BulkQueue({ headers, rows }: { headers: readonly string[]; rows:
     const requested = key;
     const ticket = ++request.current;
     setPending(true);
+    // One id per row, version, and move. Confirming the same choice again
+    // replays it, and a different choice later on this page gets its own id.
     const ids = { ...decisionIds };
-    for (const row of picked) if (!ids[row.id]) ids[row.id] = crypto.randomUUID();
+    for (const row of picked) {
+      const slot = bulkDecisionKey(row.id, row.version as number, row.reviewCycle as number, choice);
+      if (!ids[slot]) ids[slot] = crypto.randomUUID();
+    }
     setDecisionIds(ids);
     try {
       const result = await previewBulkAction({
@@ -68,7 +77,7 @@ export function BulkQueue({ headers, rows }: { headers: readonly string[]; rows:
       if (result.result !== "ready") {
         setPreviewKey("");
         setCounts(null);
-        setNotice(result.result === "forbidden" ? "Your role cannot confirm a decision." : "Select at most 50 applicants.");
+        setNotice(result.result === "forbidden" ? "You don't have permission to confirm a decision." : "Select at most 50 applicants.");
         return;
       }
       setPreviewKey(requested);
@@ -92,15 +101,15 @@ export function BulkQueue({ headers, rows }: { headers: readonly string[]; rows:
           applicantId: row.id,
           version: row.version,
           reviewCycle: row.reviewCycle,
-          decisionId: decisionIds[row.id],
+          decisionId: decisionIds[bulkDecisionKey(row.id, row.version as number, row.reviewCycle as number, choice)],
         })),
       });
       if (request.current !== ticket) return;
       if (result.result !== "done") {
-        setNotice(result.result === "forbidden" ? "Your role cannot confirm a decision." : "That confirmation could not be read.");
+        setNotice(result.result === "forbidden" ? "You don't have permission to confirm a decision." : "That confirmation could not be read.");
         return;
       }
-      setResults(result.rows);
+      setResults(result.rows.map((row) => ({ ...row, name: names.get(row.applicantId) ?? "" })));
       setPreviewKey("");
       setCounts(null);
       router.refresh();
@@ -112,35 +121,19 @@ export function BulkQueue({ headers, rows }: { headers: readonly string[]; rows:
   return (
     <div>
       {rows.length === 0 ? <p className="mt-3 text-sm text-black/60">Nothing matches these filters.</p> : (
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full min-w-[40rem] text-left text-sm">
-            <thead>
-              <tr>
-                <th scope="col" className="pb-2 font-semibold">Select</th>
-                {headers.map((header) => <th key={header} scope="col" className="pb-2 font-semibold">{header}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id}>
-                  <td className="border-t border-black/10 py-2 pr-4">
-                    <input
-                      type="checkbox"
-                      aria-label={`Select ${row.cells[0] ?? "applicant"}`}
-                      checked={selected.includes(row.id)}
-                      onChange={() => toggle(row.id)}
-                    />
-                  </td>
-                  {row.cells.map((cell, index) => (
-                    <td key={`${row.id}-${index}`} className="border-t border-black/10 py-2 pr-4">
-                      {index === 0 && row.href ? <Link className={`font-semibold underline ${focusRing}`} href={row.href}>{cell}</Link> : cell}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <RecordTable
+          list="applicants"
+          headers={headers}
+          rows={rows}
+          leading={(row) => (
+            <input
+              type="checkbox"
+              aria-label={`Select ${row.cells[0] ?? "applicant"}`}
+              checked={selected.includes(row.id)}
+              onChange={() => toggle(row.id)}
+            />
+          )}
+        />
       )}
       <div className="mt-4 grid gap-3">
         <label className="grid gap-1 text-sm font-semibold">
@@ -153,19 +146,19 @@ export function BulkQueue({ headers, rows }: { headers: readonly string[]; rows:
           />
         </label>
         <div className="flex flex-wrap gap-2">
-          <button className={quiet} type="button" onClick={onPreview} disabled={pending || picked.length === 0}>Preview counts</button>
-          <button className={pill} type="button" onClick={onConfirm} disabled={!ready || pending}>Confirm</button>
+          <Button variant="outline" type="button" onClick={onPreview} disabled={pending || picked.length === 0}>Preview</Button>
+          <Button variant="primary" type="button" onClick={onConfirm} disabled={!ready || pending}>Confirm</Button>
         </div>
         {counts && previewKey === key ? (
           <p className="text-sm text-black/70">
-            {counts.apply} will apply, {counts.stale} are out of date, {counts.notAllowed} cannot move, {counts.notFound} were not found.
-            {languages.length > 0 ? ` ${languages.map((item) => `${item.language} ${item.apply}`).join(", ")}.` : ""}
+            {counts.apply} will move, {counts.stale} changed since you opened this page, {counts.notAllowed} can&apos;t make this move, {counts.notFound} not found.
+            {languages.length > 0 ? ` ${languages.map((item) => `${languageLabel(item.language)} ${item.apply}`).join(", ")}.` : ""}
           </p>
         ) : null}
-        {notice ? <p className="text-sm">{notice}</p> : null}
+        <ResultLine message={notice} tone="warn" />
         {results.length > 0 ? (
           <ul className="grid gap-1 text-sm">
-            {results.map((row) => <li key={row.applicantId}>{RESULT[row.result] ?? row.result}</li>)}
+            {results.map((row) => <li key={row.applicantId}>{row.name ? `${row.name}: ` : ""}{RESULT[row.result] ?? row.result}</li>)}
           </ul>
         ) : null}
       </div>

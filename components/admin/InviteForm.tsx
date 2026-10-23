@@ -4,19 +4,21 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminSelect } from "@/components/admin/AdminSelect";
 import { SubmitButton } from "@/components/admin/SubmitButton";
-import { field, pill } from "@/components/admin/marks";
+import { Button, buttonClass } from "@/components/admin/Button";
+import { ResultLine } from "@/components/admin/ResultLine";
+import { field } from "@/components/admin/marks";
 import { USER_ROLES } from "@/lib/staff/roles";
 import { inviteAction, type InviteState } from "@/app/admin/(console)/staff/actions";
 
 const NOTICES: Record<string, string> = {
-  invited: "Invite recorded.",
-  "mail-failed": "The account was created, but the message did not send. Invite them again.",
-  resent: "A fresh link was issued.",
+  invited: "Invite sent.",
+  "mail-failed": "The account was added, but the email did not send. Invite them again.",
+  resent: "A new invite was sent.",
   "role-differs": "That person already has a different role. Change it from the list.",
   disabled: "That account is disabled.",
   "already-staff": "That person has already signed in.",
   "rate-limited": "Too many invites. Try again later.",
-  forbidden: "Your role cannot invite staff.",
+  forbidden: "You don't have permission to invite staff.",
   invalid: "Enter an email and a role.",
 };
 
@@ -42,9 +44,9 @@ export function InviteForm() {
         Role
         <AdminSelect id="staff-role" name="role" defaultValue="editor" options={USER_ROLES.map((role) => ({ value: role, label: role }))} />
       </label>
-      <SubmitButton className={pill} pendingLabel="Sending">Invite</SubmitButton>
-      {state ? <p className="text-sm desk:col-span-3">{NOTICES[state.notice] ?? state.notice}</p> : null}
-      {state?.devLink ? <p className="text-sm desk:col-span-3"><a className="font-semibold underline" href={state.devLink}>Open the invite link</a></p> : null}
+      <SubmitButton className={buttonClass("primary")} pendingLabel="Sending">Invite</SubmitButton>
+      <ResultLine message={state ? NOTICES[state.notice] ?? state.notice : null} tone={state?.notice === "invited" || state?.notice === "resent" ? "ok" : "warn"} />
+      {state?.devLink ? <div className="desk:col-span-3"><Button href={state.devLink} variant="outline" size="sm">Open the invite link</Button></div> : null}
     </form>
   );
 }

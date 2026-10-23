@@ -12,7 +12,8 @@ const load = loader({
   "next/link": {
     __esModule: true,
     default(props) {
-      return React.createElement("a", { href: props.href }, props.children);
+      const { href, children, ...rest } = props;
+      return React.createElement("a", { href, ...rest }, children);
     },
   },
   "next/navigation": {
@@ -54,7 +55,9 @@ function copyRow(key, english, french) {
   return {
     catalog: "page",
     key,
+    label: `Menu: ${english}`,
     section: "nav",
+    sectionLabel: "Top menu",
     english,
     digest: "digest",
     cells: [cell("en", english), cell("fr", french)],
@@ -187,44 +190,26 @@ async function settle() {
   });
 }
 
-test("a play started for one applicant does not block or fill the next applicant", async () => {
+test("a play started for one applicant does not fill the next applicant", async () => {
   const { PrivateMedia } = load("components/admin/PrivateMedia.tsx");
-  const original = global.fetch;
-  const pending = [];
-  global.fetch = (url) => new Promise((resolve) => {
-    const id = String(url).match(/applicants\/([^/]+)\/open/)[1];
-    pending.push(() => resolve({
-      ok: true,
-      json: async () => ({ url: `/admin/records/applicants/${id}/stream/tok.en` }),
-    }));
-  });
   const media = await render(React.createElement(PrivateMedia, { applicantId: "applicant-a", view: clip("intro") }));
   try {
     await act(async () => { document.querySelector("button").click(); });
+    assert.match(document.querySelector("video").src, /applicant-a\/media\/answer\/intro$/);
     await media.rerender(React.createElement(PrivateMedia, { applicantId: "applicant-b", view: clip("intro") }));
-    await act(async () => { document.querySelector("button").click(); });
-    assert.equal(pending.length, 2);
-    await act(async () => { pending[0](); });
-    await settle();
     assert.equal(document.querySelector("video"), null);
-    await act(async () => { pending[1](); });
+    await act(async () => { document.querySelector("button").click(); });
     await settle();
     assert.match(document.querySelector("video").src, /applicant-b/);
     assert.doesNotMatch(document.querySelector("video").src, /applicant-a/);
   } finally {
-    global.fetch = original;
     await media.unmount();
   }
 });
 
 test("the media player and document card drop the previous applicant", async () => {
   const { PrivateMedia, DocumentReveal } = load("components/admin/PrivateMedia.tsx");
-  const original = global.fetch;
   let applicant = "applicant-a";
-  global.fetch = async () => ({
-    ok: true,
-    json: async () => ({ url: `/admin/records/applicants/${applicant}/stream/tok.en` }),
-  });
   const media = await render(React.createElement(PrivateMedia, { applicantId: applicant, view: clip("intro") }));
   const documentView = await render(React.createElement(DocumentReveal, {
     applicantId: applicant,
@@ -250,11 +235,14 @@ test("the media player and document card drop the previous applicant", async () 
     assert.match(document.querySelector("video").src, /applicant-b/);
     assert.doesNotMatch(document.querySelector("video").src, /applicant-a/);
   } finally {
-    global.fetch = original;
     await media.unmount();
     await documentView.unmount();
   }
 });
+
+function emptyList() {
+  return { list: "applicants", q: "", status: "", track: "", language: "", cycle: "", age: "", queue: "", attention: "", page: 1 };
+}
 
 function applicantReview(id, score, assigneeId) {
   return {
@@ -322,7 +310,7 @@ test("review fields, notes, and the email preview belong to the applicant on scr
   }));
   const decision = await render(React.createElement(DecisionPanel, {
     review: applicantReview("applicant-a", 2, "ada"),
-    queue: "",
+    listQuery: emptyList(),
     canConfirm: true,
     decisionId: "decision-a",
     statusLabel: { accepted: "Accepted" },
@@ -344,7 +332,7 @@ test("review fields, notes, and the email preview belong to the applicant on scr
     }));
     await decision.rerender(React.createElement(DecisionPanel, {
       review: applicantReview("applicant-b", 5, "bea"),
-      queue: "",
+      listQuery: emptyList(),
       canConfirm: true,
       decisionId: "decision-b",
       statusLabel: { accepted: "Accepted" },
@@ -379,10 +367,13 @@ test("a desk note and assignee do not carry to the next record", async () => {
       ],
       notes: [],
       fields: [{ label: "Email", value: `${id}@example.com` }],
+      createdAt: new Date("2026-01-02T03:04:00.000Z"),
     };
   }
+  const nav = { listHref: "/admin/records?list=nominations", backLabel: "Back to nominations", previous: null, next: null };
   const view = await render(React.createElement(DeskView, {
     detail: detail("record-a", "ada"),
+    ...nav,
     noteId: "note-a",
     noteAction: action,
     moveAction: action,
@@ -393,6 +384,7 @@ test("a desk note and assignee do not carry to the next record", async () => {
     assert.equal(document.querySelector("input[name=assigneeId]").value, "ada");
     await view.rerender(React.createElement(DeskView, {
       detail: detail("record-b", "bea"),
+      ...nav,
       noteId: "note-b",
       noteAction: action,
       moveAction: action,
@@ -466,5 +458,114 @@ test("record filters show the address, and a select follows a new value from the
   } finally {
     await records.unmount();
     await select.unmount();
+  }
+});
+
+test("button variants mark the control, and a disabled link stays a button", async () => {
+  const { Button } = load("components/admin/Button.tsx");
+  const variants = ["primary", "solid", "outline", "ghost", "danger"];
+  const view = await render(React.createElement(
+    "div",
+    null,
+    variants.map((variant) => React.createElement(Button, { key: variant, variant, type: "button" }, variant)),
+    React.createElement(Button, { href: "/admin/records", disabled: true, variant: "outline" }, "End"),
+  ));
+  try {
+    for (const variant of variants) {
+      const button = [...document.querySelectorAll("button")].find((item) => item.textContent === variant);
+      assert.equal(button?.getAttribute("data-variant"), variant);
+      assert.equal(button?.tagName, "BUTTON");
+    }
+    const end = [...document.querySelectorAll("button")].find((item) => item.textContent === "End");
+    assert.equal(end?.disabled, true);
+    assert.equal(end?.tagName, "BUTTON");
+    assert.equal(document.querySelector("a[href='/admin/records']"), null);
+  } finally {
+    await view.unmount();
+  }
+});
+
+test("the applicant header keeps the filtered list and disables a missing neighbor", async () => {
+  const { ApplicantReviewView } = load("components/admin/ApplicantReviewView.tsx");
+  const listQuery = { ...emptyList(), q: "ayat", status: "submitted", page: 2 };
+  const review = {
+    ...applicantReview("ayat", 1, "ada"),
+    fullName: "Ayat Aberwil",
+    email: "ayat@example.com",
+    track: "in_person",
+    language: "en",
+    reviewCycle: 0,
+    prevHref: null,
+    nextHref: "/admin/records/applicants/next?q=ayat&status=submitted&page=2",
+  };
+  const view = await render(React.createElement(ApplicantReviewView, {
+    review,
+    listQuery,
+    canWrite: false,
+    canAssign: false,
+    canConfirm: false,
+    reviewers: [],
+    viewerId: "viewer",
+    noteId: "note",
+    decisionId: "decision",
+  }));
+  try {
+    const back = document.querySelector("a[aria-label='Back to applicants']");
+    assert.equal(back?.getAttribute("href"), "/admin/records?list=applicants&q=ayat&status=submitted&page=2");
+    assert.equal(back?.getAttribute("data-variant"), "outline");
+    const previous = [...document.querySelectorAll("button")].find((button) => button.textContent?.includes("Previous"));
+    assert.equal(previous?.disabled, true);
+    const next = [...document.querySelectorAll("a")].find((link) => link.textContent?.includes("Next"));
+    assert.equal(next?.getAttribute("href"), review.nextHref);
+    assert.match(document.body.textContent ?? "", /In person/);
+    assert.match(document.body.textContent ?? "", /English/);
+    assert.doesNotMatch(document.body.textContent ?? "", /Cycle 0/);
+    assert.match(document.body.textContent ?? "", /ayat@example.com/);
+    assert.equal(document.querySelector("a[href='mailto:ayat@example.com']"), null);
+    assert.equal(document.querySelector("a[href^='tel:']"), null);
+    assert.equal((document.body.textContent ?? "").match(/\b(Email|Copy|Call)\b/), null);
+  } finally {
+    await view.unmount();
+  }
+});
+
+test("a dismissed notice comes back after the message clears and is set again", async () => {
+  const { ResultLine } = load("components/admin/ResultLine.tsx");
+  const view = await render(React.createElement(ResultLine, { message: "Saved." }));
+  try {
+    assert.match(document.body.textContent ?? "", /Saved/);
+    const dismiss = [...document.querySelectorAll("button")].find((button) => button.textContent === "Dismiss");
+    await act(async () => { dismiss.click(); });
+    assert.doesNotMatch(document.body.textContent ?? "", /Saved/);
+    await view.rerender(React.createElement(ResultLine, { message: null }));
+    await view.rerender(React.createElement(ResultLine, { message: "Saved." }));
+    assert.match(document.body.textContent ?? "", /Saved/);
+  } finally {
+    await view.unmount();
+  }
+});
+
+test("the applicant timeline uses status names", async () => {
+  const { ApplicantReviewView } = load("components/admin/ApplicantReviewView.tsx");
+  const review = {
+    ...applicantReview("ayat", 1, "ada"),
+    events: [{ at: "2026-10-22 18:40", actor: "Ada", from: "submitted", to: "under_review", reason: "Opened" }],
+  };
+  const view = await render(React.createElement(ApplicantReviewView, {
+    review,
+    listQuery: emptyList(),
+    canWrite: false,
+    canAssign: false,
+    canConfirm: false,
+    reviewers: [],
+    viewerId: "viewer",
+    noteId: "note",
+    decisionId: "decision",
+  }));
+  try {
+    assert.match(document.body.textContent ?? "", /Submitted to Under review/);
+    assert.doesNotMatch(document.body.textContent ?? "", /under_review/);
+  } finally {
+    await view.unmount();
   }
 });

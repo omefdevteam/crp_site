@@ -15,12 +15,15 @@ import { can } from "@/lib/staff/roles";
 import { isUserId, type UserId } from "@/lib/staff/users";
 import type { DeskId } from "@/lib/desk/case";
 import {
+  CONSTRAINT_FIELD,
+  CONTACT_FIELDS,
   CONTACT_LIMITS,
   CONTACT_RATE,
   CONTACT_STATUS_LABEL,
   NEW_MESSAGE_STATUS,
   applyAssign,
   applyContactVerb,
+  charLength,
   contactEmailDedupeKey,
   contactRateScopes,
   deskStateOf,
@@ -37,6 +40,7 @@ import {
   turnstileTokenOf,
   verbsFor,
   type ContactAddress,
+  type ContactField,
   type ContactIntake,
   type ContactStatus,
   type ContactSubmitResult,
@@ -55,13 +59,20 @@ const knownDials = COUNTRIES.map((country) => country.dial);
 
 function parseContactEmail(value: unknown): ContactAddress | null {
   if (typeof value !== "string") return null;
-  const parsed = z.string().trim().max(CONTACT_LIMITS.emailMax).transform(normalizeEmail).pipe(z.email()).safeParse(value);
-  if (!parsed.success || parsed.data.length < CONTACT_LIMITS.emailMin) return null;
+  const parsed = z.string().trim().max(CONTACT_LIMITS.emailMax * 2).transform(normalizeEmail).pipe(z.email()).safeParse(value);
+  if (!parsed.success) return null;
+  // Measured after lowercasing, on the exact string the insert stores, in code points like char_length.
+  const length = charLength(parsed.data);
+  if (length < CONTACT_LIMITS.emailMin || length > CONTACT_LIMITS.emailMax) return null;
   return parsed.data as ContactAddress;
 }
 
-export function parseContactIntake(raw: unknown, dials: readonly string[] = knownDials): ContactIntake | null {
-  if (!raw || typeof raw !== "object") return null;
+export type ContactValidation =
+  | { readonly ok: true; readonly intake: ContactIntake }
+  | { readonly ok: false; readonly fields: readonly ContactField[] };
+
+export function validateContactIntake(raw: unknown, dials: readonly string[] = knownDials): ContactValidation {
+  if (!raw || typeof raw !== "object") return { ok: false, fields: [...CONTACT_FIELDS] };
   const record = raw as Record<string, unknown>;
   const name = parseContactName(record.name);
   const organization = parseOrganization(record.organization);
@@ -69,23 +80,57 @@ export function parseContactIntake(raw: unknown, dials: readonly string[] = know
   const dial = parseDial(record.dial, dials);
   const national = parseNational(record.nationalNumber);
   const email = parseContactEmail(record.email);
-  if (!name || !organization.ok || !body || !dial || !national || !email) return null;
+  const invalid: Record<ContactField, boolean> = {
+    name: !name,
+    organization: !organization.ok,
+    email: !email,
+    phone: !dial || !national,
+    message: !body,
+  };
+  if (!name || !organization.ok || !body || !dial || !national || !email) {
+    return { ok: false, fields: CONTACT_FIELDS.filter((field) => invalid[field]) };
+  }
   const locale: Locale = typeof record.locale === "string" && isLocale(record.locale) ? record.locale : "en";
   return {
-    name,
-    organization: organization.value,
-    email,
-    phone: formatPhone(dial, national),
-    body,
-    locale,
+    ok: true,
+    intake: {
+      name,
+      organization: organization.value,
+      email,
+      phone: formatPhone(dial, national),
+      body,
+      locale,
+    },
   };
+}
+
+export function parseContactIntake(raw: unknown, dials: readonly string[] = knownDials): ContactIntake | null {
+  const result = validateContactIntake(raw, dials);
+  return result.ok ? result.intake : null;
+}
+
+// The parsers above mirror every CHECK on contact_messages, so this is a backstop:
+// if one still trips, the visitor gets that field's error instead of "did not send".
+export function checkViolationField(err: unknown): ContactField | null {
+  const seen = new Set<unknown>();
+  let current: unknown = err;
+  while (current && typeof current === "object" && !seen.has(current)) {
+    seen.add(current);
+    const { code, constraint } = current as { code?: unknown; constraint?: unknown };
+    if (code === "23514" && typeof constraint === "string" && Object.hasOwn(CONSTRAINT_FIELD, constraint)) {
+      return CONSTRAINT_FIELD[constraint];
+    }
+    current = "cause" in current ? (current as { cause?: unknown }).cause : undefined;
+  }
+  return null;
 }
 
 export async function acceptContactMessage(db: Db, raw: unknown, ip: string): Promise<ContactSubmitResult> {
   if (honeypotFilled(raw)) return { ok: true };
   if (!(await verifyTurnstile(turnstileTokenOf(raw), ip))) return { ok: false, reason: "turnstile" };
-  const intake = parseContactIntake(raw);
-  if (!intake) return { ok: false, reason: "invalid" };
+  const validation = validateContactIntake(raw);
+  if (!validation.ok) return { ok: false, reason: "invalid", fields: validation.fields };
+  const { intake } = validation;
   const scopes = contactRateScopes();
   const [ipOk, emailOk] = await Promise.all([
     rateLimit(scopes.ip, ip, CONTACT_RATE.perIp, CONTACT_RATE.windowSeconds),
@@ -93,23 +138,29 @@ export async function acceptContactMessage(db: Db, raw: unknown, ip: string): Pr
   ]);
   if (!ipOk || !emailOk) return { ok: false, reason: "rate_limited" };
   const sources = await loadEmailSources();
-  await db.transaction(async (tx) => {
-    const [row] = await tx.insert(contactMessages).values({
-      name: intake.name,
-      email: intake.email,
-      organization: intake.organization,
-      phone: intake.phone,
-      body: intake.body,
-      locale: intake.locale,
-    }).returning({ id: contactMessages.id });
-    const id = row.id as MessageId;
-    await enqueueEmail(
-      tx,
-      contactEmailDedupeKey(id),
-      { to: intake.email, ...contactEmail(intake.name, intake.locale, sources) },
-      CONTACT_EMAIL_TEMPLATE,
-    );
-  });
+  try {
+    await db.transaction(async (tx) => {
+      const [row] = await tx.insert(contactMessages).values({
+        name: intake.name,
+        email: intake.email,
+        organization: intake.organization,
+        phone: intake.phone,
+        body: intake.body,
+        locale: intake.locale,
+      }).returning({ id: contactMessages.id });
+      const id = row.id as MessageId;
+      await enqueueEmail(
+        tx,
+        contactEmailDedupeKey(id),
+        { to: intake.email, ...contactEmail(intake.name, intake.locale, sources) },
+        CONTACT_EMAIL_TEMPLATE,
+      );
+    });
+  } catch (err) {
+    const field = checkViolationField(err);
+    if (field) return { ok: false, reason: "invalid", fields: [field] };
+    throw err;
+  }
   return { ok: true };
 }
 
@@ -252,18 +303,7 @@ export async function listMessages(
   viewer: { readonly role: string },
 ): Promise<{ readonly rows: readonly MessageListRow[]; readonly total: number }> {
   if (query.status && !isContactStatus(query.status)) return { rows: [], total: 0 };
-  const where = and(
-    query.status && isContactStatus(query.status) ? eq(contactMessages.status, query.status) : undefined,
-    query.q
-      ? or(
-          matches(contactMessages.name, query.q),
-          matches(contactMessages.email, query.q),
-          matches(contactMessages.organization, query.q),
-          matches(contactMessages.phone, query.q),
-          matches(contactMessages.body, query.q),
-        )
-      : undefined,
-  );
+  const where = messageWhere(query);
   const [rows, totals] = await Promise.all([
     db
       .select({
@@ -372,6 +412,51 @@ export async function loadMessage(db: Store, actor: { readonly role: string }, i
     }),
     createdAt: row.createdAt,
   };
+}
+
+export async function adjacentMessageIds(
+  db: Store,
+  query: { readonly q: string; readonly status: string },
+  current: { readonly id: string; readonly createdAt: Date },
+): Promise<{ readonly previous: string | null; readonly next: string | null }> {
+  if (query.status && !isContactStatus(query.status)) return { previous: null, next: null };
+  const where = messageWhere(query);
+  const [previous, next] = await Promise.all([
+    messageStep(db, where, current, "prev"),
+    messageStep(db, where, current, "next"),
+  ]);
+  return { previous, next };
+}
+
+async function messageStep(
+  db: Store,
+  where: SQL | undefined,
+  current: { readonly id: string; readonly createdAt: Date },
+  direction: "prev" | "next",
+): Promise<string | null> {
+  const closer = direction === "prev"
+    ? or(sql`${contactMessages.createdAt} > ${current.createdAt}`, and(eq(contactMessages.createdAt, current.createdAt), sql`${contactMessages.id} > ${current.id}`))
+    : or(sql`${contactMessages.createdAt} < ${current.createdAt}`, and(eq(contactMessages.createdAt, current.createdAt), sql`${contactMessages.id} < ${current.id}`));
+  const order = direction === "prev"
+    ? [asc(contactMessages.createdAt), asc(contactMessages.id)]
+    : [desc(contactMessages.createdAt), desc(contactMessages.id)];
+  const [row] = await db.select({ id: contactMessages.id }).from(contactMessages).where(and(where, closer)).orderBy(...order).limit(1);
+  return row && isUserId(row.id) ? row.id : null;
+}
+
+function messageWhere(query: { readonly q: string; readonly status: string }): SQL | undefined {
+  return and(
+    query.status && isContactStatus(query.status) ? eq(contactMessages.status, query.status) : undefined,
+    query.q
+      ? or(
+          matches(contactMessages.name, query.q),
+          matches(contactMessages.email, query.q),
+          matches(contactMessages.organization, query.q),
+          matches(contactMessages.phone, query.q),
+          matches(contactMessages.body, query.q),
+        )
+      : undefined,
+  );
 }
 
 export async function countNewMessages(db: Store): Promise<number> {

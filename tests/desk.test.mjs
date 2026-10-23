@@ -409,7 +409,7 @@ test("detail hides date of birth and videoask, and hides controls the viewer can
   assert.equal(reviewerDetail.canAssign, false);
   assert.deepEqual(reviewerDetail.moves, []);
   assert.deepEqual(reviewerDetail.assignees, []);
-  assert.equal(reviewerDetail.fields.find((field) => field.label === "Intake status").value, "new");
+  assert.equal(reviewerDetail.fields.find((field) => field.label === "Nominee status").value, "new");
   const packed = JSON.stringify(reviewerDetail);
   assert.equal(packed.includes("1991-02-03"), false);
   assert.equal(packed.includes("secret.example"), false);
@@ -439,6 +439,9 @@ test("desk controls stay hidden when the viewer cannot use them, and the form do
       useLayoutEffect: () => {},
     },
     "next/link": (props) => ({ type: "a", props }),
+    "next/navigation": {
+      useRouter: () => ({ push() {}, refresh() {}, replace() {} }),
+    },
   });
   const { DeskView } = viewLoad("components/admin/DeskView.tsx");
   const detail = {
@@ -453,9 +456,9 @@ test("desk controls stay hidden when the viewer cannot use them, and the form do
     canAssign: false,
     assignees: [],
     notes: [],
-    fields: [{ label: "Intake status", value: "new" }],
+    fields: [{ label: "Nominee status", value: "new" }],
   };
-  const actions = { noteAction() {}, moveAction() {}, assignAction() {} };
+  const actions = { noteAction() {}, moveAction() {}, assignAction() {}, listHref: "/admin/records?list=nominations", backLabel: "Back to nominations", previous: null, next: null };
   const reviewer = DeskView({ detail, noteId: "note-1", ...actions });
   const reviewerNames = fieldNames(reviewer);
   assert.equal(reviewerNames.includes("desk"), false);
