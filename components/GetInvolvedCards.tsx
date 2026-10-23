@@ -19,8 +19,11 @@ const CARD = "group relative aspect-square overflow-hidden";
 const CARD_SHELL = "group relative aspect-square";
 const SECTION_SIZE =
   "rounded-[88px] desk:rounded-blob-lg desk:mx-auto desk:w-full";
+// Phones stack the popup cards as equal squares (Figma 2308:858) and the dialog
+// scrolls. shrink-0 stops the column flex squeezing the overflow-hidden Partner
+// card below its aspect-square height. Desktop keeps the default shrink.
 const POPUP_SHELL =
-  "mx-auto w-full max-w-[536px] desk:mx-0 desk:h-full desk:max-h-[536px] desk:w-auto desk:max-w-[min(536px,50%)]";
+  "mx-auto w-full max-w-[536px] shrink-0 desk:shrink desk:mx-0 desk:h-full desk:max-h-[536px] desk:w-auto desk:max-w-[min(536px,50%)]";
 
 const REVEAL =
   "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none";
