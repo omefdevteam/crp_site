@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "@/components/LocaleLink";
 import { useCopy } from "../LanguageProvider";
@@ -64,19 +63,7 @@ function WayTile({
 }
 
 function PartnerHero({ title }: { title: string }) {
-  const frame = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
   const mobileTitleRef = useFitText<HTMLHeadingElement>(title);
-
-  useEffect(() => {
-    const el = frame.current;
-    if (!el) return;
-    const measure = () => setScale(el.clientWidth / 1200);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   return (
     <section className="overflow-hidden bg-cream">
@@ -97,25 +84,23 @@ function PartnerHero({ title }: { title: string }) {
           {title}
         </h1>
       </div>
-      <div ref={frame} className="relative hidden w-full desk:block" style={{ height: 654 * scale }}>
-        <div
-          className="absolute left-0 top-0 h-[654px] w-[1200px] origin-top-left bg-cream"
-          style={{ transform: `scale(${scale})` }}
+      {/* The 1200×654 design scales with the page width. Sizes are in cqw of this
+          frame (1cqw = 12 design px at 1200), so the first paint is already at the
+          right scale; the old JS-measured transform painted at 1× until hydration. */}
+      <div className="relative hidden aspect-[1200/654] w-full bg-cream [container-type:inline-size] desk:block">
+        <Image
+          src={partnerImages.heroPhoto}
+          alt=""
+          width={1200}
+          height={558}
+          priority
+          className="absolute left-0 top-0 h-[46.5cqw] w-full rounded-b-[12.8333cqw] object-cover"
+        />
+        <h1
+          className={`${trail.className} absolute left-[13.0833cqw] top-[17.5cqw] w-[73.8333cqw] text-center text-[length:10.8333cqw] uppercase leading-[0.9] tracking-[0.4333cqw] text-white`}
         >
-          <Image
-            src={partnerImages.heroPhoto}
-            alt=""
-            width={1200}
-            height={558}
-            priority
-            className="absolute left-0 top-0 h-[558px] w-[1200px] rounded-bl-[154px] rounded-br-[154px] object-cover"
-          />
-          <h1
-            className={`${trail.className} absolute left-[157px] top-[210px] w-[886px] text-center text-[130px] uppercase leading-[0.9] tracking-[5.2px] text-white`}
-          >
-            {title}
-          </h1>
-        </div>
+          {title}
+        </h1>
       </div>
     </section>
   );
