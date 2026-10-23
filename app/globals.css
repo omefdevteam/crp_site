@@ -106,6 +106,21 @@ body {
   font-weight: 600;
 }
 
+/*
+ * First-paint size for display headings (see lib/fitSize.ts): the design size
+ * (--fit-max), or smaller when the widest word (--fit-em wide plus --fit-n
+ * letters of tracking) would overflow --fit-room. 1.01 matches useFitText.
+ */
+@utility fit-text {
+  font-size: min(
+    var(--fit-max),
+    calc(
+      (var(--fit-room) * 1.01 - var(--fit-n) * var(--fit-track-px, 0px)) /
+        (var(--fit-em) + var(--fit-n) * var(--fit-track-em, 0))
+    )
+  );
+}
+
 /* Youth ambassador page is authored at the 1690px Figma frame. */
 .apply-canvas {
   width: 100%;
