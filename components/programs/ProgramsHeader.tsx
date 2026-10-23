@@ -2,6 +2,7 @@
 
 import Link from "@/components/LocaleLink";
 import { programIcons } from "@/lib/program-assets";
+import { LanguageDropdown } from "../LanguageDropdown";
 import { LanguageSwitch } from "../LanguageSwitch";
 import { useCopy } from "../LanguageProvider";
 import { Logo } from "../Logo";
@@ -12,7 +13,7 @@ export function ProgramsHeader() {
   const copy = useCopy();
   return (
     <div className="absolute inset-x-0 top-0 z-30">
-      <div className="mx-auto flex h-[68px] max-w-[1200px] items-center justify-between px-8 desk:h-auto desk:px-16 desk:py-6">
+      <div className="mx-auto flex h-[68px] max-w-[1200px] items-center justify-between px-8 max-[379px]:px-5 desk:h-auto desk:px-16 desk:py-6">
         <Link
           href="/"
           aria-label={copy.a11y.back}
@@ -30,14 +31,18 @@ export function ProgramsHeader() {
           </span>
         </Link>
 
-        <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 [&>a]:pointer-events-auto">
           <Logo
             tone="light"
             imgClassName="h-7 w-auto desk:h-12"
           />
         </div>
 
-        <div className="flex items-center gap-1 desk:gap-2">
+        {/* Mobile: four locale buttons (216px) don't fit beside the centred logo, so use the
+            71×27 compact pill from the mobile site header (Figma 2282:11269). Desktop keeps the
+            full switch; `desk:contents` leaves its flex layout untouched. Controls sit above the
+            logo so nothing can cover them. */}
+        <div className="relative z-30 flex items-center gap-1 desk:gap-2">
           <button
             type="button"
             aria-label={copy.a11y.discord}
@@ -53,7 +58,12 @@ export function ProgramsHeader() {
             />
           </button>
 
-          <LanguageSwitch />
+          <div className="desk:hidden">
+            <LanguageDropdown variant="compact" />
+          </div>
+          <div className="hidden desk:contents">
+            <LanguageSwitch />
+          </div>
         </div>
       </div>
     </div>
