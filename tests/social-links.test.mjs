@@ -23,6 +23,7 @@ const nextMocks = {
   "next/navigation": {
     redirect: (url) => { throw new Error(`redirect ${url}`); },
     useRouter: () => ({ refresh() {}, push() {}, replace() {} }),
+    usePathname: () => "/admin/copy",
   },
   "next/link": {
     __esModule: true,
@@ -262,4 +263,41 @@ test("the editor shows a social link as one labelled input with a help line", as
     await act(async () => root.unmount());
     host.remove();
   }
+});
+
+test("the version history of a social link is headed for all languages; other sections keep the language", async () => {
+  load("lib/copy/draftState.ts").clearCopyDrafts();
+  const { historyLabel } = load("lib/copy/labels.ts");
+  assert.equal(historyLabel("social", "English"), "All languages: earlier versions");
+  for (const id of ["page", "ui", "ackEmail", "appEmail"]) assert.equal(historyLabel(id, "French"), "French: earlier versions", id);
+
+  const { CopyDesk } = load("components/admin/CopyDesk.tsx");
+  const head = (revision, value) => ({ revision, value, translatedFrom: null, createdAt: new Date("2026-10-23T09:00:00Z"), authorId: null, authorEmail: "editor@example.org", revertedFrom: null });
+  const cellOf = (locale, value, kind) => ({ locale, revision: 2, value, draft: null, override: false, state: { kind } });
+  const social = {
+    catalog: "social", key: "instagram", label: "Instagram link", help: null, section: "social", sectionLabel: "Social links",
+    english: "", digest: "d", cells: [cellOf("en", "https://www.instagram.com/b", "source")],
+  };
+  const page = {
+    catalog: "page", key: "nav.about", label: "Menu: About", help: null, section: "nav", sectionLabel: "Top menu",
+    english: "About", digest: "d", cells: [cellOf("en", "About", "source"), cellOf("fr", "À propos", "current")],
+  };
+  const summaries = async (row, history) => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const root = createRoot(host);
+    await act(async () => {
+      root.render(React.createElement(CopyDesk, { catalog: row.catalog, scopeAll: false, query: "", needsReview: false, reviewCount: 0, rows: [row], selected: row, history }));
+    });
+    try {
+      return [...host.querySelectorAll("details > summary")].map((node) => node.textContent).filter((text) => text.endsWith("earlier versions"));
+    } finally {
+      await act(async () => root.unmount());
+      host.remove();
+    }
+  };
+  const socialHistory = await summaries(social, { en: [head(2, "https://www.instagram.com/b"), head(1, "https://www.instagram.com/a")] });
+  assert.deepEqual(socialHistory, ["All languages: earlier versions"]);
+  const pageHistory = await summaries(page, { en: [head(2, "About"), head(1, "About us")], fr: [head(2, "À propos"), head(1, "A propos")] });
+  assert.deepEqual(pageHistory, ["English: earlier versions", "French: earlier versions"]);
 });

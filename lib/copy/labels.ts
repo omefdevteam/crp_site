@@ -394,6 +394,12 @@ export function copyHelp(catalog: CatalogId, key: string): string | null {
   return `Paste the full address of our ${name} page, starting with https://. It is used in every language. Leave it empty to hide the ${name} icon in the footer.`;
 }
 
+// Heading of the version-history panel. A single-value section (social links)
+// has one value for every language, so it is not named after a language.
+export function historyLabel(catalog: CatalogId, languageName: string): string {
+  return catalog === "social" ? "All languages: earlier versions" : `${languageName}: earlier versions`;
+}
+
 export function labelPattern(key: string): string {
   return key.replace(/\.\d+(?=\.|$)/g, ".#");
 }

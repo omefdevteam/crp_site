@@ -7,6 +7,7 @@ import { ConfirmSubmit, SubmitButton } from "@/components/admin/SubmitButton";
 import { lineDiff } from "@/lib/copy/diff";
 import { CATALOGS, type CatalogId } from "@/lib/copy/catalog";
 import { languageLabel } from "@/lib/admin/labels";
+import { historyLabel } from "@/lib/copy/labels";
 import { When } from "@/components/admin/When";
 import type { CopyRow, Head } from "@/lib/copy/editor";
 import { REVIEW_CAP } from "@/lib/copy/editor";
@@ -166,7 +167,7 @@ function History({
   if (rows.length === 0) return null;
   return (
     <details className={card}>
-      <summary className="cursor-pointer text-sm font-semibold">{languageLabel(locale)}: earlier versions</summary>
+      <summary className="cursor-pointer text-sm font-semibold">{historyLabel(row.catalog, languageLabel(locale))}</summary>
       <ul className="mt-2 grid gap-2">
         {rows.map((item, index) => {
           const previous = rows[index + 1];
