@@ -8,6 +8,8 @@ type LogoProps = {
   className?: string;
   imgClassName?: string;
   tone?: "dark" | "light" | "color";
+  /** "lazy" for logos below the fold (the footer), so they aren't preloaded on every page. */
+  loading?: "eager" | "lazy";
 };
 
 const LOCKUP = {
@@ -21,6 +23,7 @@ export function Logo({
   className = "",
   imgClassName,
   tone = "dark",
+  loading,
 }: LogoProps) {
   const tr = useText();
   const heightClass =
@@ -41,6 +44,8 @@ export function Logo({
         alt=""
         width={1006}
         height={378}
+        loading={loading}
+        decoding={loading === "lazy" ? "async" : undefined}
         className={heightClass}
       />
     </Link>

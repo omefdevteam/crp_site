@@ -77,7 +77,7 @@ export function Footer({
       <div className="mx-auto flex max-w-[1152px] flex-col items-center gap-[58px] desk:gap-14">
         <div className="flex w-full flex-col items-center gap-[58px] desk:flex-row">
           <div className="shrink-0 p-[15px] desk:p-[30px]">
-            <Logo tone="color" imgClassName="h-[60px] w-auto desk:h-[120px]" />
+            <Logo tone="color" loading="lazy" imgClassName="h-[60px] w-auto desk:h-[120px]" />
           </div>
 
           <div className="flex w-full min-w-0 flex-col gap-[58px] desk:flex-1">
