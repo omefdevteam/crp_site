@@ -3,7 +3,8 @@
 import Link from "@/components/LocaleLink";
 import { t } from "@/lib/messages";
 import { Logo } from "./Logo";
-import { useCopy } from "./LanguageProvider";
+import { useCopy, useSocialLinks } from "./LanguageProvider";
+import { socialHref, type SocialKey, type SocialLinks } from "@/lib/copy/social";
 import { useConsent } from "./cookies/ConsentProvider";
 import { useText } from "@/lib/ui-text";
 
@@ -20,15 +21,27 @@ const SECTION_HREFS = [
   ["/contact", "/partner", "/#join"],
 ] as const;
 
-/** Profile URLs aren't known yet; a tile renders as a link once its href is set. */
-const SOCIAL: { name: string; icon: string; href: string | null }[] = [
-  { name: "Instagram", icon: "/icons/social/instagram.svg", href: null },
-  { name: "LinkedIn", icon: "/icons/social/linkedin.svg", href: null },
-  { name: "X", icon: "/icons/social/x.svg", href: null },
-  { name: "YouTube", icon: "/icons/social/youtube.svg", href: null },
-  { name: "TikTok", icon: "/icons/social/tiktok.svg", href: null },
-  { name: "Discord", icon: "/icons/social/discord.svg", href: null },
+/**
+ * Profile links come from Website text > Social links (one value for every
+ * language). An icon shows only when its link is set and is a safe https://
+ * address; empty or bad values are left out.
+ */
+const SOCIAL: readonly { key: SocialKey; name: string; icon: string }[] = [
+  { key: "instagram", name: "Instagram", icon: "/icons/social/instagram.svg" },
+  { key: "linkedin", name: "LinkedIn", icon: "/icons/social/linkedin.svg" },
+  { key: "x", name: "X", icon: "/icons/social/x.svg" },
+  { key: "youtube", name: "YouTube", icon: "/icons/social/youtube.svg" },
+  { key: "tiktok", name: "TikTok", icon: "/icons/social/tiktok.svg" },
+  { key: "discord", name: "Discord", icon: "/icons/social/discord.svg" },
 ];
+
+/** The icons to show, in footer order: only networks with a valid https link. */
+export function visibleSocials(links: SocialLinks): { key: SocialKey; name: string; icon: string; href: string }[] {
+  return SOCIAL.flatMap((item) => {
+    const href = socialHref(links[item.key]);
+    return href ? [{ ...item, href }] : [];
+  });
+}
 
 const HEADING =
   "text-[12px] font-semibold uppercase leading-none tracking-[0.96px] text-black desk:text-[14px] desk:tracking-[1.12px]";
@@ -48,6 +61,7 @@ export function Footer({
   pillSpace?: boolean;
 } = {}) {
   const copy = useCopy();
+  const socials = visibleSocials(useSocialLinks());
   const tr = useText();
   const { openPreferences } = useConsent();
   const year = new Date().getFullYear();
@@ -100,36 +114,28 @@ export function Footer({
               ))}
             </div>
 
-            <div className="flex flex-col gap-3 desk:flex-row desk:items-center desk:justify-end">
-              <h3 className={`${HEADING} desk:w-[69px]`}>{getInTouch}</h3>
-              <ul className="flex w-full desk:w-auto">
-                {SOCIAL.map(({ name, icon, href }) => {
-                  const img = (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={icon} alt="" width={24} height={24} className="size-6" />
-                  );
-                  return (
-                    <li key={name} className={TILE}>
-                      {href ? (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={name}
-                          className="flex size-full items-center justify-center rounded-[12px] transition-transform duration-300 hover:scale-105"
-                        >
-                          {img}
-                        </a>
-                      ) : (
-                        <span role="img" aria-label={name} className="flex size-full items-center justify-center">
-                          {img}
-                        </span>
-                      )}
+            {socials.length > 0 ? (
+              <div className="flex flex-col gap-3 desk:flex-row desk:items-center desk:justify-end">
+                <h3 className={`${HEADING} desk:w-[69px]`}>{getInTouch}</h3>
+                <ul className="flex w-full desk:w-auto">
+                  {socials.map(({ key, name, icon, href }) => (
+                    // Fewer than six tiles: cap the width so they keep the full-row size.
+                    <li key={key} className={socials.length < SOCIAL.length ? `${TILE} max-w-16` : TILE}>
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={name}
+                        className="flex size-full items-center justify-center rounded-[12px] transition-transform duration-300 hover:scale-105"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={icon} alt="" width={24} height={24} className="size-6" />
+                      </a>
                     </li>
-                  );
-                })}
-              </ul>
-            </div>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         </div>
 

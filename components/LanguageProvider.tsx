@@ -12,14 +12,18 @@ import {
 import { localePath, persistLocale, type Locale } from "@/lib/locale";
 import type { Messages } from "@/lib/messages";
 import type { UiOverrides } from "@/lib/ui-messages";
+import type { SocialLinks } from "@/lib/copy/social";
 
 type LanguageContextValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   copy: Messages;
   ui: UiOverrides;
+  social: SocialLinks;
   path: string;
 };
+
+const NO_SOCIAL: SocialLinks = {};
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
@@ -28,12 +32,14 @@ export function LanguageProvider({
   initialPath = "/",
   copy,
   ui = {},
+  social = NO_SOCIAL,
   children,
 }: {
   initialLocale: Locale;
   initialPath?: string;
   copy: Messages;
   ui?: UiOverrides;
+  social?: SocialLinks;
   children: ReactNode;
 }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
@@ -50,8 +56,8 @@ export function LanguageProvider({
   }, [locale]);
 
   const value = useMemo<LanguageContextValue>(
-    () => ({ locale, setLocale, copy, ui, path: initialPath }),
-    [locale, setLocale, copy, ui, initialPath],
+    () => ({ locale, setLocale, copy, ui, social, path: initialPath }),
+    [locale, setLocale, copy, ui, social, initialPath],
   );
 
   return (
@@ -69,4 +75,9 @@ export function useLanguage(): LanguageContextValue {
 
 export function useCopy(): Messages {
   return useLanguage().copy;
+}
+
+/** Published footer social links (same for every language). */
+export function useSocialLinks(): SocialLinks {
+  return useLanguage().social;
 }
