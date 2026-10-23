@@ -25,6 +25,7 @@ export function ProgramsHeader() {
               width={16}
               height={16}
               className="size-4 brightness-0 desk:size-6"
+              priority
             />
           </span>
         </Link>
@@ -48,6 +49,7 @@ export function ProgramsHeader() {
               width={20.263}
               height={15.36}
               className="h-[15.36px] w-[20.263px]"
+              priority
             />
           </button>
 
