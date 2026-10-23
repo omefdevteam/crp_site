@@ -10,14 +10,27 @@ import { useLayoutEffect, useRef } from "react";
  * (within 1%, so sub-pixel or tracking overhangs in the English stay as they are).
  *
  * `room` overrides the width to fit into; by default it is the element's own width.
+ *
+ * Elements with the `fit-text` utility (lib/fitSize.ts) already paint near
+ * their fitted size from the server HTML; here they start from the design size
+ * (--fit-max) so the result is exactly what measuring gives, before the next paint.
+ *
+ * Elements sharing a `group` name all take the smallest fitted size among them
+ * (one size for a row of cards).
  */
-export function useFitText<T extends HTMLElement>(text: string, room?: (el: T) => number) {
+export function useFitText<T extends HTMLElement>(
+  text: string,
+  room?: ((el: T) => number) | null,
+  group?: string,
+) {
   const ref = useRef<T>(null);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    if (group) el.dataset.fitGroup = group;
     const fit = () => {
-      el.style.fontSize = "";
+      el.style.fontSize = el.classList.contains("fit-text") ? "var(--fit-max)" : "";
+      delete el.dataset.fitPx;
       if (!el.clientWidth) return; // display:none at this breakpoint
       const width = room ? room(el) : el.clientWidth;
       let px = parseFloat(getComputedStyle(el).fontSize);
@@ -25,6 +38,12 @@ export function useFitText<T extends HTMLElement>(text: string, room?: (el: T) =
         px = Math.floor(px * Math.min(0.98, width / el.scrollWidth) * 10) / 10;
         el.style.fontSize = `${px}px`;
       }
+      if (!group) return;
+      el.dataset.fitPx = String(px);
+      const members = [...document.querySelectorAll<HTMLElement>(`[data-fit-group="${group}"]`)];
+      const sizes = members.map((m) => parseFloat(m.dataset.fitPx ?? "")).filter((n) => n > 0);
+      const shared = Math.min(...sizes);
+      for (const m of members) if (m.dataset.fitPx) m.style.fontSize = `${shared}px`;
     };
     fit();
     const observer = new ResizeObserver(fit);
@@ -36,8 +55,9 @@ export function useFitText<T extends HTMLElement>(text: string, room?: (el: T) =
       live = false;
       observer.disconnect();
       if (room) window.removeEventListener("resize", fit);
+      delete el.dataset.fitPx;
     };
-    // `room` is a module-level function at each call site.
+    // `room` is a module-level function at each call site; `group` is a constant.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
   return ref;

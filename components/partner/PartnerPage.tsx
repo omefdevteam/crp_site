@@ -6,6 +6,7 @@ import Link from "@/components/LocaleLink";
 import { useCopy } from "../LanguageProvider";
 import { trail } from "@/lib/fonts";
 import { partnerImages } from "@/lib/partner-assets";
+import { fitVars } from "@/lib/fitSize";
 import { useFitText } from "@/lib/useFitText";
 
 function ReachOutLink({
@@ -90,7 +91,8 @@ function PartnerHero({ title }: { title: string }) {
         />
         <h1
           ref={mobileTitleRef}
-          className={`${trail.className} relative z-10 w-full text-center text-[90px] uppercase leading-[0.9] tracking-[3.6px] text-white`}
+          className={`${trail.className} fit-text relative z-10 w-full text-center uppercase leading-[0.9] tracking-[3.6px] text-white [--fit-max:90px] [--fit-room:calc(100vw_-_24px)] [--fit-track-px:3.6px]`}
+          style={fitVars(title, "trail", { upper: true })}
         >
           {title}
         </h1>
@@ -205,8 +207,11 @@ function CtaCard({
   fade,
   href,
   imageClass = "left-1/2 top-[92.5px] h-[474px]",
+  rowTitles,
 }: {
   title: string;
+  /** Every title in the row: the cards share one heading size, set by the longest. */
+  rowTitles: readonly string[];
   image: string;
   glow: string;
   glowClass: string;
@@ -217,10 +222,10 @@ function CtaCard({
   /** Mobile photo box (Figma 2282:12411); desktop keeps 612px tall at 163px. */
   imageClass?: string;
 }) {
-  const titleRef = useFitText<HTMLParagraphElement>(title);
+  const titleRef = useFitText<HTMLParagraphElement>(rowTitles.join("\n"), null, "partner-cta");
   return (
     <div
-      className="relative flex h-[371px] flex-none flex-col items-start justify-between overflow-hidden rounded-[64px] p-8 desk:h-full desk:flex-1"
+      className="relative flex h-[371px] flex-none flex-col items-start justify-between overflow-hidden rounded-[64px] p-8 [container-type:inline-size] desk:h-full desk:flex-1"
       style={{ backgroundColor: bg }}
     >
       <div
@@ -243,7 +248,8 @@ function CtaCard({
       />
       <p
         ref={titleRef}
-        className={`relative z-10 w-full text-[40px] leading-none tracking-[-1.6px] desk:text-[64px] desk:leading-[0.8] desk:tracking-[-2.56px] ${titleClass}`}
+        className={`fit-text relative z-10 w-full leading-none tracking-[-1.6px] [--fit-max:40px] [--fit-room:100cqi] [--fit-track-px:-1.6px] desk:leading-[0.8] desk:tracking-[-2.56px] desk:[--fit-max:64px] desk:[--fit-track-px:-2.56px] ${titleClass}`}
+        style={fitVars(rowTitles, "outfit")}
       >
         {title}
       </p>
@@ -255,6 +261,7 @@ function CtaCard({
 export function PartnerPage() {
   const copy = useCopy();
   const p = copy.partnerPage;
+  const ctaTitles = [p.ambassador, p.storyline, p.speaker];
 
   return (
     <div className="bg-cream">
@@ -336,6 +343,7 @@ export function PartnerPage() {
           <OrganizationBand title={p.heroBody} learnMore={p.learnMore} />
           <div className="flex flex-col desk:h-[613px] desk:flex-row">
           <CtaCard
+            rowTitles={ctaTitles}
             title={p.ambassador}
             image={partnerImages.ctaAmbassador}
             glow={partnerImages.glowAmbassador}
@@ -347,6 +355,7 @@ export function PartnerPage() {
             imageClass="left-[calc(50%+0.5px)] top-[92.5px] h-[474px]"
           />
           <CtaCard
+            rowTitles={ctaTitles}
             title={p.storyline}
             image={partnerImages.ctaStoryline}
             glow={partnerImages.glowStoryline}
@@ -358,6 +367,7 @@ export function PartnerPage() {
             imageClass="left-[calc(50%+0.5px)] top-[92.5px] h-[301px]"
           />
           <CtaCard
+            rowTitles={ctaTitles}
             title={p.speaker}
             image={partnerImages.ctaSpeaker}
             glow={partnerImages.glowSpeaker}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import {
   motion,
   useReducedMotion,
@@ -75,15 +75,19 @@ function Collage({
   y,
   reduceMotion,
   cardIndex,
+  offset,
 }: {
   y: MotionValue<number>;
   reduceMotion: boolean;
   cardIndex: number;
+  /** Measured height of the cards above, once known (a long translation can make a card taller). */
+  offset?: number;
 }) {
-  // Same stack in every card, shifted up by N card-heights so the windows align.
-  // % top is relative to this card's height (= one aspect-square step).
+  // Same stack in every card, shifted up by the cards above so the windows align.
+  // Before measuring, % top is relative to this card's height (= one square step).
   const base = reduceMotion ? STACK_TOP : STACK_TOP - BUFFER_TOP.height;
-  const top = `calc(${base}px - ${cardIndex * 100}%)`;
+  const top =
+    offset === undefined ? `calc(${base}px - ${cardIndex * 100}%)` : `${base - offset}px`;
 
   return (
     <motion.div
@@ -165,20 +169,24 @@ function WhatYouGetCard({
   y,
   reduceMotion,
   cardIndex,
+  offset,
 }: {
   card: Card;
   y: MotionValue<number>;
   reduceMotion: boolean;
   cardIndex: number;
+  offset?: number;
 }) {
   // overflow-hidden + radius clips the shared stack to this card's corners;
   // the same parallax y in every card keeps tiles continuous across seams.
+  // Square by default (the before: spacer is as tall as the content box is wide),
+  // but taller when the text needs it, so a long translation is never cut off.
   return (
     <div
-      className={`relative flex aspect-square overflow-hidden rounded-[88px] p-10 desk:rounded-[105px] desk:p-12 ${card.cardClass}`}
+      className={`relative grid overflow-hidden rounded-[88px] p-10 before:col-start-1 before:row-start-1 before:pt-[100%] before:content-[''] desk:rounded-[105px] desk:p-12 ${card.cardClass}`}
     >
-      <Collage y={y} reduceMotion={reduceMotion} cardIndex={cardIndex} />
-      <div className="relative z-10 flex h-full flex-1 flex-col justify-between">
+      <Collage y={y} reduceMotion={reduceMotion} cardIndex={cardIndex} offset={offset} />
+      <div className="relative z-10 col-start-1 row-start-1 flex flex-col justify-between">
         <div className="flex flex-col gap-6 desk:gap-12">
           {card.title ? (
             <h3
@@ -220,6 +228,26 @@ export function ProgramWhatYouGet() {
   const cardsCopy = copy.programs.whatYouGet.cards;
   const stackRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion() === true;
+  const [offsets, setOffsets] = useState<number[] | null>(null);
+
+  useLayoutEffect(() => {
+    const stack = stackRef.current;
+    if (!stack) return;
+    const cards = [...stack.children] as HTMLElement[];
+    const measure = () => {
+      let sum = 0;
+      const next = cards.map((card) => {
+        const above = sum;
+        sum += card.offsetHeight;
+        return above;
+      });
+      setOffsets((prev) => (prev && prev.every((v, i) => v === next[i]) ? prev : next));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    for (const card of cards) observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: stackRef,
@@ -250,6 +278,7 @@ export function ProgramWhatYouGet() {
               y={y}
               reduceMotion={reduceMotion}
               cardIndex={i}
+              offset={offsets?.[i]}
               card={{
                 ...card,
                 title: text.title || undefined,

@@ -4,6 +4,7 @@ import Link from "@/components/LocaleLink";
 import { useCallback, useState } from "react";
 import { useApplyFlowEnabled } from "@/lib/applyFlowGate";
 import { trail } from "@/lib/fonts";
+import { fitVars } from "@/lib/fitSize";
 import { useFitText } from "@/lib/useFitText";
 import {
   AgeSelectionLayout,
@@ -142,7 +143,8 @@ export function ApplyPage() {
               <p
                 ref={moreRef}
                 aria-label={copy.a11y.moreComingSoon}
-                className={`${trail.className} absolute left-6 top-[72px] w-[min(100%-3rem,280px)] text-[80px] uppercase leading-[0.67] tracking-[-0.04em] text-black/32 desk:left-[32px] desk:top-[calc(50%-176.67px)] desk:w-[407px] desk:text-[135.429px] desk:tracking-[-5.4171px]`}
+                className={`${trail.className} fit-text absolute left-6 top-[72px] w-[min(100%-3rem,280px)] uppercase leading-[0.67] tracking-[-0.04em] text-black/32 [--fit-max:80px] [--fit-room:196px] [--fit-track-em:-0.04] desk:left-[32px] desk:top-[calc(50%-176.67px)] desk:w-[407px] desk:tracking-[-5.4171px] desk:[--fit-max:135.429px] desk:[--fit-room:407px] desk:[--fit-track-em:0] desk:[--fit-track-px:-5.4171px]`}
+                style={fitVars(copy.apply.more, "trail", { upper: true })}
               >
                 {copy.apply.more.split("\n").map((line, i) => (
                   <span key={`${line}-${i}`}>

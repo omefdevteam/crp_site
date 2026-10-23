@@ -116,7 +116,8 @@ export function Footer({
 
             {socials.length > 0 ? (
               <div className="flex flex-col gap-3 desk:flex-row desk:items-center desk:justify-end">
-                <h3 className={`${HEADING} desk:w-[69px]`}>{getInTouch}</h3>
+                {/* 69px wraps "GET IN / TOUCH"; a longer word ("MANTENHA-SE") widens it instead of running under the icons. */}
+                <h3 className={`${HEADING} desk:w-[69px] desk:min-w-min`}>{getInTouch}</h3>
                 <ul className="flex w-full desk:w-auto">
                   {socials.map(({ key, name, icon, href }) => (
                     // Fewer than six tiles: cap the width so they keep the full-row size.
