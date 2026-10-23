@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useSyncExternalStore, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "@/components/LocaleLink";
 import { useCopy } from "../LanguageProvider";
@@ -7,6 +8,7 @@ import { trail } from "@/lib/fonts";
 import { partnerImages } from "@/lib/partner-assets";
 import { fitVars } from "@/lib/fitSize";
 import { useFitText } from "@/lib/useFitText";
+import { CSS_SCALE_FEATURES, useCssScaleFallback } from "@/lib/cssScale";
 
 function ReachOutLink({
   href = "/partner/reach-out",
@@ -62,8 +64,59 @@ function WayTile({
   );
 }
 
+// Desktop hero sizes, in cqw of the 1200px design frame (1cqw = 12 design px).
+// Browsers without container units (iOS 15, older Android WebView) drop the
+// cqw values, so each one reads --hero-cqw first: unset on the CSS path, and
+// set to frame width / 100 in px by the fallback below.
+const heroCq = (n: number) => `calc(${n} * var(--hero-cqw, 1cqw))`;
+const HERO_PHOTO: CSSProperties = {
+  height: heroCq(46.5),
+  borderBottomLeftRadius: heroCq(12.8333),
+  borderBottomRightRadius: heroCq(12.8333),
+};
+const HERO_TITLE: CSSProperties = {
+  left: heroCq(13.0833),
+  top: heroCq(17.5),
+  width: heroCq(73.8333),
+  fontSize: heroCq(10.8333),
+  letterSpacing: heroCq(0.4333),
+};
+
+function setHeroCqw(frame: HTMLElement) {
+  const width = frame.getBoundingClientRect().width;
+  if (width) frame.style.setProperty("--hero-cqw", `${width / 100}px`);
+}
+
+// First child of the frame: runs as the server HTML is parsed, before the photo
+// and title exist, so a fallback browser never paints them unscaled (hydration
+// comes much later). The frame's width doesn't depend on its content.
+// Same feature test as lib/cssScale.ts; setHeroCqw inlined.
+const HERO_FALLBACK_SCRIPT = `(function(){var f=document.currentScript&&document.currentScript.parentElement;if(!f)return;try{var C=window.CSS;if(C&&C.supports&&${JSON.stringify(CSS_SCALE_FEATURES)}.every(function(q){return C.supports(q)}))return}catch(e){}var w=f.getBoundingClientRect().width;if(w)f.style.setProperty("--hero-cqw",w/100+"px")})()`;
+
+// True for the server render and hydration only: the inline script is in the
+// server HTML, but a client-side mount (navigation) leaves it out, since React
+// never runs scripts it creates (useCssScaleFallback covers that case).
+const noSubscribe = () => () => {};
+function useServerHtml() {
+  return useSyncExternalStore(
+    noSubscribe,
+    () => false,
+    () => true,
+  );
+}
+
 function PartnerHero({ title }: { title: string }) {
+  const serverHtml = useServerHtml();
   const mobileTitleRef = useFitText<HTMLHeadingElement>(title);
+  const frameRef = useRef<HTMLDivElement>(null);
+  // Fallback only: keep --hero-cqw in step with the frame (resize, or a
+  // client-side navigation where the inline script never ran).
+  useCssScaleFallback(
+    () => frameRef.current,
+    () => {
+      if (frameRef.current) setHeroCqw(frameRef.current);
+    },
+  );
 
   return (
     <section className="overflow-hidden bg-cream">
@@ -86,18 +139,26 @@ function PartnerHero({ title }: { title: string }) {
       </div>
       {/* The 1200×654 design scales with the page width. Sizes are in cqw of this
           frame (1cqw = 12 design px at 1200), so the first paint is already at the
-          right scale; the old JS-measured transform painted at 1× until hydration. */}
-      <div className="relative hidden aspect-[1200/654] w-full bg-cream [container-type:inline-size] desk:block">
+          right scale; the old JS-measured transform painted at 1× until hydration.
+          The fallback writes --hero-cqw onto this element (hence suppressHydrationWarning). */}
+      <div
+        ref={frameRef}
+        suppressHydrationWarning
+        className="relative hidden aspect-[1200/654] w-full bg-cream [container-type:inline-size] desk:block"
+      >
+        {serverHtml ? <script dangerouslySetInnerHTML={{ __html: HERO_FALLBACK_SCRIPT }} /> : null}
         <Image
           src={partnerImages.heroPhoto}
           alt=""
           width={1200}
           height={558}
           priority
-          className="absolute left-0 top-0 h-[46.5cqw] w-full rounded-b-[12.8333cqw] object-cover"
+          className="absolute left-0 top-0 w-full object-cover"
+          style={HERO_PHOTO}
         />
         <h1
-          className={`${trail.className} absolute left-[13.0833cqw] top-[17.5cqw] w-[73.8333cqw] text-center text-[length:10.8333cqw] uppercase leading-[0.9] tracking-[0.4333cqw] text-white`}
+          className={`${trail.className} absolute text-center uppercase leading-[0.9] text-white`}
+          style={HERO_TITLE}
         >
           {title}
         </h1>
