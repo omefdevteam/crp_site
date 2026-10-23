@@ -118,11 +118,11 @@ function OrganizationBand({
       <div className="relative flex h-[570px] w-full flex-col items-center justify-center gap-6 overflow-hidden rounded-[64px] bg-lime p-6 desk:hidden">
         <div aria-hidden className="pointer-events-none absolute left-[64px] top-[-67px] h-[317px] w-[348px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="" src={partnerImages.rewardsGlow} className="absolute max-w-none" style={{ inset: "-27% -22% -26% -24%" }} />
+          <img loading="lazy" decoding="async" alt="" src={partnerImages.rewardsGlow} className="absolute max-w-none" style={{ inset: "-27% -22% -26% -24%" }} />
         </div>
         <div aria-hidden className="pointer-events-none absolute left-[-109px] top-[201px] h-[317px] w-[348px] -scale-y-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="" src={partnerImages.rewardsGlow} className="absolute max-w-none" style={{ inset: "-27% -22% -26% -24%" }} />
+          <img loading="lazy" decoding="async" alt="" src={partnerImages.rewardsGlow} className="absolute max-w-none" style={{ inset: "-27% -22% -26% -24%" }} />
         </div>
         <div className="relative min-h-0 w-[259px] flex-1 overflow-hidden rounded-[44px]">
           <Image src={partnerImages.ctaOrganization} alt="" fill className="object-cover" sizes="259px" />
@@ -146,11 +146,11 @@ function OrganizationBand({
       <div className="relative hidden h-[613px] w-full overflow-hidden rounded-[64px] bg-lime desk:block">
         <div aria-hidden className="pointer-events-none absolute left-[25%] top-[-48%] h-[167%] w-[94%]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="" src={partnerImages.rewardsGlow} className="h-full w-full max-w-none" />
+          <img loading="lazy" decoding="async" alt="" src={partnerImages.rewardsGlow} className="h-full w-full max-w-none" />
         </div>
         <div aria-hidden className="pointer-events-none absolute top-[-11%] left-[-2%] h-[167%] w-[94%] rotate-180">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="" src={partnerImages.rewardsGlow} className="h-full w-full max-w-none" />
+          <img loading="lazy" decoding="async" alt="" src={partnerImages.rewardsGlow} className="h-full w-full max-w-none" />
         </div>
         <div className="pointer-events-none absolute top-1/2 left-[-21.83%] aspect-[523/349] w-[43.58%] -translate-y-1/2 overflow-hidden rounded-[88px]">
           <Image src={partnerImages.ctaOrganization} alt="" fill className="object-cover" sizes="523px" />
@@ -226,6 +226,8 @@ function CtaCard({
       </div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        loading="lazy"
+        decoding="async"
         aria-hidden
         src={glow}
         alt=""
@@ -305,6 +307,8 @@ export function PartnerPage() {
                     <div key={reward} className="flex min-w-0 flex-1 flex-col justify-between gap-3 self-stretch">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
+                        loading="lazy"
+                        decoding="async"
                         src={partnerImages.sealCheck}
                         alt=""
                         width={24}

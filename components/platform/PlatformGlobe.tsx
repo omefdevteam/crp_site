@@ -2,14 +2,16 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { Pin, PinGroup } from "@/lib/pins";
 import { GlobeShell } from "./GlobeShell";
 import {
   GLOBE_DEFER_MS,
+  GLOBE_NEAR_MARGIN,
   HOME_GLOBE_WAIT_IMAGES,
   waitForImages,
+  whenNearViewport,
 } from "./globe-defer";
 
 export type PlatformGlobeProps = {
@@ -20,6 +22,8 @@ export type PlatformGlobeProps = {
   waitForImages?: readonly string[];
   /** Starting spin angle in radians (0 = default framing). */
   initialYaw?: number;
+  /** Preload the static underlay (set when the globe is the above-the-fold LCP, e.g. About's hero). */
+  staticPriority?: boolean;
 };
 
 function useGlobeReady(imageKeys: readonly string[]): boolean {
@@ -50,7 +54,20 @@ function useGlobeReady(imageKeys: readonly string[]): boolean {
   return reduceMotion ? false : ready;
 }
 
-function GlobeStatic({ hidden }: { hidden?: boolean }) {
+/** True once `ref` has come within GLOBE_NEAR_MARGIN of the viewport (latches). */
+function useNearViewport(ref: RefObject<HTMLElement | null>): boolean {
+  const [near, setNear] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || near) return;
+    return whenNearViewport(el, GLOBE_NEAR_MARGIN, () => setNear(true));
+  }, [ref, near]);
+
+  return near;
+}
+
+function GlobeStatic({ hidden, priority }: { hidden?: boolean; priority?: boolean }) {
   return (
     <div
       className="absolute inset-[-16%] transition-opacity duration-500 ease-out"
@@ -64,6 +81,8 @@ function GlobeStatic({ hidden }: { hidden?: boolean }) {
         fill
         sizes="(min-width: 900px) 631px, 300px"
         className="object-contain"
+        preload={priority}
+        fetchPriority={priority ? "high" : undefined}
       />
     </div>
   );
@@ -80,8 +99,13 @@ export function PlatformGlobe({
   pins,
   waitForImages: imageKeys = HOME_GLOBE_WAIT_IMAGES,
   initialYaw,
+  staticPriority = false,
 }: PlatformGlobeProps) {
-  const deferReady = useGlobeReady(imageKeys);
+  // The static underlay renders immediately; the Three.js chunk + texture only
+  // load once the globe's frame scrolls near (and the page's key images settle).
+  const frameRef = useRef<HTMLDivElement>(null);
+  const near = useNearViewport(frameRef);
+  const deferReady = useGlobeReady(imageKeys) && near;
   const [live, setLive] = useState(false);
 
   // Reset when the globe un-defers (adjusting state during render, not in an effect).
@@ -89,7 +113,8 @@ export function PlatformGlobe({
 
   return (
     <GlobeShell>
-      <GlobeStatic hidden={live} />
+      <div ref={frameRef} aria-hidden className="pointer-events-none absolute inset-0" />
+      <GlobeStatic hidden={live} priority={staticPriority} />
       {deferReady ? (
         <div
           className="absolute inset-0 transition-opacity duration-500 ease-out"

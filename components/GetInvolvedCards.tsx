@@ -89,6 +89,8 @@ function ArrowCircle({ large = false }: { large?: boolean }) {
       <span className="flex h-5 w-[19px] items-center justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          loading="lazy"
+          decoding="async"
           src="/icons/arrow-right.svg"
           alt=""
           width={19}

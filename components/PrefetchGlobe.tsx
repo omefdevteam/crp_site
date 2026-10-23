@@ -3,20 +3,23 @@
 import { useEffect } from "react";
 import { useReducedMotion } from "framer-motion";
 import {
-  HOME_GLOBE_WAIT_IMAGES,
+  GLOBE_PREFETCH_MARGIN,
   prefetchGlobe,
-  waitForImages,
+  whenNearViewport,
 } from "./platform/globe-defer";
 
 /**
- * After the homepage above-the-fold photos settle, warm the Three.js globe
- * chunk so About (and the home platform section) can mount it from cache.
+ * Once the homepage platform section scrolls within a couple of screens,
+ * warm the Three.js globe chunk + texture (on idle) so the globe can mount
+ * from cache. Nothing three.js-related loads for visitors who never scroll there.
  */
 export function PrefetchGlobe() {
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (reduceMotion) return;
+    const section = document.getElementById("platform");
+    if (!section) return;
 
     let cancelled = false;
     let idleHandle: number | undefined;
@@ -26,17 +29,18 @@ export function PrefetchGlobe() {
       if (!cancelled) prefetchGlobe();
     };
 
-    waitForImages(HOME_GLOBE_WAIT_IMAGES).then(() => {
+    const stopObserving = whenNearViewport(section, GLOBE_PREFETCH_MARGIN, () => {
       if (cancelled) return;
       if (typeof window.requestIdleCallback === "function") {
-        idleHandle = window.requestIdleCallback(warm, { timeout: 3000 });
+        idleHandle = window.requestIdleCallback(warm, { timeout: 1000 });
       } else {
-        timeoutHandle = window.setTimeout(warm, 500);
+        timeoutHandle = window.setTimeout(warm, 200);
       }
     });
 
     return () => {
       cancelled = true;
+      stopObserving();
       if (idleHandle !== undefined && typeof window.cancelIdleCallback === "function") {
         window.cancelIdleCallback(idleHandle);
       }
