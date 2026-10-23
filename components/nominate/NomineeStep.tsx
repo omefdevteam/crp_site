@@ -105,7 +105,9 @@ export function NomineeStep({
               className={`w-full bg-transparent text-[15px] text-black outline-none ${PLACEHOLDER} ${PLACEHOLDER_M}`}
             />
           </div>
-          <DateField value={dob} onChange={setDob} className="desk:w-[206px]" mobileTall />
+          {/* Desktop pill is at least 206px and grows to fit a longer label on one
+              line (e.g. ES "*FECHA DE NACIMIENTO"); the name field takes the rest. */}
+          <DateField value={dob} onChange={setDob} className="desk:min-w-[206px] desk:shrink-0" mobileTall />
         </div>
 
         <div className="flex min-w-0 flex-col gap-1.5 max-desk:gap-2 desk:flex-row desk:gap-2">
