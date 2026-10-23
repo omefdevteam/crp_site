@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -69,16 +68,27 @@ export function NavProgress() {
   if (!nav?.shown) return null;
   return (
     <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[3px]">
-      <motion.div
-        className="h-full bg-lime shadow-[0_0_8px_rgba(0,0,0,0.25)]"
-        initial={{ width: "0%", opacity: 1 }}
-        animate={arrived ? { width: "100%", opacity: 0 } : { width: "85%", opacity: 1 }}
-        transition={
-          arrived
-            ? { width: { duration: 0.15 }, opacity: { duration: 0.25, delay: 0.15 } }
-            : { width: { duration: 6, ease: [0.1, 0.6, 0.2, 1] } }
-        }
-      />
+      <Bar arrived={arrived} />
     </div>
   );
+}
+
+/**
+ * Plain CSS transitions (no framer-motion): this sits in the [lang] layout, so
+ * anything it imports ships on every page.
+ */
+function Bar({ arrived }: { arrived: boolean }) {
+  // Paint 0% first, then grow two frames later so the width transition runs.
+  const [grow, setGrow] = useState(false);
+  useEffect(() => {
+    let id = window.requestAnimationFrame(() => {
+      id = window.requestAnimationFrame(() => setGrow(true));
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
+  const style = arrived
+    ? { width: "100%", opacity: 0, transition: "width 150ms ease-out, opacity 250ms ease-out 150ms" }
+    : { width: grow ? "85%" : "0%", opacity: 1, transition: "width 6s cubic-bezier(0.1, 0.6, 0.2, 1)" };
+  return <div className="h-full bg-lime shadow-[0_0_8px_rgba(0,0,0,0.25)]" style={style} />;
 }
