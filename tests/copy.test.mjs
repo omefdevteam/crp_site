@@ -36,7 +36,7 @@ test("each catalog has the bundled leaf count and every locale has those leaves"
   assert.equal(leaves("page").length, 387);
   assert.equal(leaves("ui").length, 147);
   assert.equal(leaves("ackEmail").length, 15);
-  assert.equal(leaves("appEmail").length, 32);
+  assert.equal(leaves("appEmail").length, 43);
   for (const leaf of leaves("page")) {
     assert.equal(leaf.key.includes(".."), false);
     assert.ok(leaf.path.every((segment) => typeof segment === "number" || !String(segment).includes(".")));
