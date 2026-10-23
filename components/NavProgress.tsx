@@ -10,7 +10,10 @@ const GIVE_UP_MS = 10000;
 
 /** True when a click on this anchor is a same-tab, same-site page change the App Router handles. */
 function isClientNavigation(event: MouseEvent, anchor: HTMLAnchorElement): boolean {
-  if (event.defaultPrevented || event.button !== 0) return false;
+  // No defaultPrevented check: next/link itself calls preventDefault to take over the click.
+  if (event.button !== 0) return false;
+  // Language links do their own full reload, so the browser shows its own progress.
+  if (anchor.hasAttribute("hreflang")) return false;
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
   if ((anchor.target && anchor.target !== "_self") || anchor.hasAttribute("download")) return false;
   const url = new URL(anchor.href, window.location.href);
@@ -50,7 +53,6 @@ export function NavProgress() {
         window.setTimeout(() => setNav(null), GIVE_UP_MS),
       );
     };
-    // Bubble phase on document: runs after React's handlers, so preventDefault (language switch) is seen.
     document.addEventListener("click", onClick);
     return () => {
       document.removeEventListener("click", onClick);
