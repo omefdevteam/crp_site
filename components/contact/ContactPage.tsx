@@ -16,6 +16,7 @@ import {
 } from "@/lib/contact/model";
 import { submitContact } from "@/lib/actions";
 import { trail } from "@/lib/fonts";
+import { fitVars } from "@/lib/fitSize";
 import { useFitText } from "@/lib/useFitText";
 import { CountryDropdown } from "../apply/CountryDropdown";
 import { useCopy, useLanguage } from "../LanguageProvider";
@@ -243,7 +244,8 @@ export function ContactPage() {
         <div className="mb-[-19px] flex flex-col desk:mb-0 desk:h-[501px] desk:w-[558px] desk:shrink-0 desk:-mr-[109px]">
           <h1
             ref={titleRef}
-            className={`${trail.className} text-[64px] uppercase leading-[0.9] tracking-[2.56px] text-black desk:flex-1 desk:text-[clamp(56px,12vw,130px)] desk:tracking-[5.2px]`}
+            className={`${trail.className} fit-text uppercase leading-[0.9] tracking-[2.56px] text-black [--fit-max:64px] [--fit-room:calc(100vw_-_72px)] [--fit-track-px:2.56px] desk:flex-1 desk:tracking-[5.2px] desk:[--fit-max:clamp(56px,12vw,130px)] desk:[--fit-room:558px] desk:[--fit-track-px:5.2px]`}
+            style={fitVars(c.title, "trail", { upper: true })}
           >
             {c.title}
           </h1>

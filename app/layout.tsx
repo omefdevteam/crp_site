@@ -24,6 +24,7 @@ export default async function RootLayout({
           initialPath={await requestPath()}
           copy={site.messages}
           ui={site.ui}
+          social={site.social}
         >
           <ConsentProvider>
             <PostHogProvider>{children}</PostHogProvider>

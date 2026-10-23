@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { updateCopy } from "@/app/admin/(console)/copy/actions";
 import { Button, buttonClass } from "@/components/admin/Button";
 import { languageLabel } from "@/lib/admin/labels";
-import { area, card } from "@/components/admin/marks";
+import { area, card, field } from "@/components/admin/marks";
 import { ConfirmSubmit, SubmitButton } from "@/components/admin/SubmitButton";
 import { previewPath } from "@/lib/copy/preview";
 import {
@@ -18,7 +18,7 @@ import {
   type CopyDraftMap,
 } from "@/lib/copy/draftState";
 import type { CopyRow } from "@/lib/copy/editor";
-import { CATALOGS, type CatalogId } from "@/lib/copy/catalog";
+import { CATALOGS, isSingleValue, type CatalogId } from "@/lib/copy/catalog";
 
 export function CopyEditor({
   row,
@@ -47,6 +47,8 @@ export function CopyEditor({
     setDrafts(live);
   }
   const dirty = Object.keys(live).length > 0;
+  // One value for every language (social links): a single, plainly labelled input.
+  const single = isSingleValue(row.catalog);
 
   useEffect(() => {
     if (!dirty) return;
@@ -82,13 +84,19 @@ export function CopyEditor({
         <p className="text-xs font-semibold uppercase tracking-wide text-black/50">{row.catalog === "page" ? row.sectionLabel : CATALOGS[row.catalog].label}</p>
         <h2 className="mt-1 break-words text-xl font-semibold" title={row.key}>{row.label}</h2>
       </div>
-      <div className="grid gap-4 desk:grid-cols-2">
+      <div className={single ? "grid gap-4" : "grid gap-4 desk:grid-cols-2"}>
         {row.cells.map((cell) => {
           const id = copyCellId(row.catalog, row.key, cell.locale);
           const server = cell.draft ?? cell.value;
           const shown = shownCopyText(live, id, cell.revision, server);
           const fieldId = `${row.catalog}-${row.key}-${cell.locale}`;
           const preview = previewPath(row.catalog, row.section, cell.locale);
+          const helpId = row.help ? `${fieldId}-help` : undefined;
+          const onChange = (text: string) => {
+            const next = rememberCopyDraft(readCopyDrafts(), id, cell.revision, text, server);
+            writeCopyDrafts(next);
+            setDrafts(next);
+          };
           return (
             <form key={cell.locale} action={updateCopy} className={`${card} grid gap-3`}>
               <HiddenScope catalog={row.catalog} scopeAll={scopeAll} query={query} needsReview={needsReview} copyKey={row.key} />
@@ -96,26 +104,46 @@ export function CopyEditor({
               <input type="hidden" name="base" value={cell.revision} />
               <input type="hidden" name="digest" value={row.digest} />
               <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-lg font-semibold">{languageLabel(cell.locale)}</h3>
-                <StateChip kind={cell.state.kind} />
+                {single ? null : <h3 className="text-lg font-semibold">{languageLabel(cell.locale)}</h3>}
+                {single ? null : <StateChip kind={cell.state.kind} />}
                 {cell.override ? <span className="rounded-full bg-black px-2 py-1 text-xs font-semibold text-white">Edited</span> : <span className="rounded-full border border-black/15 px-2 py-1 text-xs">Default</span>}
                 {cell.locale !== "en" && cell.state.kind !== "source" && !server.trim() ? <span className="rounded-full bg-magenta px-2 py-1 text-xs font-semibold text-white">Missing translation</span> : null}
                 {cell.draft !== null || (live[id] && live[id].revision === cell.revision) ? <span className="rounded-full bg-orange px-2 py-1 text-xs font-semibold">Draft</span> : null}
                 {preview ? <Button href={preview} variant="outline" size="sm">Preview</Button> : null}
               </div>
-              <label className="sr-only" htmlFor={fieldId}>{languageLabel(cell.locale)} text</label>
-              <textarea
-                id={fieldId}
-                name="value"
-                className={area}
-                value={shown}
-                autoComplete="off"
-                onChange={(event) => {
-                  const next = rememberCopyDraft(readCopyDrafts(), id, cell.revision, event.target.value, server);
-                  writeCopyDrafts(next);
-                  setDrafts(next);
-                }}
-              />
+              {single ? (
+                <>
+                  <label className="text-sm font-semibold" htmlFor={fieldId}>{row.label} (all languages)</label>
+                  {row.help ? <p id={helpId} className="-mt-2 text-sm text-black/60">{row.help}</p> : null}
+                  <input
+                    id={fieldId}
+                    name="value"
+                    type="text"
+                    inputMode="url"
+                    spellCheck={false}
+                    placeholder="https://"
+                    aria-describedby={helpId}
+                    className={field}
+                    value={shown}
+                    autoComplete="off"
+                    onChange={(event) => onChange(event.target.value)}
+                  />
+                </>
+              ) : (
+                <>
+                  <label className="sr-only" htmlFor={fieldId}>{languageLabel(cell.locale)} text</label>
+                  {row.help ? <p id={helpId} className="text-sm text-black/60">{row.help}</p> : null}
+                  <textarea
+                    id={fieldId}
+                    name="value"
+                    aria-describedby={helpId}
+                    className={area}
+                    value={shown}
+                    autoComplete="off"
+                    onChange={(event) => onChange(event.target.value)}
+                  />
+                </>
+              )}
               <div className="flex flex-wrap gap-2">
                 <SubmitButton className={buttonClass("solid")} name="intent" value="draft" pendingLabel="Saving">Save draft</SubmitButton>
                 <SubmitButton className={buttonClass("primary")} name="intent" value="publish" pendingLabel="Publishing">Publish</SubmitButton>
@@ -126,7 +154,7 @@ export function CopyEditor({
                   value="reset"
                   pendingLabel="Resetting"
                   title="Go back to the default text?"
-                  message="Your edits to this language are replaced. You can restore them from earlier versions."
+                  message={single ? "The link is removed and its icon shows without a link. You can restore it from earlier versions." : "Your edits to this language are replaced. You can restore them from earlier versions."}
                   confirmLabel="Reset"
                 >
                   Reset to default

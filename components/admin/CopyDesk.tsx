@@ -7,6 +7,7 @@ import { ConfirmSubmit, SubmitButton } from "@/components/admin/SubmitButton";
 import { lineDiff } from "@/lib/copy/diff";
 import { CATALOGS, type CatalogId } from "@/lib/copy/catalog";
 import { languageLabel } from "@/lib/admin/labels";
+import { historyLabel } from "@/lib/copy/labels";
 import { When } from "@/components/admin/When";
 import type { CopyRow, Head } from "@/lib/copy/editor";
 import { REVIEW_CAP } from "@/lib/copy/editor";
@@ -16,6 +17,7 @@ const ERRORS: Record<string, string> = {
   placeholders: "Not saved. Keep the words in curly brackets, like {name}, the same as English.",
   "line-break": "An email subject must be one line.",
   "too-long": "Not saved. The text is too long.",
+  link: "Not saved. Use a full web address that starts with https://, for example https://www.instagram.com/ourpage, up to 2048 characters. Leave it empty to show the icon without a link.",
   conflict: "Someone else changed this text. Reload and try again.",
   missing: "Nothing to publish yet.",
   forbidden: "You can't publish.",
@@ -165,7 +167,7 @@ function History({
   if (rows.length === 0) return null;
   return (
     <details className={card}>
-      <summary className="cursor-pointer text-sm font-semibold">{languageLabel(locale)}: earlier versions</summary>
+      <summary className="cursor-pointer text-sm font-semibold">{historyLabel(row.catalog, languageLabel(locale))}</summary>
       <ul className="mt-2 grid gap-2">
         {rows.map((item, index) => {
           const previous = rows[index + 1];

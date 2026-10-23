@@ -8,11 +8,13 @@ import {
   indexPublished,
   mergePage,
   NO_OVERRIDES,
+  socialLinks,
   uiOverrides,
   type PublishedCopy,
   type PublishedRow,
 } from "@/lib/copy/catalog";
 import type { UiOverrides } from "@/lib/ui-messages";
+import type { SocialLinks } from "@/lib/copy/social";
 import { emailSourcesFrom, JSON_EMAILS, type EmailSources } from "@/lib/copy/sources";
 import { isConnectionError, queryWithRetry, rateLimitedWarn, shortReason, withTimeout, type RetryOptions } from "@/lib/copy/resilience";
 
@@ -30,6 +32,8 @@ const WARN_INTERVAL_MS = 5 * 60_000;
 type SiteCopy = {
   messages: Messages;
   ui: UiOverrides;
+  /** Footer social links: one value for every locale, already checked as https. */
+  social: SocialLinks;
   published: PublishedCopy;
 };
 
@@ -141,7 +145,7 @@ const source = createCopySource({
 
 export const siteCopy = cache(async (locale: Locale): Promise<SiteCopy> => {
   const published = await source.read();
-  return { messages: mergePage(published, locale), ui: uiOverrides(published), published };
+  return { messages: mergePage(published, locale), ui: uiOverrides(published), social: socialLinks(published), published };
 });
 
 export async function loadEmailSources(): Promise<EmailSources> {

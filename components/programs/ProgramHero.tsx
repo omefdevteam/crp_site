@@ -54,6 +54,10 @@ export function ProgramHero() {
                   width={632}
                   height={558}
                   className={`size-full object-cover ${photo.imgClass ?? ""}`}
+                  // Middle photo is the phone LCP; side photos are display:none on
+                  // phones and in the first viewport on desk, so lazy still loads them at once there.
+                  priority={index === 1}
+                  sizes={index === 1 ? "(min-width: 900px) 632px, 100vw" : "632px"}
                 />
               </div>
               <div className="absolute inset-0 rounded-[88px] bg-gradient-to-b from-transparent from-[72%] to-black/20" />
@@ -65,6 +69,7 @@ export function ProgramHero() {
                     width={16}
                     height={16}
                     className="size-[16px]"
+                    priority
                   />
                 </span>
               ) : null}

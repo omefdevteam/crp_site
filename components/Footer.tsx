@@ -3,7 +3,8 @@
 import Link from "@/components/LocaleLink";
 import { t } from "@/lib/messages";
 import { Logo } from "./Logo";
-import { useCopy } from "./LanguageProvider";
+import { useCopy, useSocialLinks } from "./LanguageProvider";
+import { socialHref, type SocialKey, type SocialLinks } from "@/lib/copy/social";
 import { useConsent } from "./cookies/ConsentProvider";
 import { useText } from "@/lib/ui-text";
 
@@ -20,15 +21,25 @@ const SECTION_HREFS = [
   ["/contact", "/partner", "/#join"],
 ] as const;
 
-/** Profile URLs aren't known yet; a tile renders as a link once its href is set. */
-const SOCIAL: { name: string; icon: string; href: string | null }[] = [
-  { name: "Instagram", icon: "/icons/social/instagram.svg", href: null },
-  { name: "LinkedIn", icon: "/icons/social/linkedin.svg", href: null },
-  { name: "X", icon: "/icons/social/x.svg", href: null },
-  { name: "YouTube", icon: "/icons/social/youtube.svg", href: null },
-  { name: "TikTok", icon: "/icons/social/tiktok.svg", href: null },
-  { name: "Discord", icon: "/icons/social/discord.svg", href: null },
+/**
+ * Profile links come from Website text > Social links (one value for every
+ * language). All six icons always show. A network whose link is set and is a
+ * safe https:// address renders as a link; an empty or bad value renders as a
+ * plain, non-clickable tile.
+ */
+const SOCIAL: readonly { key: SocialKey; name: string; icon: string }[] = [
+  { key: "instagram", name: "Instagram", icon: "/icons/social/instagram.svg" },
+  { key: "linkedin", name: "LinkedIn", icon: "/icons/social/linkedin.svg" },
+  { key: "x", name: "X", icon: "/icons/social/x.svg" },
+  { key: "youtube", name: "YouTube", icon: "/icons/social/youtube.svg" },
+  { key: "tiktok", name: "TikTok", icon: "/icons/social/tiktok.svg" },
+  { key: "discord", name: "Discord", icon: "/icons/social/discord.svg" },
 ];
+
+/** Every icon, in footer order, with its link (null when none is set or it isn't a valid https link). */
+export function footerSocials(links: SocialLinks): { key: SocialKey; name: string; icon: string; href: string | null }[] {
+  return SOCIAL.map((item) => ({ ...item, href: socialHref(links[item.key]) }));
+}
 
 const HEADING =
   "text-[12px] font-semibold uppercase leading-none tracking-[0.96px] text-black desk:text-[14px] desk:tracking-[1.12px]";
@@ -48,6 +59,7 @@ export function Footer({
   pillSpace?: boolean;
 } = {}) {
   const copy = useCopy();
+  const socials = footerSocials(useSocialLinks());
   const tr = useText();
   const { openPreferences } = useConsent();
   const year = new Date().getFullYear();
@@ -63,7 +75,7 @@ export function Footer({
       <div className="mx-auto flex max-w-[1152px] flex-col items-center gap-[58px] desk:gap-14">
         <div className="flex w-full flex-col items-center gap-[58px] desk:flex-row">
           <div className="shrink-0 p-[15px] desk:p-[30px]">
-            <Logo tone="color" imgClassName="h-[60px] w-auto desk:h-[120px]" />
+            <Logo tone="color" loading="lazy" imgClassName="h-[60px] w-auto desk:h-[120px]" />
           </div>
 
           <div className="flex w-full min-w-0 flex-col gap-[58px] desk:flex-1">
@@ -101,15 +113,16 @@ export function Footer({
             </div>
 
             <div className="flex flex-col gap-3 desk:flex-row desk:items-center desk:justify-end">
-              <h3 className={`${HEADING} desk:w-[69px]`}>{getInTouch}</h3>
+              {/* 69px wraps "GET IN / TOUCH"; a longer word ("MANTENHA-SE") widens it instead of running under the icons. */}
+              <h3 className={`${HEADING} desk:w-[69px] desk:min-w-min`}>{getInTouch}</h3>
               <ul className="flex w-full desk:w-auto">
-                {SOCIAL.map(({ name, icon, href }) => {
+                {socials.map(({ key, name, icon, href }) => {
                   const img = (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={icon} alt="" width={24} height={24} className="size-6" />
                   );
                   return (
-                    <li key={name} className={TILE}>
+                    <li key={key} className={TILE}>
                       {href ? (
                         <a
                           href={href}

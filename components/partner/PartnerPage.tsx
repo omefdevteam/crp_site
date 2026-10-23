@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useSyncExternalStore, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "@/components/LocaleLink";
 import { useCopy } from "../LanguageProvider";
 import { trail } from "@/lib/fonts";
 import { partnerImages } from "@/lib/partner-assets";
+import { fitVars } from "@/lib/fitSize";
 import { useFitText } from "@/lib/useFitText";
+import { CSS_SCALE_FEATURES, useCssScaleFallback } from "@/lib/cssScale";
 
 function ReachOutLink({
   href = "/partner/reach-out",
@@ -62,20 +64,59 @@ function WayTile({
   );
 }
 
-function PartnerHero({ title }: { title: string }) {
-  const frame = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const mobileTitleRef = useFitText<HTMLHeadingElement>(title);
+// Desktop hero sizes, in cqw of the 1200px design frame (1cqw = 12 design px).
+// Browsers without container units (iOS 15, older Android WebView) drop the
+// cqw values, so each one reads --hero-cqw first: unset on the CSS path, and
+// set to frame width / 100 in px by the fallback below.
+const heroCq = (n: number) => `calc(${n} * var(--hero-cqw, 1cqw))`;
+const HERO_PHOTO: CSSProperties = {
+  height: heroCq(46.5),
+  borderBottomLeftRadius: heroCq(12.8333),
+  borderBottomRightRadius: heroCq(12.8333),
+};
+const HERO_TITLE: CSSProperties = {
+  left: heroCq(13.0833),
+  top: heroCq(17.5),
+  width: heroCq(73.8333),
+  fontSize: heroCq(10.8333),
+  letterSpacing: heroCq(0.4333),
+};
 
-  useEffect(() => {
-    const el = frame.current;
-    if (!el) return;
-    const measure = () => setScale(el.clientWidth / 1200);
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+function setHeroCqw(frame: HTMLElement) {
+  const width = frame.getBoundingClientRect().width;
+  if (width) frame.style.setProperty("--hero-cqw", `${width / 100}px`);
+}
+
+// First child of the frame: runs as the server HTML is parsed, before the photo
+// and title exist, so a fallback browser never paints them unscaled (hydration
+// comes much later). The frame's width doesn't depend on its content.
+// Same feature test as lib/cssScale.ts; setHeroCqw inlined.
+const HERO_FALLBACK_SCRIPT = `(function(){var f=document.currentScript&&document.currentScript.parentElement;if(!f)return;try{var C=window.CSS;if(C&&C.supports&&${JSON.stringify(CSS_SCALE_FEATURES)}.every(function(q){return C.supports(q)}))return}catch(e){}var w=f.getBoundingClientRect().width;if(w)f.style.setProperty("--hero-cqw",w/100+"px")})()`;
+
+// True for the server render and hydration only: the inline script is in the
+// server HTML, but a client-side mount (navigation) leaves it out, since React
+// never runs scripts it creates (useCssScaleFallback covers that case).
+const noSubscribe = () => () => {};
+function useServerHtml() {
+  return useSyncExternalStore(
+    noSubscribe,
+    () => false,
+    () => true,
+  );
+}
+
+function PartnerHero({ title }: { title: string }) {
+  const serverHtml = useServerHtml();
+  const mobileTitleRef = useFitText<HTMLHeadingElement>(title);
+  const frameRef = useRef<HTMLDivElement>(null);
+  // Fallback only: keep --hero-cqw in step with the frame (resize, or a
+  // client-side navigation where the inline script never ran).
+  useCssScaleFallback(
+    () => frameRef.current,
+    () => {
+      if (frameRef.current) setHeroCqw(frameRef.current);
+    },
+  );
 
   return (
     <section className="overflow-hidden bg-cream">
@@ -90,30 +131,37 @@ function PartnerHero({ title }: { title: string }) {
         />
         <h1
           ref={mobileTitleRef}
-          className={`${trail.className} relative z-10 w-full text-center text-[90px] uppercase leading-[0.9] tracking-[3.6px] text-white`}
+          className={`${trail.className} fit-text relative z-10 w-full text-center uppercase leading-[0.9] tracking-[3.6px] text-white [--fit-max:90px] [--fit-room:calc(100vw_-_24px)] [--fit-track-px:3.6px]`}
+          style={fitVars(title, "trail", { upper: true })}
         >
           {title}
         </h1>
       </div>
-      <div ref={frame} className="relative hidden w-full desk:block" style={{ height: 654 * scale }}>
-        <div
-          className="absolute left-0 top-0 h-[654px] w-[1200px] origin-top-left bg-cream"
-          style={{ transform: `scale(${scale})` }}
+      {/* The 1200×654 design scales with the page width. Sizes are in cqw of this
+          frame (1cqw = 12 design px at 1200), so the first paint is already at the
+          right scale; the old JS-measured transform painted at 1× until hydration.
+          The fallback writes --hero-cqw onto this element (hence suppressHydrationWarning). */}
+      <div
+        ref={frameRef}
+        suppressHydrationWarning
+        className="relative hidden aspect-[1200/654] w-full bg-cream [container-type:inline-size] desk:block"
+      >
+        {serverHtml ? <script dangerouslySetInnerHTML={{ __html: HERO_FALLBACK_SCRIPT }} /> : null}
+        <Image
+          src={partnerImages.heroPhoto}
+          alt=""
+          width={1200}
+          height={558}
+          priority
+          className="absolute left-0 top-0 w-full object-cover"
+          style={HERO_PHOTO}
+        />
+        <h1
+          className={`${trail.className} absolute text-center uppercase leading-[0.9] text-white`}
+          style={HERO_TITLE}
         >
-          <Image
-            src={partnerImages.heroPhoto}
-            alt=""
-            width={1200}
-            height={558}
-            priority
-            className="absolute left-0 top-0 h-[558px] w-[1200px] rounded-bl-[154px] rounded-br-[154px] object-cover"
-          />
-          <h1
-            className={`${trail.className} absolute left-[157px] top-[210px] w-[886px] text-center text-[130px] uppercase leading-[0.9] tracking-[5.2px] text-white`}
-          >
-            {title}
-          </h1>
-        </div>
+          {title}
+        </h1>
       </div>
     </section>
   );
@@ -131,11 +179,11 @@ function OrganizationBand({
       <div className="relative flex h-[570px] w-full flex-col items-center justify-center gap-6 overflow-hidden rounded-[64px] bg-lime p-6 desk:hidden">
         <div aria-hidden className="pointer-events-none absolute left-[64px] top-[-67px] h-[317px] w-[348px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="" src={partnerImages.rewardsGlow} className="absolute max-w-none" style={{ inset: "-27% -22% -26% -24%" }} />
+          <img loading="lazy" decoding="async" alt="" src={partnerImages.rewardsGlow} className="absolute max-w-none" style={{ inset: "-27% -22% -26% -24%" }} />
         </div>
         <div aria-hidden className="pointer-events-none absolute left-[-109px] top-[201px] h-[317px] w-[348px] -scale-y-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="" src={partnerImages.rewardsGlow} className="absolute max-w-none" style={{ inset: "-27% -22% -26% -24%" }} />
+          <img loading="lazy" decoding="async" alt="" src={partnerImages.rewardsGlow} className="absolute max-w-none" style={{ inset: "-27% -22% -26% -24%" }} />
         </div>
         <div className="relative min-h-0 w-[259px] flex-1 overflow-hidden rounded-[44px]">
           <Image src={partnerImages.ctaOrganization} alt="" fill className="object-cover" sizes="259px" />
@@ -159,11 +207,11 @@ function OrganizationBand({
       <div className="relative hidden h-[613px] w-full overflow-hidden rounded-[64px] bg-lime desk:block">
         <div aria-hidden className="pointer-events-none absolute left-[25%] top-[-48%] h-[167%] w-[94%]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="" src={partnerImages.rewardsGlow} className="h-full w-full max-w-none" />
+          <img loading="lazy" decoding="async" alt="" src={partnerImages.rewardsGlow} className="h-full w-full max-w-none" />
         </div>
         <div aria-hidden className="pointer-events-none absolute top-[-11%] left-[-2%] h-[167%] w-[94%] rotate-180">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img alt="" src={partnerImages.rewardsGlow} className="h-full w-full max-w-none" />
+          <img loading="lazy" decoding="async" alt="" src={partnerImages.rewardsGlow} className="h-full w-full max-w-none" />
         </div>
         <div className="pointer-events-none absolute top-1/2 left-[-21.83%] aspect-[523/349] w-[43.58%] -translate-y-1/2 overflow-hidden rounded-[88px]">
           <Image src={partnerImages.ctaOrganization} alt="" fill className="object-cover" sizes="523px" />
@@ -205,8 +253,11 @@ function CtaCard({
   fade,
   href,
   imageClass = "left-1/2 top-[92.5px] h-[474px]",
+  rowTitles,
 }: {
   title: string;
+  /** Every title in the row: the cards share one heading size, set by the longest. */
+  rowTitles: readonly string[];
   image: string;
   glow: string;
   glowClass: string;
@@ -217,10 +268,10 @@ function CtaCard({
   /** Mobile photo box (Figma 2282:12411); desktop keeps 612px tall at 163px. */
   imageClass?: string;
 }) {
-  const titleRef = useFitText<HTMLParagraphElement>(title);
+  const titleRef = useFitText<HTMLParagraphElement>(rowTitles.join("\n"), null, "partner-cta");
   return (
     <div
-      className="relative flex h-[371px] flex-none flex-col items-start justify-between overflow-hidden rounded-[64px] p-8 desk:h-full desk:flex-1"
+      className="relative flex h-[371px] flex-none flex-col items-start justify-between overflow-hidden rounded-[64px] p-8 [container-type:inline-size] desk:h-full desk:flex-1"
       style={{ backgroundColor: bg }}
     >
       <div
@@ -236,6 +287,8 @@ function CtaCard({
       </div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        loading="lazy"
+        decoding="async"
         aria-hidden
         src={glow}
         alt=""
@@ -243,7 +296,8 @@ function CtaCard({
       />
       <p
         ref={titleRef}
-        className={`relative z-10 w-full text-[40px] leading-none tracking-[-1.6px] desk:text-[64px] desk:leading-[0.8] desk:tracking-[-2.56px] ${titleClass}`}
+        className={`fit-text relative z-10 w-full leading-none tracking-[-1.6px] [--fit-max:40px] [--fit-room:100cqi] [--fit-track-px:-1.6px] desk:leading-[0.8] desk:tracking-[-2.56px] desk:[--fit-max:64px] desk:[--fit-track-px:-2.56px] ${titleClass}`}
+        style={fitVars(rowTitles, "outfit")}
       >
         {title}
       </p>
@@ -255,6 +309,7 @@ function CtaCard({
 export function PartnerPage() {
   const copy = useCopy();
   const p = copy.partnerPage;
+  const ctaTitles = [p.ambassador, p.storyline, p.speaker];
 
   return (
     <div className="bg-cream">
@@ -313,6 +368,8 @@ export function PartnerPage() {
                     <div key={reward} className="flex min-w-0 flex-1 flex-col justify-between gap-3 self-stretch">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
+                        loading="lazy"
+                        decoding="async"
                         src={partnerImages.sealCheck}
                         alt=""
                         width={24}
@@ -336,6 +393,7 @@ export function PartnerPage() {
           <OrganizationBand title={p.heroBody} learnMore={p.learnMore} />
           <div className="flex flex-col desk:h-[613px] desk:flex-row">
           <CtaCard
+            rowTitles={ctaTitles}
             title={p.ambassador}
             image={partnerImages.ctaAmbassador}
             glow={partnerImages.glowAmbassador}
@@ -347,6 +405,7 @@ export function PartnerPage() {
             imageClass="left-[calc(50%+0.5px)] top-[92.5px] h-[474px]"
           />
           <CtaCard
+            rowTitles={ctaTitles}
             title={p.storyline}
             image={partnerImages.ctaStoryline}
             glow={partnerImages.glowStoryline}
@@ -358,6 +417,7 @@ export function PartnerPage() {
             imageClass="left-[calc(50%+0.5px)] top-[92.5px] h-[301px]"
           />
           <CtaCard
+            rowTitles={ctaTitles}
             title={p.speaker}
             image={partnerImages.ctaSpeaker}
             glow={partnerImages.glowSpeaker}

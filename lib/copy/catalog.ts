@@ -3,13 +3,24 @@ import { messages, placeholdersIn, type Messages } from "@/lib/messages";
 import { lookupUi, uiMessages, type UiOverrides } from "@/lib/ui-messages";
 import ackCopy from "@/lib/translations/acknowledgement-emails.json";
 import appCopy from "@/lib/translations/application-emails.json";
+import { checkSocialLink, SOCIAL_DEFAULTS, SOCIAL_KEYS, socialHref, type SocialLinks } from "@/lib/copy/social";
+
+// Catalogs whose text is the same in every language list only "en": the editor
+// then shows one input, and that one stored value is used for all locales.
+const SINGLE = ["en"] as const;
 
 export const CATALOGS = {
   page: { label: "Pages", locales },
   ui: { label: "Forms and buttons", locales },
   ackEmail: { label: "Thank-you emails", locales },
   appEmail: { label: "Applicant emails", locales: applicationLocales },
+  social: { label: "Social links", locales: SINGLE },
 } as const;
+
+/** True for a catalog stored once for every language (no translations). */
+export function isSingleValue(catalog: CatalogId): boolean {
+  return CATALOGS[catalog].locales.length === 1;
+}
 
 export type CatalogId = keyof typeof CATALOGS;
 export type CatalogLocale<C extends CatalogId> = (typeof CATALOGS)[C]["locales"][number];
@@ -21,7 +32,7 @@ export type CopyRef = {
   [C in CatalogId]: { readonly catalog: C; readonly locale: CatalogLocale<C>; readonly key: CopyKey<C> };
 }[CatalogId];
 
-export type CopyFormat = "text" | "subject" | "email";
+export type CopyFormat = "text" | "subject" | "email" | "link";
 
 export type Leaf = {
   readonly catalog: CatalogId;
@@ -42,6 +53,7 @@ const englishRoot: Record<CatalogId, unknown> = {
   ui: uiMessages.en,
   ackEmail: ackCopy.en,
   appEmail: appCopy.en,
+  social: SOCIAL_DEFAULTS,
 };
 
 const localeRoot: Record<CatalogId, Record<string, unknown>> = {
@@ -49,6 +61,7 @@ const localeRoot: Record<CatalogId, Record<string, unknown>> = {
   ui: uiMessages,
   ackEmail: ackCopy,
   appEmail: appCopy,
+  social: { en: SOCIAL_DEFAULTS },
 };
 
 let cachedLeaves: { [C in CatalogId]: readonly Leaf[] } | undefined;
@@ -59,6 +72,7 @@ function isCatalog(value: string): value is CatalogId {
 
 function formatOf(catalog: CatalogId, key: string): CopyFormat {
   if (catalog === "page" || catalog === "ui") return "text";
+  if (catalog === "social") return "link";
   return key.endsWith("Subject") ? "subject" : "email";
 }
 
@@ -75,7 +89,7 @@ function walk(catalog: CatalogId, value: unknown, path: (string | number)[], out
       catalog,
       key,
       path: [...path],
-      section: catalog === "page" ? String(path[0] ?? "page") : catalog === "ui" ? "Interface" : "Email",
+      section: catalog === "page" ? String(path[0] ?? "page") : catalog === "ui" ? "Interface" : catalog === "social" ? "social" : "Email",
       english: value,
       placeholders: expectedPlaceholders(catalog, value),
       format: formatOf(catalog, key),
@@ -154,7 +168,8 @@ export function normalizeValue(raw: string): string {
 export type CopyProblem =
   | { readonly kind: "placeholders"; readonly expected: readonly string[]; readonly found: readonly string[] }
   | { readonly kind: "line-break" }
-  | { readonly kind: "too-long"; readonly max: number };
+  | { readonly kind: "too-long"; readonly max: number }
+  | { readonly kind: "link" };
 
 function sameNames(expected: readonly string[], found: readonly string[], counts: boolean): boolean {
   if (counts) return expected.join("\0") === found.join("\0");
@@ -163,6 +178,11 @@ function sameNames(expected: readonly string[], found: readonly string[], counts
 
 export function checkValue(ref: CopyRef, value: string): readonly CopyProblem[] {
   const leaf = leafOf(ref);
+  if (leaf.format === "link") {
+    const checked = checkSocialLink(value);
+    if (checked.ok) return [];
+    return [{ kind: "link" }];
+  }
   const problems: CopyProblem[] = [];
   const found = leaf.format === "text" || leaf.catalog === "page" || leaf.catalog === "ui"
     ? [...new Set(placeholdersIn(value))]
@@ -193,6 +213,10 @@ export function parseCopyRef(input: Readonly<Record<string, unknown>>): CopyRef 
     const matched = locales.find((item) => item === locale);
     if (!matched || !isLeafKey("ackEmail", key)) return null;
     return { catalog, locale: matched, key };
+  }
+  if (catalog === "social") {
+    if (locale !== "en" || !isLeafKey("social", key)) return null;
+    return { catalog, locale, key };
   }
   if (catalog !== "appEmail") return null;
   const matched = applicationLocales.find((item) => item === locale);
@@ -257,6 +281,22 @@ export function mergePage(published: PublishedCopy, locale: Locale): Messages {
   const copy = structuredClone(messages[locale]);
   for (const [leaf, value] of pairs) setPath(copy, leaf.path, value);
   return copy;
+}
+
+/**
+ * Footer social links: the published value, else the bundled default (empty).
+ * Each one is checked again here, so a value that isn't a safe https link
+ * never reaches the page; such a link is left out and its icon shows without a link.
+ */
+export function socialLinks(published: PublishedCopy): SocialLinks {
+  const values: Record<string, string> = { ...SOCIAL_DEFAULTS };
+  for (const [leaf, value] of overrides(published, "social", "en")) values[leaf.key] = value;
+  const links: Partial<Record<(typeof SOCIAL_KEYS)[number], string>> = {};
+  for (const key of SOCIAL_KEYS) {
+    const href = socialHref(values[key]);
+    if (href) links[key] = href;
+  }
+  return links;
 }
 
 export function uiOverrides(published: PublishedCopy): UiOverrides {

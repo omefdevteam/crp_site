@@ -1,5 +1,69 @@
 @import "tailwindcss";
 
+/*
+ * Trail display face (see lib/fonts.ts). Until it loads, titles render in a
+ * local serif shrunk with size-adjust so no fitted word is wider than in
+ * Trail (fit-text sizes from Trail's widths), with ascent/descent overrides
+ * from Trail's metrics (757/200 per 1000, no line gap) divided by the same
+ * factor. Ratios measured vs Trail on the site's uppercase titles:
+ * Times New Roman/Tinos/Liberation >= 0.843, Noto Serif (Android) >= 0.812,
+ * DejaVu Serif >= 0.725.
+ *
+ * Trail has no hyphen (U+2D), so "-" always comes from a fallback, even once
+ * Trail has loaded. The U+2D face below keeps it exactly as next/font drew it
+ * (Times New Roman at its old metrics), and the shrunk fallbacks skip U+2D so
+ * where Times is missing it still falls through to the default serif.
+ */
+@font-face {
+  font-family: "trail";
+  src: url("/TrailFree-p7ARD.otf") format("opentype");
+  font-display: swap;
+}
+@font-face {
+  font-family: "trail";
+  src: local("Times New Roman");
+  unicode-range: U+2D;
+  ascent-override: 76.45%;
+  descent-override: 20.2%;
+  line-gap-override: 0%;
+  size-adjust: 99.02%;
+}
+@font-face {
+  font-family: "trail Fallback";
+  src: local("Times New Roman"), local("TimesNewRomanPSMT"), local("Tinos"),
+    local("Tinos-Regular"), local("Liberation Serif"),
+    local("LiberationSerif");
+  size-adjust: 82%;
+  ascent-override: 92.32%;
+  descent-override: 24.39%;
+  line-gap-override: 0%;
+  unicode-range: U+0-2C, U+2E-10FFFF;
+}
+@font-face {
+  font-family: "trail Fallback Noto";
+  src: local("Noto Serif"), local("NotoSerif-Regular"), local("NotoSerif"),
+    local("Droid Serif"), local("DroidSerif");
+  size-adjust: 79%;
+  ascent-override: 95.82%;
+  descent-override: 25.32%;
+  line-gap-override: 0%;
+  unicode-range: U+0-2C, U+2E-10FFFF;
+}
+@font-face {
+  font-family: "trail Fallback DejaVu";
+  src: local("DejaVu Serif"), local("DejaVuSerif");
+  size-adjust: 70%;
+  ascent-override: 108.14%;
+  descent-override: 28.57%;
+  line-gap-override: 0%;
+  unicode-range: U+0-2C, U+2E-10FFFF;
+}
+/* Unlayered like the next/font class it replaces, so it beats utilities. */
+.font-trail {
+  font-family: "trail", "trail Fallback", "trail Fallback Noto",
+    "trail Fallback DejaVu", serif;
+}
+
 @theme {
   --color-cream: #f4f1ea;
   --color-ink: #000000;
@@ -104,6 +168,21 @@ body {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   font-weight: 600;
+}
+
+/*
+ * First-paint size for display headings (see lib/fitSize.ts): the design size
+ * (--fit-max), or smaller when the widest word (--fit-em wide plus --fit-n
+ * letters of tracking) would overflow --fit-room. 1.01 matches useFitText.
+ */
+@utility fit-text {
+  font-size: min(
+    var(--fit-max),
+    calc(
+      (var(--fit-room) * 1.01 - var(--fit-n) * var(--fit-track-px, 0px)) /
+        (var(--fit-em) + var(--fit-n) * var(--fit-track-em, 0))
+    )
+  );
 }
 
 /* Youth ambassador page is authored at the 1690px Figma frame. */

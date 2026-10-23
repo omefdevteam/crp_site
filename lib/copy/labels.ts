@@ -5,6 +5,7 @@ import type { CatalogId } from "@/lib/copy/catalog";
 // through {n} (and {m} for a second position).
 
 export const SECTION_LABELS: Readonly<Record<string, string>> = {
+  social: "Social links",
   a11y: "Accessibility",
   nav: "Top menu",
   hero: "Home banner",
@@ -334,9 +335,20 @@ const APP_EMAIL: Readonly<Record<string, string>> = {
   greeting: "Greeting with a name",
   applicant: "Greeting without a name",
   applicationSubject: "Confirm email: subject",
-  confirm: "Confirm email: message",
+  confirmIntro: "Confirm email: opening message",
+  expectHeading: "Confirm email: heading above the steps",
+  videoStep: "Confirm email: video step title (shown in bold)",
+  videoIntro: "Confirm email: video step text",
+  videoTipQuiet: "Confirm email: video tip 1 (quiet place)",
+  videoTipLight: "Confirm email: video tip 2 (good light)",
+  videoTipDevice: "Confirm email: video tip 3 (camera and microphone)",
+  videoTipInternet: "Confirm email: video tip 4 (internet connection)",
+  identityStep: "Confirm email: identity step title (shown in bold)",
+  identityIntro: "Confirm email: identity step text",
+  confirmClosing: "Confirm email: closing message",
   confirmButton: "Confirm email: button",
-  waiting: "Confirm email: closing line",
+  confirmIgnore: "Confirm email: small note under the button",
+  waiting: "Confirm email: message when there is no button",
   resumeSubject: "Continue application: subject",
   resume: "Continue application: message",
   continue: "Continue application: button",
@@ -365,11 +377,39 @@ const APP_EMAIL: Readonly<Record<string, string>> = {
   next: "Next step: message",
 };
 
+const SOCIAL_NAMES: Readonly<Record<string, string>> = {
+  instagram: "Instagram",
+  linkedin: "LinkedIn",
+  x: "X",
+  youtube: "YouTube",
+  tiktok: "TikTok",
+  discord: "Discord",
+};
+
+const SOCIAL: Readonly<Record<string, string>> = Object.fromEntries(
+  Object.entries(SOCIAL_NAMES).map(([key, name]) => [key, `${name} link`]),
+);
+
 export const KEY_LABELS: Readonly<Record<Exclude<CatalogId, "ui">, Readonly<Record<string, string>>>> = {
   page: PAGE,
   ackEmail: ACK_EMAIL,
   appEmail: APP_EMAIL,
+  social: SOCIAL,
 };
+
+/** A short line under the field, for fields that need one. */
+export function copyHelp(catalog: CatalogId, key: string): string | null {
+  if (catalog !== "social") return null;
+  const name = SOCIAL_NAMES[key];
+  if (!name) return null;
+  return `Paste the full address of our ${name} page, starting with https://. It is used in every language. Leave it empty to show the ${name} icon in the footer without a link.`;
+}
+
+// Heading of the version-history panel. A single-value section (social links)
+// has one value for every language, so it is not named after a language.
+export function historyLabel(catalog: CatalogId, languageName: string): string {
+  return catalog === "social" ? "All languages: earlier versions" : `${languageName}: earlier versions`;
+}
 
 export function labelPattern(key: string): string {
   return key.replace(/\.\d+(?=\.|$)/g, ".#");

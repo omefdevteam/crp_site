@@ -79,7 +79,7 @@ export function GetInvolvedPopup({ open, onClose }: GetInvolvedPopupProps) {
           </button>
         </div>
 
-        <div className="flex min-h-0 w-full flex-1 flex-col items-stretch gap-4 desk:flex-row desk:items-center desk:justify-center desk:gap-0">
+        <div className="flex min-h-0 w-full flex-none flex-col items-stretch gap-4 desk:flex-1 desk:flex-row desk:items-center desk:justify-center desk:gap-0">
           <YouthAmbassadorCard surface="popup" onNavigate={onClose} />
           <PartnerCard surface="popup" onNavigate={onClose} />
         </div>

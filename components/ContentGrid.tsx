@@ -37,6 +37,8 @@ function FeaturedVideo() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          loading="lazy"
+          decoding="async"
           src="/icons/play.svg"
           alt=""
           width={48}

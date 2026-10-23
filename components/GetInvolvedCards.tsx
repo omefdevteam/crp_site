@@ -1,12 +1,7 @@
 "use client";
 
-import {
-  type FormEvent,
-  type ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type FormEvent, type ReactNode, useRef, useState } from "react";
+import { useCssScaleFallback } from "@/lib/cssScale";
 import { motion, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "@/components/LocaleLink";
@@ -24,8 +19,11 @@ const CARD = "group relative aspect-square overflow-hidden";
 const CARD_SHELL = "group relative aspect-square";
 const SECTION_SIZE =
   "rounded-[88px] desk:rounded-blob-lg desk:mx-auto desk:w-full";
+// Phones stack the popup cards as equal squares (Figma 2308:858) and the dialog
+// scrolls. shrink-0 stops the column flex squeezing the overflow-hidden Partner
+// card below its aspect-square height. Desktop keeps the default shrink.
 const POPUP_SHELL =
-  "mx-auto w-full max-w-[536px] desk:mx-0 desk:h-full desk:max-h-[536px] desk:w-auto desk:max-w-[min(536px,50%)]";
+  "mx-auto w-full max-w-[536px] shrink-0 desk:shrink desk:mx-0 desk:h-full desk:max-h-[536px] desk:w-auto desk:max-w-[min(536px,50%)]";
 
 const REVEAL =
   "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none";
@@ -33,6 +31,10 @@ const REVEAL =
 /**
  * Outer box fills available space; inner stays at the 536² Figma layout and
  * scales uniformly so radius, ticket, type, and CTAs shrink together.
+ * The scale is min(1, outer width / 536), worked out in CSS: an absolute layer
+ * the size of the outer is a container, and tan(atan2(100cqw, 536px)) turns
+ * its width into a plain number. So the card is already the right size on the
+ * frame the popup opens (a JS-measured scale painted at 1× first).
  */
 function ScaledDesignCard({
   className = "",
@@ -43,35 +45,39 @@ function ScaledDesignCard({
   overflowVisible?: boolean;
   children: ReactNode;
 }) {
-  const outerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-
-  useEffect(() => {
-    const el = outerRef.current;
-    if (!el) return;
-    const measure = () => {
-      const w = el.clientWidth;
-      if (w > 0) setScale(Math.min(1, w / DESIGN));
-    };
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
+  const layerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  // Without CSS trig/container units, set the same min(1, width / 536) in JS before paint.
+  useCssScaleFallback(
+    () => layerRef.current,
+    () => {
+      const layer = layerRef.current;
+      const inner = innerRef.current;
+      if (!layer || !inner) return;
+      const w = layer.clientWidth;
+      if (w > 0) inner.style.transform = `scale(${Math.min(1, w / DESIGN)})`;
+    },
+  );
 
   return (
-    <div ref={outerRef} className={`relative aspect-square ${className}`}>
+    <div className={`relative aspect-square ${className}`}>
       <div
-        className={`absolute left-0 top-0 ${overflowVisible ? "overflow-visible" : "overflow-hidden"}`}
-        style={{
-          width: DESIGN,
-          height: DESIGN,
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          borderRadius: 154,
-        }}
+        ref={layerRef}
+        className="absolute inset-0 [container-type:inline-size]"
       >
-        {children}
+        <div
+          ref={innerRef}
+          className={`absolute left-0 top-0 ${overflowVisible ? "overflow-visible" : "overflow-hidden"}`}
+          style={{
+            width: DESIGN,
+            height: DESIGN,
+            transform: `scale(min(1, tan(atan2(100cqw, ${DESIGN}px))))`,
+            transformOrigin: "top left",
+            borderRadius: 154,
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -83,6 +89,8 @@ function ArrowCircle({ large = false }: { large?: boolean }) {
       <span className="flex h-5 w-[19px] items-center justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          loading="lazy"
+          decoding="async"
           src="/icons/arrow-right.svg"
           alt=""
           width={19}

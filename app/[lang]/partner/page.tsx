@@ -1,5 +1,6 @@
 import { metadataFor } from "@/lib/seo";
 import { StructuredData } from "@/components/StructuredData";
+import { TrailPreload } from "@/components/TrailPreload";
 import type { Metadata } from "next";
 import { Footer } from "@/components/Footer";
 import { GetInvolvedPill } from "@/components/GetInvolvedPill";
@@ -11,6 +12,7 @@ export async function generateMetadata(): Promise<Metadata> { return metadataFor
 
 export default function PartnerRoute() {
   return (<>
+      <TrailPreload />
       <StructuredData page="partner" />
     <div className={`${outfit.className} relative flex flex-1 flex-col`}>
       <Header overMedia lightNav />

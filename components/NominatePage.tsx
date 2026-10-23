@@ -39,8 +39,10 @@ function NominateCta({ onExpress, nominate }: { onExpress: () => void; nominate:
     "text-[16px] font-semibold uppercase leading-[0.9] tracking-[0.64px] mix-blend-hard-light whitespace-nowrap desk:text-[20px] desk:tracking-[0.8px]";
   // Long labels (fr "Proposer une candidature") would be clipped on one line in
   // the pill: let them wrap onto two balanced lines, a touch smaller on mobile.
+  // 1.1 leading keeps accents and cedillas (pt "INFORMAÇÕES") off the next
+  // line's capitals; three lines still sit well inside the fixed-height pill.
   const longLabel =
-    "text-center text-[14px] font-semibold uppercase leading-[0.95] tracking-[0.56px] mix-blend-hard-light text-balance desk:text-[20px] desk:tracking-[0.8px]";
+    "text-center text-[14px] font-semibold uppercase leading-[1.1] tracking-[0.56px] mix-blend-hard-light text-balance desk:text-[20px] desk:tracking-[0.8px]";
   const long = text.length > 16;
 
   return (
@@ -72,7 +74,7 @@ function NominateCta({ onExpress, nominate }: { onExpress: () => void; nominate:
           className={`transition-opacity ${CTA_REVEAL} group-hover:opacity-0 group-focus-within:opacity-0`}
         />
         <span
-          className={`${label} pointer-events-none absolute px-4 text-black opacity-0 transition-opacity ${CTA_REVEAL} group-hover:opacity-100 group-focus-within:opacity-100`}
+          className={`${copy.apply.programDetails.length > 16 ? `${longLabel} inset-x-0 px-2 desk:px-4` : `${label} px-4`} pointer-events-none absolute text-black opacity-0 transition-opacity ${CTA_REVEAL} group-hover:opacity-100 group-focus-within:opacity-100`}
         >
           {copy.apply.programDetails}
         </span>

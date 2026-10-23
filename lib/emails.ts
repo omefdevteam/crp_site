@@ -73,16 +73,54 @@ const RADIAL = `radial-gradient(194px 181px at 93.8% 83.4%,${ORANGE} 0%,#F77346 
 // Email-client-safe: table layout, inline styles, progressive gradient
 // fallbacks (solid bgcolor → linear → radial; VML for Outlook desktop).
 // Geometry follows Figma 2308:7356 (600px desktop) and 2308:7383 (320px mobile).
-function render(language: Locale, bodyParas: string[], cta: Cta | null, shell: { signoff: string; tagline: string; rights: string }): string {
+// A body block is a plain paragraph (string), or one of the few structured
+// pieces the applicant confirmation email needs. Every string in a block is
+// already HTML-safe (see appText/appLine); render only adds markup around it.
+type Block =
+  | string
+  | { readonly kind: "heading"; readonly text: string }
+  | { readonly kind: "lead"; readonly lead: string; readonly text: string }
+  | { readonly kind: "list"; readonly items: readonly string[] };
+
+const TEXT_STYLE = `font-family:${FONT};font-size:14px;font-weight:400;line-height:1.2;letter-spacing:-0.56px;color:${INK}`;
+
+function renderBlock(block: Block, bottom: number): string {
+  if (typeof block === "string") {
+    return `<p style="margin:0 0 ${bottom}px;${TEXT_STYLE}">${block}</p>`;
+  }
+  if (block.kind === "heading") {
+    return `<p style="margin:0 0 ${bottom}px;font-family:${FONT};font-size:14px;font-weight:600;line-height:1.2;letter-spacing:0.56px;text-transform:uppercase;color:${INK}">${block.text}</p>`;
+  }
+  if (block.kind === "lead") {
+    return `<p style="margin:0 0 ${bottom}px;${TEXT_STYLE}"><strong style="font-weight:600">${block.lead}</strong> ${block.text}</p>`;
+  }
+  // A table, not <ul>: Outlook and Gmail disagree on list indents and bullets.
+  const rows = block.items
+    .map(
+      (item, i, all) =>
+        `<tr><td width="18" valign="top" style="width:18px;padding:0 0 ${i === all.length - 1 ? 0 : 6}px;font-family:${FONT};font-size:14px;font-weight:600;line-height:1.2;color:${MAGENTA}">&#8226;</td><td valign="top" style="padding:0 0 ${i === all.length - 1 ? 0 : 6}px;${TEXT_STYLE}">${item}</td></tr>`,
+    )
+    .join("");
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0 0 ${bottom}px">${rows}</table>`;
+}
+
+function render(language: Locale, bodyParas: Block[], cta: Cta | null, shell: { signoff: string; tagline: string; rights: string }, after: readonly string[] = []): string {
   const year = new Date().getUTCFullYear();
   const { signoff, tagline, rights } = shell;
 
-  // Figma separates paragraphs with an empty 14px/1.2 line (16.8px).
+  // Figma separates paragraphs with an empty 14px/1.2 line (16.8px). A line
+  // that introduces a list sits closer to it.
   const paras = [...bodyParas, signoff]
-    .map(
-      (p, i, all) =>
-        `<p style="margin:0 0 ${i === all.length - 1 ? 0 : 17}px;font-family:${FONT};font-size:14px;font-weight:400;line-height:1.2;letter-spacing:-0.56px;color:${INK}">${p}</p>`,
-    )
+    .map((p, i, all) => {
+      const next = all[i + 1];
+      const bottom = i === all.length - 1 ? 0 : typeof next !== "string" && next?.kind === "list" ? 10 : 17;
+      return renderBlock(p, bottom);
+    })
+    .join("");
+
+  // Small, muted lines under the button (e.g. "If you did not apply...").
+  const footnotes = after
+    .map((p) => `<p style="margin:32px 0 0;font-family:${FONT};font-size:12px;font-weight:400;line-height:1.3;letter-spacing:-0.24px;color:#6b6b6b">${p}</p>`)
     .join("");
 
   const button = cta
@@ -134,7 +172,7 @@ function render(language: Locale, bodyParas: string[], cta: Cta | null, shell: {
         </td></tr>
         <tr><td class="body-pad" bgcolor="${CREAM}" style="background:${CREAM};padding:64px">
           ${paras}
-          ${button}
+          ${button}${footnotes}
         </td></tr>
         <tr><td class="footer" background="${SWIRL}" bgcolor="#000000" height="120" valign="top" align="center" style="height:120px;box-sizing:border-box;background-color:#000000;background-image:url('${SWIRL}');background-repeat:no-repeat;background-position:right top;background-size:auto 120px;border-radius:32px 32px 0 0;padding:55px 16px 0;text-align:center">
           <p class="tagline" style="margin:0 auto;font-family:${FONT};font-size:12px;font-weight:600;line-height:0.9;letter-spacing:0.48px;text-transform:uppercase;color:#ffffff;color:rgba(255,255,255,0.48)">${tagline}</p>
@@ -175,8 +213,16 @@ function ackLine(locale: string | null | undefined, sources: EmailSources | unde
   return piece(ackCopy[language][key], sourcesOf(sources).ack[language], key, format);
 }
 
-function appLine(language: ApplicationLocale, sources: EmailSources | undefined, key: keyof (typeof emailCopy)["en"], format: "subject" | "body"): string {
+type AppKey = keyof (typeof emailCopy)["en"];
+
+function appLine(language: ApplicationLocale, sources: EmailSources | undefined, key: AppKey, format: "subject" | "body"): string {
   return piece(emailCopy[language][key], sourcesOf(sources).app[language], key, format);
+}
+
+// Like appLine, but the bundled string is escaped too. Used by the newer,
+// structured copy so the template never trusts any of its text.
+function appText(language: ApplicationLocale, sources: EmailSources | undefined, key: AppKey): string {
+  return piece(escapeHtml(emailCopy[language][key]), sourcesOf(sources).app[language], key, "body");
 }
 
 export function waitlistEmail(locale: string | null | undefined, sources: EmailSources): Email {
@@ -230,9 +276,20 @@ export function contactEmail(name: string, locale: string | null | undefined, so
 
 export function applicationEmail(name: string, link: string | null, language: ApplicationLocale, sources: EmailSources): Email {
   const greeting = appLine(language, sources, "greeting", "body").replace("{name}", escapeHtml(name));
-  const body = link ? appLine(language, sources, "confirm", "body") : appLine(language, sources, "waiting", "body");
-  const button = link ? { label: appLine(language, sources, "confirmButton", "body"), url: link } : null;
-  return { subject: appLine(language, sources, "applicationSubject", "subject"), html: render(language, [greeting, body], button, shellFor(language, sources)) };
+  const subject = appLine(language, sources, "applicationSubject", "subject");
+  if (!link) return { subject, html: render(language, [greeting, appLine(language, sources, "waiting", "body")], null, shellFor(language, sources)) };
+  const text = (key: AppKey) => appText(language, sources, key);
+  const body: Block[] = [
+    greeting,
+    text("confirmIntro"),
+    { kind: "heading", text: text("expectHeading") },
+    { kind: "lead", lead: text("videoStep"), text: text("videoIntro") },
+    { kind: "list", items: [text("videoTipQuiet"), text("videoTipLight"), text("videoTipDevice"), text("videoTipInternet")] },
+    { kind: "lead", lead: text("identityStep"), text: text("identityIntro") },
+    text("confirmClosing"),
+  ];
+  const button = { label: appLine(language, sources, "confirmButton", "body"), url: link };
+  return { subject, html: render(language, body, button, shellFor(language, sources), [text("confirmIgnore")]) };
 }
 
 export function resumeEmail(name: string, link: string, language: ApplicationLocale, sources: EmailSources): Email {

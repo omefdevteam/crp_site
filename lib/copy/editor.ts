@@ -16,7 +16,7 @@ import {
   type TranslationState,
 } from "@/lib/copy/catalog";
 import { expireCopy } from "@/lib/copy/read";
-import { copyLabel, sectionLabel } from "@/lib/copy/labels";
+import { copyHelp, copyLabel, sectionLabel } from "@/lib/copy/labels";
 
 export type PublishFrom =
   | { kind: "draft" }
@@ -51,6 +51,8 @@ export type CopyRow = {
   catalog: CatalogId;
   key: string;
   label: string;
+  /** Short plain help line shown under the field, when the field has one. */
+  help: string | null;
   section: string;
   sectionLabel: string;
   english: string;
@@ -279,6 +281,7 @@ async function catalogRows(db: Db, catalog: CatalogId, authorId: string): Promis
       catalog,
       key: leaf.key,
       label: copyLabel(catalog, leaf.key) ?? leaf.key,
+      help: copyHelp(catalog, leaf.key),
       section: leaf.section,
       sectionLabel: sectionLabel(leaf.section),
       english: leaf.english,

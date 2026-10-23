@@ -7,11 +7,6 @@ export const HOME_GLOBE_WAIT_IMAGES = [
 
 export const ABOUT_GLOBE_WAIT_IMAGES = ["/images/about/hero/bg"] as const;
 
-const GLOBE_WARM_URLS = [
-  "/textures/earth-tinted.png",
-  "/images/platform-globe-static.png",
-] as const;
-
 function imageSrcMatches(src: string, srcIncludes: string): boolean {
   if (src.includes(srcIncludes)) return true;
   try {
@@ -73,12 +68,44 @@ export function waitForImages(srcIncludes: readonly string[]): Promise<void> {
   return Promise.all(srcIncludes.map(waitForImage)).then(() => undefined);
 }
 
-/** Pull the Three.js globe chunk + textures into cache without mounting a canvas. */
+/**
+ * Pull the Three.js globe chunk + earth texture into cache without mounting a
+ * canvas. The texture goes through drei's loader cache (see
+ * preloadGlobeTexture) so the mounted globe reuses it instead of refetching.
+ * The static underlay is served by next/image, so there is nothing to warm.
+ */
 export function prefetchGlobe(): void {
-  void import("./Globe");
-  for (const src of GLOBE_WARM_URLS) {
-    const img = new Image();
-    img.decoding = "async";
-    img.src = src;
+  void import("./Globe")
+    .then((mod) => mod.preloadGlobeTexture())
+    .catch(() => {
+      /* the globe retries on mount */
+    });
+}
+
+/** Load the live globe once its frame is within this distance of the viewport. */
+export const GLOBE_NEAR_MARGIN = "50% 0px";
+/** Start warming the chunk + texture a little earlier than that. */
+export const GLOBE_PREFETCH_MARGIN = "100% 0px";
+
+/** Resolve once `el` comes within `rootMargin` of the viewport. Returns a disposer. */
+export function whenNearViewport(
+  el: Element,
+  rootMargin: string,
+  onNear: () => void,
+): () => void {
+  if (typeof IntersectionObserver === "undefined") {
+    onNear();
+    return () => {};
   }
+  const io = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        io.disconnect();
+        onNear();
+      }
+    },
+    { rootMargin },
+  );
+  io.observe(el);
+  return () => io.disconnect();
 }
