@@ -114,13 +114,19 @@ export function ApplyFlow({ onClose }: { onClose: () => void }) {
         onBack={onClose}
         message={applicant ? tr("Hi {name},").replace("{name}", applicant.name) : tr("Check your email to confirm your address and begin.")}
         detail={
-          applicant ? (
-            <>
-              <span className="text-black/64">{tr("Complete your application through the link we've sent you on your registered email")}</span>
-              <br />
-              <span className="break-all">{applicant.email}</span>
-            </>
-          ) : undefined
+          <>
+            {applicant ? (
+              <>
+                <span className="text-black/64">{tr("Complete your application through the link we've sent you on your registered email")}</span>
+                <br />
+                <span className="break-all">{applicant.email}</span>
+              </>
+            ) : null}
+            {/* Quiet secondary note: smaller than the email line so it never competes with it. */}
+            <p className={`mx-auto max-w-[520px] text-[15px] leading-[1.3] tracking-normal text-black/64 desk:text-[18px] ${applicant ? "mt-5 desk:mt-6" : ""}`}>
+              {tr("The email can take a minute or two to arrive. If it hasn't come after 5 minutes, check your spam or junk folder, or fill in the form again.")}
+            </p>
+          </>
         }
         pending={false}
       />
