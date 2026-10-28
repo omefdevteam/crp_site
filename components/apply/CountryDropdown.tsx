@@ -5,6 +5,7 @@ import { useText } from "@/lib/ui-text";
 import { type KeyboardEvent, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal, flushSync } from "react-dom";
 import { useLanguage } from "../LanguageProvider";
+import { useIsMobile } from "@/lib/useIsMobile";
 import { COUNTRIES, countryLabel, rankCountries, type Country } from "@/lib/countries";
 import { FIELD, FIELD_LG, LABEL, LABEL_LG, MINI_LABEL, VALUE_LG } from "./fieldStyles";
 
@@ -37,15 +38,23 @@ function Flag({ code, lazy = false, compact = false, className = "" }: { code: s
   );
 }
 
-function placeMenu(anchor: HTMLButtonElement, variant: "field" | "inline") {
+function placeMenu(anchor: HTMLButtonElement, variant: "field" | "inline", followKeyboard = false) {
   const rect = anchor.getBoundingClientRect();
   const width = Math.min(variant === "field" ? Math.max(rect.width, 280) : 312, window.innerWidth - 16);
   const gap = 8;
-  const spaceBelow = window.innerHeight - rect.bottom - gap;
-  const spaceAbove = rect.top - gap;
+  // Phones with the search field: size the list to the visible area, so the on-screen
+  // keyboard (which shrinks the visual viewport) never hides options.
+  const vv = followKeyboard ? window.visualViewport : null;
+  const viewTop = vv ? vv.offsetTop : 0;
+  const viewBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+  const spaceBelow = viewBottom - rect.bottom - gap;
+  const spaceAbove = rect.top - viewTop - gap;
   const openUp = spaceBelow < 220 && spaceAbove > spaceBelow;
-  const maxHeight = Math.max(180, Math.min(360, openUp ? spaceAbove : spaceBelow));
-  const top = openUp ? Math.max(8, rect.top - gap - maxHeight) : rect.bottom + gap;
+  const visibleCap = vv ? Math.max(120, viewBottom - viewTop - 16) : Infinity;
+  const maxHeight = Math.min(visibleCap, Math.max(180, Math.min(360, openUp ? spaceAbove : spaceBelow)));
+  let top = openUp ? Math.max(viewTop + 8, rect.top - gap - maxHeight) : rect.bottom + gap;
+  // Keep the whole list above the keyboard, even when the trigger itself is scrolled out of view.
+  if (vv) top = Math.max(viewTop + 8, Math.min(top, viewBottom - 8 - maxHeight));
   const left = Math.min(Math.max(8, rect.left), window.innerWidth - width - 8);
   return { top, left, width, maxHeight };
 }
@@ -78,6 +87,11 @@ export function CountryDropdown({
   const tallLabel = mobileTall ? "max-desk:text-[12px] max-desk:tracking-[0.48px]" : "";
   const tr = useText();
   const { locale } = useLanguage();
+  const isMobile = useIsMobile();
+  // Phones get a visible search field on the nationality / based-in lists (the dial list
+  // always has one). Desktop keeps type-to-search with no field.
+  const searchField = variant === "inline" || isMobile;
+  const echoQuery = !isMobile;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
@@ -112,7 +126,7 @@ export function CountryDropdown({
     const anchor = triggerRef.current;
     if (!open || !anchor) return;
     const place = () => {
-      const next = placeMenu(anchor, variant);
+      const next = placeMenu(anchor, variant, isMobile && variant === "field");
       setMenuStyle((current) =>
         current &&
         current.top === next.top &&
@@ -126,11 +140,16 @@ export function CountryDropdown({
     place();
     window.addEventListener("resize", place);
     window.addEventListener("scroll", place, true);
+    const vv = isMobile && variant === "field" ? window.visualViewport : null;
+    vv?.addEventListener("resize", place);
+    vv?.addEventListener("scroll", place);
     return () => {
       window.removeEventListener("resize", place);
       window.removeEventListener("scroll", place, true);
+      vv?.removeEventListener("resize", place);
+      vv?.removeEventListener("scroll", place);
     };
-  }, [open, variant]);
+  }, [open, variant, isMobile]);
 
   useEffect(() => {
     if (!open || !menuStyle) return;
@@ -147,6 +166,7 @@ export function CountryDropdown({
   const choose = useCallback(
     (country: Country) => {
       onChange(country);
+      setQuery("");
       setOpen(false);
       triggerRef.current?.focus();
     },
@@ -158,11 +178,13 @@ export function CountryDropdown({
     const onDown = (event: PointerEvent) => {
       if (!(event.target instanceof Node)) return;
       if (wrapRef.current?.contains(event.target) || menuRef.current?.contains(event.target)) return;
+      setQuery("");
       setOpen(false);
     };
     const onKey = (event: globalThis.KeyboardEvent) => {
       if (event.key === "Escape") {
         event.preventDefault();
+        setQuery("");
         setOpen(false);
         triggerRef.current?.focus();
         return;
@@ -268,13 +290,13 @@ export function CountryDropdown({
         className={
           variant === "field"
             ? lg
-              ? `${FIELD} ${FIELD_LG} w-full gap-3 ${value && !(open && query) ? "pl-4" : "pl-5 desk:pl-6"} pr-6 desk:pr-8`
+              ? `${FIELD} ${FIELD_LG} w-full gap-3 ${value && !(open && query && echoQuery) ? "pl-4" : "pl-5 desk:pl-6"} pr-6 desk:pr-8`
               : `${FIELD} w-full gap-4 pl-5 pr-6 ${tallField}`
             : "flex h-11 items-center gap-2 border-r border-black/8 pr-2"
         }
       >
         {variant === "field" && lg ? (
-          open && query ? (
+          open && query && echoQuery ? (
             <span className="flex min-w-0 flex-1 flex-col items-start gap-0.5 text-left">
               <span className={MINI_LABEL}>{label}</span>
               <span className={`max-w-full truncate ${VALUE_LG}`}>
@@ -332,7 +354,7 @@ export function CountryDropdown({
               style={{ top: menuStyle.top, left: menuStyle.left, width: menuStyle.width, maxHeight: menuStyle.maxHeight }}
               className="fixed z-[90] flex flex-col overflow-hidden rounded-[32px] bg-white shadow-[0_12px_40px_rgba(0,0,0,0.14)]"
             >
-              {variant === "inline" ? (
+              {searchField ? (
                 <div className="mx-[19px] mt-[7px] flex h-[63px] shrink-0 items-center gap-3">
                   <svg viewBox="0 0 16 16" className="size-4 shrink-0 text-black/48" fill="none" aria-hidden>
                     <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.5" />
@@ -345,14 +367,15 @@ export function CountryDropdown({
                     enterKeyHint="search"
                     autoComplete="off"
                     autoCorrect="off"
+                    autoCapitalize="off"
                     spellCheck={false}
                     value={query}
                     onChange={(event) => {
                       setQuery(event.target.value);
                       setActive(0);
                     }}
-                    placeholder={tr("Search")}
-                    aria-label={tr("Search")}
+                    placeholder={tr(variant === "field" ? "Search country" : "Search")}
+                    aria-label={tr(variant === "field" ? "Search country" : "Search")}
                     aria-controls={listId}
                     aria-activedescendant={ranked[safeActive] ? `${listId}-${ranked[safeActive].country.code}` : undefined}
                     className="min-w-0 flex-1 bg-transparent text-[20px] leading-[1.2] tracking-[-0.8px] text-black outline-none placeholder:text-black/32"
