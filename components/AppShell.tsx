@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { requestLocale, requestPath } from "@/lib/request-locale";
 import { LanguageProvider } from "@/components/LanguageProvider";
@@ -6,13 +5,14 @@ import { ConsentProvider } from "@/components/cookies/ConsentProvider";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import { siteCopy } from "@/lib/copy/read";
 import { outfit } from "@/lib/fonts";
-import "./globals.css";
 
-export const metadata: Metadata = { title: "Climate Refugee Pavilion", robots: { index: false, follow: false } };
-
-export default async function RootLayout({
-  children,
-}: Readonly<{ children: ReactNode }>) {
+/**
+ * Root shell for the routes outside /[lang] (admin, apply links, confirmation).
+ * The locale comes from the proxy's request header, so these routes are always
+ * rendered per request and never cached. The public pages use
+ * app/[lang]/layout.tsx instead, which takes the locale from the URL.
+ */
+export async function AppShell({ children }: { children: ReactNode }) {
   const locale = await requestLocale();
   const site = await siteCopy(locale);
 
