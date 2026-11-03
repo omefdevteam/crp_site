@@ -7,6 +7,8 @@ import { startDatabase } from "./db.mjs";
 let db;
 let sql;
 let load;
+// Every call publishCopy makes to clear the cached copy and page HTML.
+const cacheCalls = [];
 
 before(async () => {
   db = await startDatabase();
@@ -19,7 +21,8 @@ before(async () => {
   load = loader({
     "next/cache": {
       unstable_cache: (fn) => fn,
-      updateTag: () => {},
+      updateTag: (tag) => cacheCalls.push(`tag:${tag}`),
+      revalidatePath: (path, type) => cacheCalls.push(`path:${path}:${type}`),
     },
     "next/headers": {
       headers: async () => new Headers(),
@@ -159,7 +162,11 @@ async function publishedCopy() {
   const french = parseCopyRef({ catalog: "page", locale: "fr", key: "hero.line1Accent" });
   assert.deepEqual(await saveDraft(database, english, authorId, "differently {extra}"), { ok: false, reason: "invalid", problems: [{ kind: "placeholders", expected: [], found: ["extra"] }] });
   assert.deepEqual(await saveDraft(database, english, authorId, "unequally"), { ok: true });
+  const EXPIRED = ["tag:copy", "path:/[lang]:layout"];
+  cacheCalls.length = 0;
   assert.deepEqual(await publishCopy(database, english, authorId, { kind: "draft" }, 0), { ok: true });
+  // A publish clears the cached copy and every cached public page (/[lang]/*).
+  assert.deepEqual(cacheCalls, EXPIRED);
   const rows = await queryPublishedRows(database);
   const merged = mergePage(mod("lib/copy/catalog.ts").indexPublished(rows), "en");
   assert.equal(merged.hero.line1Accent, "unequally");
@@ -170,11 +177,17 @@ async function publishedCopy() {
   assert.equal(state.kind, "stale");
   assert.equal(bundledValue(french).length > 0, true);
   const { englishDigest, markReviewed } = mod("lib/copy/editor.ts");
+  cacheCalls.length = 0;
   assert.deepEqual(await publishCopy(database, french, authorId, { kind: "mark-current", digest: englishDigest("differently") }, 0), { ok: false, reason: "conflict" });
+  assert.deepEqual(cacheCalls, [], "a refused publish clears nothing");
   assert.deepEqual(await publishCopy(database, french, authorId, { kind: "mark-current", digest: englishDigest("unequally") }, 0), { ok: true });
+  assert.deepEqual(cacheCalls, EXPIRED);
   const capped = Array.from({ length: 101 }, () => ({ catalog: "page", locale: "fr", key: "hero.line1Accent", revision: 0, digest: "nope" }));
   assert.deepEqual(await markReviewed(database, authorId, capped), { ok: false, reason: "invalid" });
+  cacheCalls.length = 0;
   assert.deepEqual(await publishCopy(database, english, authorId, { kind: "reset" }, 1), { ok: true });
+  // Revert to the bundled text clears the caches too.
+  assert.deepEqual(cacheCalls, EXPIRED);
   const after = await queryPublishedRows(database);
   assert.equal(after.some((row) => row.key === "hero.line1Accent"), false);
   assert.equal(await publishedOrFallback(async () => { throw new Error("down"); }), mod("lib/copy/catalog.ts").NO_OVERRIDES);

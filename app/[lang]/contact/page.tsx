@@ -2,6 +2,7 @@ import { metadataFor } from "@/lib/seo";
 import { StructuredData } from "@/components/StructuredData";
 import { TrailPreload } from "@/components/TrailPreload";
 import type { Metadata } from "next";
+import { routeLocale, type LangParams } from "@/lib/locale";
 import { ContactPage } from "@/components/contact/ContactPage";
 import { Footer } from "@/components/Footer";
 import { GetInvolved } from "@/components/GetInvolved";
@@ -10,12 +11,15 @@ import { Header } from "@/components/Header";
 import { Sponsors } from "@/components/Sponsors";
 import { outfit } from "@/lib/fonts";
 
-export async function generateMetadata(): Promise<Metadata> { return metadataFor("contact"); }
+export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
+  return metadataFor("contact", await routeLocale(params));
+}
 
-export default function ContactRoute() {
+export default async function ContactRoute({ params }: LangParams) {
+  const locale = await routeLocale(params);
   return (<>
       <TrailPreload />
-      <StructuredData page="contact" />
+      <StructuredData page="contact" locale={locale} />
     <div className={`${outfit.className} relative flex flex-1 flex-col`}>
       <Header mobileLogoTone="color" />
       <main className="flex-1">

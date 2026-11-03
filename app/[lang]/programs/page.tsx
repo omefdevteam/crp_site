@@ -1,10 +1,11 @@
 import { metadataFor } from "@/lib/seo";
 import { StructuredData } from "@/components/StructuredData";
 import type { Metadata } from "next";
+import { routeLocale, type LangParams } from "@/lib/locale";
 import { Footer } from "@/components/Footer";
 import { ProgramAbout } from "@/components/programs/ProgramAbout";
 import { ProgramApplicationBand } from "@/components/programs/ProgramApplicationBand";
-import { ProgramApplyBar } from "@/components/programs/ProgramApplyBar";
+import { ProgramApplyBarFromUrl } from "@/components/programs/ProgramApplyBar";
 import { ProgramFaq } from "@/components/programs/ProgramFaq";
 import { ProgramHero } from "@/components/programs/ProgramHero";
 import { ProgramResonate } from "@/components/programs/ProgramResonate";
@@ -12,18 +13,17 @@ import { ProgramTestimonials } from "@/components/programs/ProgramTestimonials";
 import { ProgramWhatYouGet } from "@/components/programs/ProgramWhatYouGet";
 import { outfit } from "@/lib/fonts";
 
-export async function generateMetadata(): Promise<Metadata> { return metadataFor("programs"); }
+export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
+  return metadataFor("programs", await routeLocale(params));
+}
 
-export default async function ProgramsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ intent?: string | string[] }>;
-}) {
-  const { intent } = await searchParams;
-  const mode = intent === "nominate" ? "nominate" : "apply";
+// The query string is not read here: that would make the page dynamic. The bottom
+// bar reads ?intent=nominate in the browser (ProgramApplyBarFromUrl).
+export default async function ProgramsPage({ params }: LangParams) {
+  const locale = await routeLocale(params);
 
   return (<>
-      <StructuredData page="programs" />
+      <StructuredData page="programs" locale={locale} />
     <div className={`${outfit.className} relative flex flex-1 flex-col bg-cream`}>
       <main className="flex-1">
         <ProgramHero />
@@ -51,7 +51,7 @@ export default async function ProgramsPage({
       {/* Reserve space so the fixed Apply bar never covers footer content */}
       <div className="h-[110px]" aria-hidden />
 
-      <ProgramApplyBar mode={mode} />
+      <ProgramApplyBarFromUrl />
     </div>
   </>);
 }

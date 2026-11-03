@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { routeLocale, type LangParams } from "@/lib/locale";
 import { metadataFor } from "@/lib/seo";
 import { StructuredData } from "@/components/StructuredData";
 import { ContentGrid } from "@/components/ContentGrid";
@@ -15,11 +16,14 @@ import { Sponsors } from "@/components/Sponsors";
 import { AboutTicker } from "@/components/about/AboutTicker";
 import { Waitlist } from "@/components/Waitlist";
 
-export async function generateMetadata(): Promise<Metadata> { return metadataFor("home"); }
+export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
+  return metadataFor("home", await routeLocale(params));
+}
 
-export default function Home() {
+export default async function Home({ params }: LangParams) {
+  const locale = await routeLocale(params);
   return (<>
-      <StructuredData page="home" />
+      <StructuredData page="home" locale={locale} />
     <div className="relative flex flex-1 flex-col">
       <Header overMedia />
       <main className="flex-1">

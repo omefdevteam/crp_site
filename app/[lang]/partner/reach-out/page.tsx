@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PartnerReachPage } from "@/components/partner/PartnerReachPage";
 import { outfit } from "@/lib/fonts";
-import { siteCopy } from "@/lib/copy/read";
-import { requestLocale } from "@/lib/request-locale";
+import { publicSiteCopy } from "@/lib/copy/read";
+import { routeLocale, type LangParams } from "@/lib/locale";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await requestLocale();
-  const { messages } = await siteCopy(locale);
+export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
+  const { messages } = await publicSiteCopy(await routeLocale(params));
   return { title: `${messages.partnerPage.reachOutForm.title} — Climate Refugee Pavilion`, robots: { index: false, follow: false } };
 }
 

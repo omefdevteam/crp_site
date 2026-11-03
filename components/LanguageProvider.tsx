@@ -11,7 +11,6 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 import { isLocale, localePath, persistLocale, publicPaths, type Locale } from "@/lib/locale";
-import { useHydrated } from "@/lib/useHydrated";
 import type { Messages } from "@/lib/messages";
 import type { UiOverrides } from "@/lib/ui-messages";
 import type { SocialLinks } from "@/lib/copy/social";
@@ -53,10 +52,10 @@ export function LanguageProvider({
   children: ReactNode;
 }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
-  // Client-side navigation keeps this provider mounted, so follow the URL once hydrated.
+  // Follow the URL (also during prerender, where it's the page's own path):
+  // client-side navigation keeps this provider mounted.
   const pathname = usePathname();
-  const hydrated = useHydrated();
-  const path = hydrated && pathname ? sitePath(pathname) : initialPath;
+  const path = pathname ? sitePath(pathname) : initialPath;
 
   const setLocale = useCallback((next: Locale) => {
     persistLocale(next);
