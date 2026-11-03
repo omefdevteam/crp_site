@@ -27,3 +27,11 @@ export function persistLocale(locale: Locale) {
   if (!hasConsent("functional")) return;
   document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000; SameSite=Lax`;
 }
+
+/** Route params of the public pages under app/[lang]. */
+export type LangParams = { params: Promise<{ lang: string }> };
+
+/** The page locale from the route params (the URL), so prerendered pages never read headers. */
+export async function routeLocale(params: LangParams["params"]): Promise<Locale> {
+  return parseLocale((await params).lang);
+}

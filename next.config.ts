@@ -17,6 +17,9 @@ const nextConfig: NextConfig = {
     ];
   },
   experimental: {
+    // app/global-not-found.tsx: the 404 page now that the public pages and the
+    // admin/apply/confirmation routes each have their own root layout.
+    globalNotFound: true,
     optimizePackageImports: ["framer-motion", "@react-three/drei"],
   },
 };

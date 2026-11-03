@@ -2,6 +2,7 @@ import { metadataFor } from "@/lib/seo";
 import { StructuredData } from "@/components/StructuredData";
 import { TrailPreload } from "@/components/TrailPreload";
 import type { Metadata } from "next";
+import { routeLocale, type LangParams } from "@/lib/locale";
 import { AboutPage } from "@/components/about/AboutPage";
 import { AboutTicker } from "@/components/about/AboutTicker";
 import { Footer } from "@/components/Footer";
@@ -10,12 +11,15 @@ import { GetInvolvedPill } from "@/components/GetInvolvedPill";
 import { Header } from "@/components/Header";
 import { outfit } from "@/lib/fonts";
 
-export async function generateMetadata(): Promise<Metadata> { return metadataFor("about"); }
+export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
+  return metadataFor("about", await routeLocale(params));
+}
 
-export default function AboutRoute() {
+export default async function AboutRoute({ params }: LangParams) {
+  const locale = await routeLocale(params);
   return (<>
       <TrailPreload />
-      <StructuredData page="about" />
+      <StructuredData page="about" locale={locale} />
     <div className={`${outfit.className} relative flex flex-1 flex-col`}>
       <Header overMedia />
       <main className="flex-1">

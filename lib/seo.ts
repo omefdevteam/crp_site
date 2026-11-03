@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { siteCopy } from "@/lib/copy/read";
-import { requestLocale } from "@/lib/request-locale";
+import { publicSiteCopy } from "@/lib/copy/read";
 import type { Messages } from "@/lib/messages";
 import { locales, localePath, type Locale } from "@/lib/locale";
 export const SITE_URL = "https://www.climaterefugeepavilion.org";
@@ -37,8 +36,9 @@ export function structuredData(input: { locale: Locale; messages: Messages }, pa
   ] };
 }
 
-export async function metadataFor(page: PageKey): Promise<Metadata> {
-  const locale = await requestLocale();
-  const { messages } = await siteCopy(locale);
+// The locale is passed in from the route params (never read from headers), so
+// the prerendered public pages stay static.
+export async function metadataFor(page: PageKey, locale: Locale): Promise<Metadata> {
+  const { messages } = await publicSiteCopy(locale);
   return pageMetadata({ locale, messages }, page);
 }
