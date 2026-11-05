@@ -212,7 +212,7 @@ const PAGE: Readonly<Record<string, string>> = {
   "programs.about.location": "Who can apply",
   "programs.about.lede": "Opening text",
   "programs.about.body.#": "Paragraph {n}",
-  "programs.about.accordion": "About the program button",
+  "programs.about.accordion": "About the program button (switched off for now)",
   "programs.canGet.heading": "Ambassadors can get: title",
   "programs.canGet.items.#.label": "Ambassadors can get, card {n}: tag",
   "programs.canGet.items.#.text": "Ambassadors can get, card {n}: text",

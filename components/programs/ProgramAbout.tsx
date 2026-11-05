@@ -9,6 +9,13 @@ import { FigmaImg } from "./FigmaImg";
 import { ProgramCanGet } from "./ProgramCanGet";
 import { ProgramSkillsPractice } from "./ProgramSkillsPractice";
 
+/**
+ * The "About the program" pop-up is switched off until its copy is rewritten.
+ * The button stays in place but looks inactive and does nothing. Set this to
+ * true to bring the pop-up back; its copy is still edited under Website text.
+ */
+const ABOUT_POPUP_ENABLED = false;
+
 export function ProgramAbout({ logos }: { logos: SiteLogos }) {
   const copy = useCopy();
   const about = copy.programs.about;
@@ -48,12 +55,17 @@ export function ProgramAbout({ logos }: { logos: SiteLogos }) {
         </div>
       </div>
 
-      {/* About the program — opens side popup */}
+      {/* About the program: opens the side pop-up, or sits inactive while ABOUT_POPUP_ENABLED is off. */}
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={ABOUT_POPUP_ENABLED ? () => setOpen(true) : undefined}
+        aria-disabled={ABOUT_POPUP_ENABLED ? undefined : true}
         aria-label={copy.a11y.toggleAbout}
-        className="flex w-full items-center justify-between rounded-[32px] bg-white py-2 pl-6 pr-2 text-left transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] desk:h-[112px] desk:py-2 desk:pl-8"
+        className={`flex w-full items-center justify-between rounded-[32px] bg-white py-2 pl-6 pr-2 text-left desk:h-[112px] desk:py-2 desk:pl-8 ${
+          ABOUT_POPUP_ENABLED
+            ? "transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98]"
+            : "cursor-default opacity-50"
+        }`}
       >
         <span className="text-[24px] font-normal leading-none tracking-[-0.96px] text-black desk:text-[32px] desk:tracking-[-1.28px]">
           {about.accordion}
@@ -72,7 +84,9 @@ export function ProgramAbout({ logos }: { logos: SiteLogos }) {
       <ProgramCanGet />
       <ProgramSkillsPractice logos={logos} />
 
-      <AboutProgramPopup open={open} onClose={() => setOpen(false)} />
+      {ABOUT_POPUP_ENABLED ? (
+        <AboutProgramPopup open={open} onClose={() => setOpen(false)} />
+      ) : null}
     </div>
   );
 }
