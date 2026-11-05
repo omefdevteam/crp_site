@@ -18,7 +18,6 @@ const SECTION_PATH = {
   partnerPage: "/partner",
   contactPage: "/contact",
   apply: "/apply",
-  nominateLanding: "/nominate",
   privacyPage: "/privacy",
 } as const;
 
