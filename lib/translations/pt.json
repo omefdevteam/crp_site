@@ -26,8 +26,6 @@
     "nextTestimonial": "Testemunho seguinte",
     "platformGroups": "Grupos da plataforma",
     "youthAmbassadorCard": "Manifestar interesse no Programa de Jovens Embaixadores, dos 19 aos 26 anos",
-    "programDetails": "Informações sobre o programa para pessoas dos 19 aos 26 anos",
-    "moreComingSoon": "Mais novidades em breve",
     "expressInterest": "Manifestar interesse",
     "closeExpressInterest": "Fechar o formulário de interesse",
     "closeTeamMember": "Fechar a ficha do membro",
@@ -63,7 +61,12 @@
         "title": "Reunir pessoas"
       }
     ],
-    "homeTopics": ["Humanos", "Origens", "Movimento", "Evolução"],
+    "homeTopics": [
+      "Humanos",
+      "Origens",
+      "Movimento",
+      "Evolução"
+    ],
     "teamTitle": "Equipa",
     "teamQuotes": [
       "«O programa dá voz a jovens ativistas pelo clima e fornece ferramentas para defenderem as suas propostas na COP31.»",
@@ -83,7 +86,12 @@
     "heroBody": "Apoie toda a organização",
     "reachOut": "Contactar",
     "waysLabel": "Formas de contribuir",
-    "ways": ["Fundos", "Espaços", "Vantagens", "Recursos"],
+    "ways": [
+      "Fundos",
+      "Espaços",
+      "Vantagens",
+      "Recursos"
+    ],
     "waysBody": "podem ser usados para apoiar os programas que destacamos, os nossos próprios programas e missões para envolver os nossos membros",
     "rewardsTitle": "Recompensas para si",
     "rewards": [
@@ -112,8 +120,16 @@
       "continue": "Continuar",
       "sent": "Entraremos em contacto.",
       "sponsorshipDetails": "Detalhes do apoio",
-      "supportOptions": ["Toda a organização", "Um programa de embaixadores", "Uma história específica", "Candidatar-me como orador(a)"],
-      "sponsorshipOptions": ["Apoio financeiro", "Apoio em espécie"]
+      "supportOptions": [
+        "Toda a organização",
+        "Um programa de embaixadores",
+        "Uma história específica",
+        "Candidatar-me como orador(a)"
+      ],
+      "sponsorshipOptions": [
+        "Apoio financeiro",
+        "Apoio em espécie"
+      ]
     }
   },
   "contactPage": {
@@ -237,9 +253,29 @@
   },
   "footer": {
     "sections": [
-      { "title": "A nossa oferta", "links": ["Início", "Sobre nós", "Programas"] },
-      { "title": "Informação legal", "links": ["Política de privacidade", "Termos e condições"] },
-      { "title": "Fale connosco", "links": ["Contacte-nos", "Seja nosso parceiro", "Participar"] }
+      {
+        "title": "A nossa oferta",
+        "links": [
+          "Início",
+          "Sobre nós",
+          "Programas"
+        ]
+      },
+      {
+        "title": "Informação legal",
+        "links": [
+          "Política de privacidade",
+          "Termos e condições"
+        ]
+      },
+      {
+        "title": "Fale connosco",
+        "links": [
+          "Contacte-nos",
+          "Seja nosso parceiro",
+          "Participar"
+        ]
+      }
     ],
     "getInTouch": "Mantenha-se em contacto",
     "copyright": "© {year} Climate Refugee Pavilion. Todos os direitos reservados.",
@@ -271,34 +307,56 @@
     ]
   },
   "programs": {
-    "title": "19–26 anos\nPrograma de Jovens Embaixadores",
+    "title": "Programa de Embaixadores",
     "about": {
-      "dates": "14 out. – 16 nov.",
-      "location": "COP31, Antalya, Turquia",
-      "lede": "Vai passar uma semana no espaço onde se tomam decisões climáticas, contribuindo para construir o próprio pavilhão.",
+      "dates": "Contínuo",
+      "location": "Candidaturas abertas em todo o mundo",
+      "lede": "Construir uma rede global ativa de pessoas com competências, conhecimentos e experiências de vida diversas, que contribuem para uma compreensão partilhada da mobilidade climática.",
       "body": [
         "Este programa parte de uma realidade: a migração tem permitido às pessoas sobreviver a crises ao longo de gerações. Se faz parte dos milhões de pessoas deslocadas pelas alterações climáticas, a sua experiência constitui um conhecimento essencial.",
-        "Não se trata de uma viagem isolada. A COP31 é o ponto de partida: a presença, as relações e a capacidade de ação que construir aqui continuarão em projetos duradouros e numa rede que vai além da cimeira."
+        "A presença, as relações e a capacidade de ação que construir aqui continuarão em projetos duradouros e numa rede que vai além da cimeira."
       ],
-      "accordion": "Sobre o programa",
-      "stats": [
+      "accordion": "Sobre o programa"
+    },
+    "canGet": {
+      "heading": "O que os(as) embaixadores(as) recebem",
+      "items": [
         {
-          "value": "20",
-          "label": "embaixadores"
+          "label": "Conhecimento",
+          "text": "Mobilidade climática e aprendizagem"
         },
         {
-          "value": "8–10",
-          "label": "online"
+          "label": "Rede",
+          "text": "Ligações com pares e especialistas"
         },
         {
-          "value": "10–12",
-          "label": "na COP31"
+          "label": "Competências duradouras",
+          "text": "Comunicação, liderança"
+        },
+        {
+          "label": "Reconhecimento",
+          "text": "Passaporte do Pavilhão, insígnias"
+        },
+        {
+          "label": "Acesso",
+          "text": "Eventos, conteúdos, mentoria"
+        },
+        {
+          "label": "Progressão",
+          "text": "Liderança e patrocínios de viagem"
         }
-      ],
-      "online": "3 semanas de formação online",
-      "onlineDates": "[14 out. – 4 nov.]",
-      "antalya": "1 semana em Antalya",
-      "antalyaDates": "[9–16 nov.]"
+      ]
+    },
+    "practice": {
+      "heading": "Os(as) embaixadores(as) põem as suas competências em prática através de",
+      "items": [
+        "Entrevistas, narrativas e recolha de conteúdos",
+        "Investigação, análise e recolha de informação",
+        "Organização de encontros e criação de redes locais",
+        "Desenvolvimento e ativação de missões locais",
+        "Recrutamento de participantes e organizações",
+        "Participação em projetos financiados"
+      ]
     },
     "aboutPopup": {
       "title": "Sobre o programa",
@@ -353,37 +411,32 @@
       ]
     },
     "whatYouGet": {
-      "heading": "O que oferecemos",
+      "heading": "Vai fazer parte da construção de",
       "cards": [
         {
-          "title": "4 semanas",
-          "badge": "online",
-          "description": "Antes da COP, receberá formação em narrativa, políticas públicas, negociação e media. Alguns embaixadores participam apenas online, mas mantêm-se plenamente envolvidos nos projetos do pavilhão e na rede que construímos juntos."
+          "title": "Conhecimento partilhado",
+          "description": "A nossa abordagem é ligar pessoas, conhecimentos e capacidades entre disciplinas, aprendendo e construindo em conjunto"
         },
         {
-          "title": "1 semana em Antalya",
-          "badge": "Viagem",
-          "description": "Voos, visto, alojamento e refeições pagos. Prepare-se para participar; nós tratamos da logística."
+          "title": "A troca de valor nos dois sentidos",
+          "description": "As suas histórias estão no centro do que fazemos, e a propriedade continua a ser inteiramente sua."
         },
         {
-          "title": "",
-          "badge": "",
-          "description": "Acreditação oficial da CQNUAC e acesso ao pavilhão na Zona Azul."
+          "title": "Identificar e desenvolver competências duradouras",
+          "description": "As competências duradouras são capacidades humanas transferíveis que mantêm o seu valor em diferentes profissões e setores em mudança, incluindo comunicação, liderança, colaboração, resolução de problemas e adaptabilidade.\nO HiddenSkills.net torna visíveis e mensuráveis as competências que os(as) embaixadores(as) desenvolvem."
         },
         {
-          "title": "Mentoria",
-          "badge": "",
-          "description": "Terá o apoio de negociadores, juristas, cientistas, contadores de histórias e organizadores para avançar nos seus objetivos."
+          "title": "Como funciona",
+          "description": "Passo 1: candidaturas e integração\nPasso 2: Embaixador(a) 101 — antes da COP31\nPasso 3: miniprograma COP31"
         },
         {
-          "title": "Depois\nda COP",
-          "badge": "",
-          "description": "Regressará com ferramentas para desenvolver soluções de mobilidade climática: um projeto duradouro, uma rede estável, relações e capacidade de ação."
+          "title": "Adesão contínua e progressão",
+          "description": "Aderir → Integrar → Ligar → Contribuir → Ganhar → Subir de nível"
         }
       ]
     },
     "applyBand": {
-      "body": "Financiamos a participação de jovens que representam as suas comunidades na COP31, em Antalya, porque as pessoas mais afetadas pelas deslocações climáticas devem participar nas decisões.",
+      "body": "A Rede de Embaixadores apoia a missão mais ampla do CRP: reunir, organizar, analisar, ligar e difundir conhecimento sobre mobilidade climática.",
       "process": "Processo de candidatura"
     },
     "applicationProcess": {
@@ -463,53 +516,59 @@
     },
     "testimonials": [
       {
-        "role": "Diretor\nde programa",
+        "role": "Coordenador\ndo programa",
         "quote": "«Esta iniciativa fornece aos jovens defensores do clima ferramentas essenciais para a COP31.»"
       },
       {
-        "role": "Programas\njuvenis",
+        "role": "Responsável pelo programa jovem\n(América do Norte)",
         "quote": "«O programa dá voz a jovens ativistas pelo clima e fornece ferramentas para defenderem as suas propostas na COP31.»"
       },
       {
-        "role": "Programas\nfrancófonos",
+        "role": "Responsável pelo programa jovem\n(francófono)",
         "quote": "«Esta iniciativa fornece aos jovens defensores do clima ferramentas essenciais para a COP31.»"
       }
     ]
   },
   "apply": {
-    "title": "Programa de Jovens Embaixadores",
-    "subtitle": "Unimos vozes de todo o mundo",
-    "location": "COP31, Antalya, Turquia",
-    "headline": "Como embaixador(a), irá acompanhar-nos no caminho para a proteção jurídica dos refugiados climáticos.",
-    "body": "Representará a sua comunidade, abrirá conversas sobre mobilidade climática e conhecerá participantes de todo o mundo. Juntos, reforçaremos as suas competências, daremos voz às suas ideias e contribuiremos para soluções de mobilidade climática.",
-    "benefits": {
-      "travel": "Viagem, visto, alojamento e ajudas de custo totalmente pagos",
-      "accreditationBefore": "Acreditação oficial da CQNUAC e acesso ao pavilhão na ",
-      "accreditationAfter": "",
-      "capacity": "3 semanas de formação antes da COP",
-      "mentorship": "Mentoria direta",
-      "blueZone": "Zona Azul"
-    },
-    "ages1926": "Idades\n19–26",
-    "online": "3 semanas online",
-    "antalya": "1 semana em Antalya",
-    "ages1518": "Dos 15 aos 18 anos",
-    "ages2734": "Dos 27 aos 34 anos",
+    "title": "Embaixadores",
+    "subtitle": "Reunir pessoas que passam à ação em todo o mundo",
+    "facts": [
+      "Torne-se embaixador(a) oficial",
+      "Próxima turma a partir de\n12 de nov.",
+      "1 mês de formação para embaixadores(as) (19+ anos)"
+    ],
+    "headline": "Construa uma rede global que partilha conhecimento sobre mobilidade climática",
+    "body": "Não é uma turma tradicional, mas um percurso de adesão contínuo em que os membros ajudam a moldar o programa à medida que evolui.",
+    "journey": [
+      "Os(as) embaixadores(as) entram de forma contínua, com diferentes níveis de experiência",
+      "Integração, seminários, networking e aprendizagem.",
+      "Os membros desenvolvem competências, ganham insígnias e participam em projetos.",
+      "Os(as) colaboradores(as) trazem a sua experiência e lideram iniciativas."
+    ],
+    "programsHeading": "Ganhe as suas insígnias: programas que oferecemos",
+    "programs": [
+      {
+        "tag": "Obrigatório para todos(as) os(as) embaixadores(as)",
+        "title": "Embaixador(a) 101"
+      },
+      {
+        "tag": "",
+        "title": "UNFCC 101"
+      },
+      {
+        "tag": "Participação totalmente paga",
+        "title": "COP 32"
+      },
+      {
+        "tag": "Mobilize-se e contribua",
+        "title": "Missões de conteúdo"
+      }
+    ],
+    "comingSoon": "Em breve",
+    "viewDetails": "Ver detalhes",
     "interest": "Manifestar interesse",
-    "applyNow": "Candidatar-me",
-    "nominate": "Indicar alguém",
-    "programDetails": "Informações sobre o programa",
     "namePlaceholder": "nome",
-    "emailPlaceholder": "E-mail",
-    "more": "Novi\ndades\nem\nbreve",
-    "heroAlt": "Costa de Antalya com os montes Tauro do outro lado da baía",
-    "dates": "14 out. – 16 nov.",
-    "readMore": "mais"
-  },
-  "nominateLanding": {
-    "title": "Indicar alguém para o Programa de Jovens Embaixadores",
-    "headline": "Os embaixadores acompanham-nos no caminho para a proteção jurídica dos refugiados climáticos.",
-    "body": "Representam as suas comunidades, abrem conversas sobre mobilidade climática e conhecem participantes de todo o mundo. Juntos, reforçamos as suas competências, damos voz às suas ideias e contribuímos para soluções de mobilidade climática."
+    "emailPlaceholder": "E-mail"
   },
   "privacyPage": {
     "title": "Privacy policy",
