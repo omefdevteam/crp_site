@@ -104,6 +104,7 @@ function pages() {
     ["/admin/records/partners/[id]", () => page("records/partners/[id]/page.tsx")(props({ id: ids.partner })), { admin: "ok", reviewer: "not found", editor: "not found" }],
     ["/admin/records/messages/[id]", () => page("records/messages/[id]/page.tsx")(props({ id: ids.message })), { admin: "ok", reviewer: "not found", editor: "not found" }],
     ["/admin/copy", () => page("copy/page.tsx")(props()), { admin: "ok", reviewer: "not found", editor: "ok" }],
+    ["/admin/copy/logos", () => page("copy/logos/page.tsx")(props()), { admin: "ok", reviewer: "not found", editor: "ok" }],
     ["/admin/staff", () => page("staff/page.tsx")(props()), { admin: "ok", reviewer: "not found", editor: "not found" }],
     ["/admin/activity", () => page("activity/page.tsx")(props()), { admin: "ok", reviewer: "not found", editor: "not found" }],
   ];
@@ -139,6 +140,11 @@ function actions() {
   return [
     ["copy updateCopy", () => action("copy/actions.ts").updateCopy(form()), ["admin", "editor"]],
     ["copy markReviewedCopy", () => action("copy/actions.ts").markReviewedCopy(form()), ["admin", "editor"]],
+    ["logos addLogoAction", () => action("copy/logos/actions.ts").addLogoAction(form()), ["admin", "editor"]],
+    ["logos replaceLogoAction", () => action("copy/logos/actions.ts").replaceLogoAction(form()), ["admin", "editor"]],
+    ["logos updateLogoAction", () => action("copy/logos/actions.ts").updateLogoAction(form()), ["admin", "editor"]],
+    ["logos removeLogoAction", () => action("copy/logos/actions.ts").removeLogoAction(form()), ["admin", "editor"]],
+    ["logos moveLogoAction", () => action("copy/logos/actions.ts").moveLogoAction(form()), ["admin", "editor"]],
     ["staff inviteAction", () => action("staff/actions.ts").inviteAction(null, form()), ["admin"]],
     ["staff changeStaffAction", () => action("staff/actions.ts").changeStaffAction(form()), ["admin"]],
     ["records previewBulkAction", () => action("records/actions.ts").previewBulkAction({}), ["admin", "reviewer"]],

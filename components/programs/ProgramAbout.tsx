@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { SiteLogos } from "@/lib/logos/model";
 import { programIcons } from "@/lib/program-assets";
 import { useCopy } from "../LanguageProvider";
 import { AboutProgramPopup } from "./AboutProgramPopup";
@@ -8,7 +9,7 @@ import { FigmaImg } from "./FigmaImg";
 import { ProgramCanGet } from "./ProgramCanGet";
 import { ProgramSkillsPractice } from "./ProgramSkillsPractice";
 
-export function ProgramAbout() {
+export function ProgramAbout({ logos }: { logos: SiteLogos }) {
   const copy = useCopy();
   const about = copy.programs.about;
   const [open, setOpen] = useState(false);
@@ -69,7 +70,7 @@ export function ProgramAbout() {
       </button>
 
       <ProgramCanGet />
-      <ProgramSkillsPractice />
+      <ProgramSkillsPractice logos={logos} />
 
       <AboutProgramPopup open={open} onClose={() => setOpen(false)} />
     </div>

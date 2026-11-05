@@ -3,6 +3,7 @@ import { STATUS_LABEL } from "@/lib/admin/dashboard";
 import { languageLabel } from "@/lib/admin/labels";
 import { CATALOGS, type CatalogId } from "@/lib/copy/catalog";
 import { copyLabel } from "@/lib/copy/labels";
+import { logoGroup } from "@/lib/logos/model";
 import { adminEvents, copyRevisions, users, type Db } from "@/lib/db";
 
 const PAGE = 50;
@@ -97,6 +98,20 @@ function copyChange(detail: Record<string, unknown>): string {
   return `Changed "${name}" (${where}${locale ? `, ${languageLabel(locale)}` : ""})`;
 }
 
+function logoChange(kind: string, detail: Record<string, unknown>): string {
+  const group = logoGroup(textOf(detail, "logoGroup"));
+  const where = group ? ` (${group.label})` : "";
+  const name = textOf(detail, "logoName");
+  const logo = name ? `the “${name}” logo` : "a logo";
+  if (kind === "logo.added") return `Added ${logo}${where}`;
+  if (kind === "logo.replaced") return `Replaced the image for ${logo}${where}`;
+  if (kind === "logo.removed") return `Removed ${logo}${where}`;
+  if (kind === "logo.moved") return `Moved ${logo} ${textOf(detail, "direction") === "up" ? "earlier" : "later"}${where}`;
+  const previous = textOf(detail, "previousName");
+  if (previous && previous !== name) return `Renamed the “${previous}” logo to “${name}”${where}`;
+  return `Updated ${logo}${where}`;
+}
+
 export function activityLabel(kind: string, detail: Record<string, unknown>): string {
   const email = textOf(detail, "email");
   if (kind === "staff.bootstrap") return email ? `${email} joined` : "Joined";
@@ -111,6 +126,7 @@ export function activityLabel(kind: string, detail: Record<string, unknown>): st
     return filters ? `${summary} (${filters})` : summary;
   }
   if (kind === "copy.published") return copyChange(detail);
+  if (kind.startsWith("logo.")) return logoChange(kind, detail);
   if (kind === "review.saved") {
     const recommendation = textOf(detail, "recommendation");
     return recommendation ? `Saved a review: ${RECOMMENDATION[recommendation] ?? recommendation}` : "Saved a review";
