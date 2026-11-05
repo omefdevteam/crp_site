@@ -192,94 +192,107 @@ export function AmbassadorshipLanding({ intent }: { intent: "apply" | "nominate"
 
   return (
     <div className="relative bg-cream">
-      <ApplyHeader />
-
-      <section className="relative overflow-clip rounded-b-[88px] px-6 desk:rounded-b-[154px] desk:px-0 desk:pt-[120px]">
-        <Image
-          src={`${ART}/hero-mobile.jpg`}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="pointer-events-none object-cover desk:hidden"
-        />
-        <Image
-          src={`${ART}/hero-desktop.jpg`}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="pointer-events-none hidden object-cover object-bottom desk:block"
-        />
-
-        <div className="relative mx-auto flex w-full max-w-[1200px] flex-col desk:gap-16 desk:p-16">
-          {/* Title; the subtitle sits over it (Figma 37:905). */}
-          <div className="relative flex flex-col items-center pb-8 pt-24 text-white desk:p-0">
-            <h1
-              ref={titleRef}
-              className={`${trail.className} w-full text-[82.08px] uppercase leading-[0.9] tracking-[-3.28px] mix-blend-overlay [overflow-wrap:anywhere] desk:fit-text desk:text-center desk:[--fit-max:130px] desk:[--fit-room:min(1072px,100vw-128px)] desk:[--fit-track-px:-5.2px] desk:tracking-[-5.2px] desk:[overflow-wrap:normal]`}
-              style={fitVars(a.title, "trail", { upper: true })}
-            >
-              {a.title}
-            </h1>
-            <p className="absolute left-0 top-[144px] w-[246px] text-[20px] leading-none tracking-[-0.8px] desk:left-16 desk:top-[calc(50%-11.5px)] desk:w-auto desk:max-w-[1072px] desk:text-[24px] desk:leading-[0.9] desk:tracking-[-0.96px]">
-              {a.subtitle}
-            </p>
+      {/*
+        Fixed frame (Figma 37:777 / 55:135, image 55:3): the nav, the photo and the curved
+        bottom corners stay put while the page content scrolls over the photo. The frame is
+        position: sticky inside this section, so once the content ends it lets go and scrolls
+        up with the page to reveal the footer. Pure CSS: the page itself scrolls (no inner
+        scroll box), and nothing here depends on the request.
+      */}
+      <section className="relative isolate">
+        {/* Back layer: the photo. */}
+        <div className="apply-frame sticky top-0 bg-[#04121a]">
+          <Image
+            src={`${ART}/hero.jpg`}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="pointer-events-none object-cover desk:object-bottom"
+          />
+        </div>
+        {/* Front layer: the nav, and the cream outside the curved bottom corners, so the content scrolls under both. */}
+        <div className="apply-frame pointer-events-none sticky top-0 z-20">
+          <div className="pointer-events-auto">
+            <ApplyHeader />
           </div>
+          <div aria-hidden className="absolute inset-x-0 bottom-0 flex justify-between">
+            <span className="apply-frame-corner apply-frame-corner--left" />
+            <span className="apply-frame-corner apply-frame-corner--right" />
+          </div>
+        </div>
 
-          <ul className="flex flex-col gap-8 pb-8 desk:flex-row desk:gap-8 desk:px-16 desk:pb-0">
-            {a.facts.map((fact, i) => (
-              <li key={fact} className="flex min-w-0 items-center gap-4 desk:flex-1 desk:flex-col desk:items-start">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white p-1 desk:size-12 desk:p-1.5">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={FACT_ICONS[i] ?? FACT_ICONS[0]} alt="" width={24} height={24} className="size-4 desk:size-6" />
-                </span>
-                <p className="min-w-0 flex-1 text-[12px] font-semibold uppercase leading-[1.2] tracking-[0.96px] text-white desk:text-[16px] desk:tracking-[1.28px]">
-                  {fact.split("\n").map((line, j) => (
-                    <span key={`${line}-${j}`}>
-                      {j > 0 ? (
-                        <>
-                          <span className="desk:hidden"> </span>
-                          <br className="max-desk:hidden" />
-                        </>
-                      ) : null}
-                      {line}
-                    </span>
-                  ))}
-                </p>
-              </li>
-            ))}
-          </ul>
+        {/* Not a stacking context, so the title's overlay blend still mixes with the photo. */}
+        <div className="apply-frame-content relative px-6 desk:px-0 desk:pt-[120px]">
+          <div className="relative mx-auto flex w-full max-w-[1200px] flex-col desk:gap-16 desk:p-16">
+            {/* Title; the subtitle sits over it (Figma 37:905). */}
+            <div className="relative flex flex-col items-center pb-8 pt-24 text-white desk:p-0">
+              <h1
+                ref={titleRef}
+                className={`${trail.className} w-full text-[82.08px] uppercase leading-[0.9] tracking-[-3.28px] mix-blend-overlay [overflow-wrap:anywhere] desk:fit-text desk:text-center desk:[--fit-max:130px] desk:[--fit-room:min(1072px,100vw-128px)] desk:[--fit-track-px:-5.2px] desk:tracking-[-5.2px] desk:[overflow-wrap:normal]`}
+                style={fitVars(a.title, "trail", { upper: true })}
+              >
+                {a.title}
+              </h1>
+              <p className="absolute left-0 top-[144px] w-[246px] text-[20px] leading-none tracking-[-0.8px] desk:left-16 desk:top-[calc(50%-11.5px)] desk:w-auto desk:max-w-[1072px] desk:text-[24px] desk:leading-[0.9] desk:tracking-[-0.96px]">
+                {a.subtitle}
+              </p>
+            </div>
 
-          {/* Glass panel; on phones the programs sit inside it (Figma 55:135). */}
-          <div className="flex flex-col gap-8 desk:contents">
-            <div className="flex flex-col gap-8 rounded-[64px] bg-black/48 px-6 py-12 backdrop-blur-[32px] desk:rounded-[90px] desk:p-16">
-              <div className="flex flex-col gap-2.5 text-white desk:flex-row">
-                <p className="text-[20px] leading-[0.9] tracking-[-0.8px] desk:min-w-0 desk:flex-1 desk:text-[32px] desk:tracking-[-1.28px]">
-                  {a.headline}
-                </p>
-                <p className="text-[15px] leading-[1.2] tracking-[-0.6px] desk:min-w-0 desk:flex-1 desk:text-[20px] desk:tracking-[-0.8px]">
-                  {a.body}
-                </p>
-                <ul className="grid grid-cols-2 desk:hidden">
+            <ul className="flex flex-col gap-8 pb-8 desk:flex-row desk:gap-8 desk:px-16 desk:pb-0">
+              {a.facts.map((fact, i) => (
+                <li key={fact} className="flex min-w-0 items-center gap-4 desk:flex-1 desk:flex-col desk:items-start">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white p-1 desk:size-12 desk:p-1.5">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={FACT_ICONS[i] ?? FACT_ICONS[0]} alt="" width={24} height={24} className="size-4 desk:size-6" />
+                  </span>
+                  <p className="min-w-0 flex-1 text-[12px] font-semibold uppercase leading-[1.2] tracking-[0.96px] text-white desk:text-[16px] desk:tracking-[1.28px]">
+                    {fact.split("\n").map((line, j) => (
+                      <span key={`${line}-${j}`}>
+                        {j > 0 ? (
+                          <>
+                            <span className="desk:hidden"> </span>
+                            <br className="max-desk:hidden" />
+                          </>
+                        ) : null}
+                        {line}
+                      </span>
+                    ))}
+                  </p>
+                </li>
+              ))}
+            </ul>
+
+            {/* Glass panel; on phones the programs sit inside it (Figma 55:135). */}
+            <div className="flex flex-col gap-8 desk:contents">
+              <div className="flex flex-col gap-8 rounded-[64px] bg-black/48 px-6 py-12 backdrop-blur-[32px] desk:rounded-[90px] desk:p-16">
+                <div className="flex flex-col gap-2.5 text-white desk:flex-row">
+                  <p className="text-[20px] leading-[0.9] tracking-[-0.8px] desk:min-w-0 desk:flex-1 desk:text-[32px] desk:tracking-[-1.28px]">
+                    {a.headline}
+                  </p>
+                  <p className="text-[15px] leading-[1.2] tracking-[-0.6px] desk:min-w-0 desk:flex-1 desk:text-[20px] desk:tracking-[-0.8px]">
+                    {a.body}
+                  </p>
+                  <ul className="grid grid-cols-2 desk:hidden">
+                    {a.journey.map((step) => (
+                      <li key={step} className="flex min-h-[147px] items-end rounded-[24px] bg-black p-6">
+                        <p className="min-w-0 text-[15px] leading-[1.2] tracking-[-0.6px] text-white">{step}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <ul className="hidden min-h-[236px] desk:flex">
                   {a.journey.map((step) => (
-                    <li key={step} className="flex min-h-[147px] items-end rounded-[24px] bg-black p-6">
-                      <p className="min-w-0 text-[15px] leading-[1.2] tracking-[-0.6px] text-white">{step}</p>
+                    <li key={step} className="flex min-w-0 flex-1 items-end rounded-[32px] bg-black p-8">
+                      <p className="min-w-0 text-[20px] leading-[1.2] tracking-[-0.8px] text-white">{step}</p>
                     </li>
                   ))}
                 </ul>
-              </div>
-              <ul className="hidden min-h-[236px] desk:flex">
-                {a.journey.map((step) => (
-                  <li key={step} className="flex min-w-0 flex-1 items-end rounded-[32px] bg-black p-8">
-                    <p className="min-w-0 text-[20px] leading-[1.2] tracking-[-0.8px] text-white">{step}</p>
-                  </li>
-                ))}
-              </ul>
 
-              <ProgramsBlock className="flex desk:hidden" />
+                <ProgramsBlock className="flex desk:hidden" />
+              </div>
+              <ProgramsBlock className="hidden desk:flex" />
             </div>
-            <ProgramsBlock className="hidden desk:flex" />
           </div>
         </div>
       </section>

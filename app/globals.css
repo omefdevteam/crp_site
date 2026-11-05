@@ -233,3 +233,51 @@ body {
     scroll-snap-type: none;
   }
 }
+
+/*
+ * /apply and /nominate fixed frame (AmbassadorshipLanding). The frame is one
+ * screen tall and sticky; the negative margins let the content start at the top
+ * of the frame and scroll over it. dvh follows mobile browser toolbars, with vh
+ * as the fallback. The corners are the cream outside the frame's curved bottom.
+ */
+.apply-frame {
+  --apply-frame-r: 88px;
+  height: 100vh;
+  height: 100dvh;
+}
+/* Later layers pull up over the first frame. The pull is a top margin, not a
+   bottom one, so each sticky layer's own box still ends with the section and
+   lets go there. */
+.apply-frame + .apply-frame,
+.apply-frame-content {
+  margin-top: -100vh;
+  margin-top: -100dvh;
+}
+.apply-frame-content {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.apply-frame-corner {
+  display: block;
+  width: var(--apply-frame-r);
+  height: var(--apply-frame-r);
+}
+.apply-frame-corner--left {
+  background: radial-gradient(
+    circle at 100% 0,
+    transparent calc(var(--apply-frame-r) - 0.5px),
+    var(--color-cream) var(--apply-frame-r)
+  );
+}
+.apply-frame-corner--right {
+  background: radial-gradient(
+    circle at 0 0,
+    transparent calc(var(--apply-frame-r) - 0.5px),
+    var(--color-cream) var(--apply-frame-r)
+  );
+}
+@media (min-width: 900px) {
+  .apply-frame {
+    --apply-frame-r: 154px;
+  }
+}
