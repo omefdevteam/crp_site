@@ -12,6 +12,7 @@ import { ProgramResonate } from "@/components/programs/ProgramResonate";
 import { ProgramTestimonials } from "@/components/programs/ProgramTestimonials";
 import { ProgramWhatYouGet } from "@/components/programs/ProgramWhatYouGet";
 import { outfit } from "@/lib/fonts";
+import { publicSiteLogos } from "@/lib/logos/read";
 
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   return metadataFor("programs", await routeLocale(params));
@@ -21,6 +22,8 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
 // bar reads ?intent=nominate in the browser (ProgramApplyBarFromUrl).
 export default async function ProgramsPage({ params }: LangParams) {
   const locale = await routeLocale(params);
+  // Partner and funder logos from Website text, read like the copy (cached, tagged "copy").
+  const logos = await publicSiteLogos();
 
   return (<>
       <StructuredData page="programs" locale={locale} />
@@ -30,7 +33,7 @@ export default async function ProgramsPage({ params }: LangParams) {
 
         {/* Centered 632px content column (632 + 2×24 gutter); Figma 2308:6448 uses 64px desktop rhythm. */}
         <div className="mx-auto flex max-w-[680px] flex-col gap-8 px-0 pt-8 desk:gap-16 desk:px-6 desk:pt-16">
-          <ProgramAbout />
+          <ProgramAbout logos={logos} />
           <ProgramResonate />
           <ProgramWhatYouGet />
         </div>

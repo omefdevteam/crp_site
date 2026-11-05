@@ -31,7 +31,10 @@ export type AdminEvent =
     }
   | { readonly kind: "answer.media_opened"; readonly applicantId: string; readonly questionId: string }
   | { readonly kind: "identity.document_opened"; readonly applicantId: string; readonly documentId: string }
-  | { readonly kind: "identity.document_downloaded"; readonly applicantId: string; readonly documentId: string; readonly operator: string };
+  | { readonly kind: "identity.document_downloaded"; readonly applicantId: string; readonly documentId: string; readonly operator: string }
+  | { readonly kind: "logo.added" | "logo.replaced" | "logo.removed"; readonly logoGroup: string; readonly logoName: string }
+  | { readonly kind: "logo.updated"; readonly logoGroup: string; readonly logoName: string; readonly previousName: string }
+  | { readonly kind: "logo.moved"; readonly logoGroup: string; readonly logoName: string; readonly direction: "up" | "down" };
 
 export async function recordEvent(tx: Tx, actorId: string | null, event: AdminEvent): Promise<void> {
   const subjectId = "subject" in event ? event.subject : null;
@@ -61,5 +64,9 @@ export async function recordEvent(tx: Tx, actorId: string | null, event: AdminEv
   if ("previousAssigneeId" in event) detail.previousAssigneeId = event.previousAssigneeId;
   if ("decisionId" in event) detail.decisionId = event.decisionId;
   if ("version" in event) detail.version = event.version;
+  if ("logoGroup" in event) detail.logoGroup = event.logoGroup;
+  if ("logoName" in event) detail.logoName = event.logoName;
+  if ("previousName" in event) detail.previousName = event.previousName;
+  if ("direction" in event) detail.direction = event.direction;
   await tx.insert(adminEvents).values({ actorId, subjectId, kind, detail });
 }

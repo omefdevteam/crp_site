@@ -74,6 +74,7 @@ export function CopyDesk({
         {catalogIds().map((id) => (
           <Button key={id} variant={!scopeAll && id === catalog ? "solid" : "outline"} href={deskHref({ catalog: id, review: needsReview, q: query })}>{CATALOGS[id].label}</Button>
         ))}
+        <Button variant="outline" href="/admin/copy/logos">Logos</Button>
       </div>
       <form className="flex flex-wrap gap-2" action="/admin/copy">
         {scopeAll ? <input type="hidden" name="all" value="1" /> : <input type="hidden" name="catalog" value={catalog} />}

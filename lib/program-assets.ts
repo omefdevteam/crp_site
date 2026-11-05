@@ -63,8 +63,7 @@ export const programPhotos = {
   practice: {
     star: photo("practice-star.png"),
     recruit: photo("practice-recruit.png"),
-    partners: [photo("practice-partner-1.jpg"), photo("practice-partner-2.jpg"), photo("practice-partner-3.jpg")],
-    funders: [photo("practice-funder-1.jpg"), photo("practice-funder-2.jpg"), photo("practice-funder-3.jpg")],
+    // Partner and funder logos: lib/logos/model.ts (LOGO_GROUPS), editable under Website text.
   },
 } as const;
 

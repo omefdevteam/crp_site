@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
+    // Partner and funder logos staff upload under Website text (public logo Blob store).
+    remotePatterns: [{ protocol: "https", hostname: "*.public.blob.vercel-storage.com", pathname: "/site-logos/**" }],
   },
   // Trail is served from public/ at a fixed URL (lib/fonts.ts) so it can be
   // preloaded; cache it like next/font's hashed files. Rename the file if the

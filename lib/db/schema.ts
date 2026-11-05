@@ -583,3 +583,40 @@ export const copyDrafts = pgTable("copy_drafts", {
 }, (t) => [
   primaryKey({ columns: [t.catalog, t.locale, t.key, t.authorId] }),
 ]);
+
+// Partner and funder logos staff manage under Website text. A group with no
+// rows shows the logos built into the site. The first change to a group copies
+// those built-in logos in (builtin names one of them), so they can then be
+// reordered, renamed, replaced or removed like uploads. Uploaded files live in
+// the public logo Blob store, never in the private identity/clip store.
+export const siteLogos = pgTable("site_logos", {
+  id: id(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+  logoGroup: text("logo_group").notNull(),
+  position: integer("position").notNull(),
+  name: text("name").notNull(),
+  linkUrl: text("link_url"),
+  builtin: text("builtin"),
+  url: text("url"),
+  pathname: text("pathname"),
+  contentType: text("content_type"),
+  byteSize: integer("byte_size"),
+  updatedBy: uuid("updated_by").references(() => users.id, { onDelete: "set null" }),
+}, (t) => [
+  check("site_logos_group_format", sql`${t.logoGroup} ~ '^[a-z]+(\\.[a-z]+)+$'`),
+  check("site_logos_position", sql`${t.position} >= 0`),
+  check("site_logos_name_len", sql`char_length(${t.name}) between 1 and 120`),
+  check("site_logos_link", sql`${t.linkUrl} is null or (char_length(${t.linkUrl}) <= 500 and ${t.linkUrl} like 'https://%')`),
+  check("site_logos_source", sql`(
+    ${t.builtin} is not null and ${t.url} is null and ${t.pathname} is null and ${t.contentType} is null and ${t.byteSize} is null
+  ) or (
+    ${t.builtin} is null and ${t.url} like 'https://%' and ${t.pathname} is not null
+    and ${t.contentType} in ('image/png', 'image/jpeg', 'image/svg+xml', 'image/webp')
+    and ${t.byteSize} between 1 and 524288
+  )`),
+  index("site_logos_group_idx").on(t.logoGroup, t.position),
+  uniqueIndex("site_logos_group_builtin_key").on(t.logoGroup, t.builtin).where(sql`${t.builtin} is not null`),
+]);
+
+export type SiteLogo = typeof siteLogos.$inferSelect;

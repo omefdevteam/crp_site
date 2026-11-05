@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import type { LogoFit, ShownLogo, SiteLogos } from "@/lib/logos/model";
 import { programIcons, programPhotos } from "@/lib/program-assets";
 import { useCopy } from "../LanguageProvider";
 import { FigmaImg } from "./FigmaImg";
@@ -24,33 +25,41 @@ function IconChip({ src, fill, round }: { src: string; fill: string; round: bool
   );
 }
 
-function Circles({ srcs, framedFirst = false }: { srcs: readonly string[]; framedFirst?: boolean }) {
+// How each logo sits in its 88px circle. Built-in art keeps the Figma
+// treatment (Sony's mark is framed on black); uploads fit inside a white circle
+// so transparent logos stay readable.
+const FIT: Readonly<Record<LogoFit, { circle: string; img: string }>> = {
+  cover: { circle: "", img: "absolute inset-0 size-full object-cover" },
+  framed: { circle: "border border-white bg-black", img: "absolute inset-0 size-full object-contain" },
+  inside: { circle: "bg-white", img: "absolute inset-[14%] size-[72%] object-contain" },
+};
+
+function Circles({ logos }: { logos: readonly ShownLogo[] }) {
   return (
     <span className="flex shrink-0 items-center">
-      {srcs.map((src, i) => (
-        <span
-          key={src}
-          className={`${CIRCLE} ${i < srcs.length - 1 ? "-mr-6 desk:-mr-8" : ""} ${framedFirst && i === 0 ? "border border-white bg-black" : ""}`}
-        >
-          <FigmaImg
-            src={src}
-            alt=""
-            width={88}
-            height={88}
-            className={`absolute inset-0 size-full ${framedFirst && i === 0 ? "object-contain" : "object-cover"}`}
-          />
-        </span>
-      ))}
+      {logos.map((logo, i) => {
+        const circle = `${CIRCLE} ${i < logos.length - 1 ? "-mr-6 desk:-mr-8" : ""} ${FIT[logo.fit].circle}`;
+        const image = <FigmaImg src={logo.src} alt={logo.name} width={88} height={88} className={FIT[logo.fit].img} />;
+        return logo.link ? (
+          <a key={logo.key} href={logo.link} target="_blank" rel="noopener noreferrer" className={circle}>
+            {image}
+          </a>
+        ) : (
+          <span key={logo.key} className={circle}>
+            {image}
+          </span>
+        );
+      })}
     </span>
   );
 }
 
 // Figma 32:317, one visual per row in order.
-const VISUALS: readonly ReactNode[] = [
+const visuals = (logos: SiteLogos): readonly ReactNode[] => [
   <IconChip key="mic" src={programIcons.microphone} fill={MIC_FILL} round />,
   <IconChip key="tree" src={programIcons.treeStructure} fill={TREE_FILL} round={false} />,
   <FigmaImg key="star" src={practice.star} alt="" width={88} height={88} className="size-16 shrink-0 desk:size-[88px]" />,
-  <Circles key="partners" srcs={practice.partners} />,
+  <Circles key="partners" logos={logos["programs.partners"]} />,
   <FigmaImg
     key="recruit"
     src={practice.recruit}
@@ -59,12 +68,14 @@ const VISUALS: readonly ReactNode[] = [
     height={88}
     className="h-16 w-[66px] shrink-0 desk:h-[88px] desk:w-[91px]"
   />,
-  <Circles key="funders" srcs={practice.funders} framedFirst />,
+  <Circles key="funders" logos={logos["programs.funders"]} />,
 ];
 
-/** "Ambassadors put their skills into practice through": stacked black rows (Figma 32:316–32:345). */
-export function ProgramSkillsPractice() {
+/** Partner and funder logos come from Website text → Logos (built-in logos until staff change them).
+ * "Ambassadors put their skills into practice through": stacked black rows (Figma 32:316–32:345). */
+export function ProgramSkillsPractice({ logos }: { logos: SiteLogos }) {
   const copy = useCopy();
+  const row = visuals(logos);
   const { heading, items } = copy.programs.practice;
 
   return (
@@ -79,7 +90,7 @@ export function ProgramSkillsPractice() {
             <p className="min-w-0 flex-1 text-[13.5px] font-semibold uppercase leading-[0.9] tracking-[1.08px] text-white desk:text-[16px] desk:tracking-[1.28px]">
               {item}
             </p>
-            {VISUALS[i] ?? null}
+            {row[i] ?? null}
           </li>
         ))}
       </ul>
