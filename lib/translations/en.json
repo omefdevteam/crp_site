@@ -26,8 +26,6 @@
     "nextTestimonial": "Next testimonial",
     "platformGroups": "Platform groups",
     "youthAmbassadorCard": "Express interest in the Youth Ambassador Program, ages 19-26",
-    "programDetails": "Program details for ages 19-26",
-    "moreComingSoon": "More coming soon",
     "expressInterest": "Express interest",
     "closeExpressInterest": "Close express interest",
     "closeTeamMember": "Close team member",
@@ -63,7 +61,12 @@
         "title": "Bring people together"
       }
     ],
-    "homeTopics": ["Humans", "Origins", "Movement", "Evolution"],
+    "homeTopics": [
+      "Humans",
+      "Origins",
+      "Movement",
+      "Evolution"
+    ],
     "teamTitle": "Team",
     "teamQuotes": [
       "“The program amplifies young climate activists' voices, providing tools for advocacy at COP31”",
@@ -83,7 +86,12 @@
     "heroBody": "Support the whole organization",
     "reachOut": "Reach out",
     "waysLabel": "Ways to contribute",
-    "ways": ["Funds", "Venues", "Perks", "Resources"],
+    "ways": [
+      "Funds",
+      "Venues",
+      "Perks",
+      "Resources"
+    ],
     "waysBody": "can be used towards supporting programs we highlight, our own programs, missions to engage our members",
     "rewardsTitle": "Rewards for you",
     "rewards": [
@@ -112,8 +120,16 @@
       "continue": "Continue",
       "sent": "We'll be in touch.",
       "sponsorshipDetails": "Sponsorship details",
-      "supportOptions": ["The whole organization", "An ambassador program", "A specific storyline", "Apply as a speaker"],
-      "sponsorshipOptions": ["Financial Support", "Support in Kind"]
+      "supportOptions": [
+        "The whole organization",
+        "An ambassador program",
+        "A specific storyline",
+        "Apply as a speaker"
+      ],
+      "sponsorshipOptions": [
+        "Financial Support",
+        "Support in Kind"
+      ]
     }
   },
   "contactPage": {
@@ -237,9 +253,29 @@
   },
   "footer": {
     "sections": [
-      { "title": "Our offerings", "links": ["Home", "About us", "Programs"] },
-      { "title": "Legal", "links": ["Privacy policy", "Terms and conditions"] },
-      { "title": "Reach out to us", "links": ["Contact us", "Partner with us", "Get involved"] }
+      {
+        "title": "Our offerings",
+        "links": [
+          "Home",
+          "About us",
+          "Programs"
+        ]
+      },
+      {
+        "title": "Legal",
+        "links": [
+          "Privacy policy",
+          "Terms and conditions"
+        ]
+      },
+      {
+        "title": "Reach out to us",
+        "links": [
+          "Contact us",
+          "Partner with us",
+          "Get involved"
+        ]
+      }
     ],
     "getInTouch": "Get in touch",
     "copyright": "© {year} Climate Refugee Pavilion. All rights reserved.",
@@ -271,34 +307,56 @@
     ]
   },
   "programs": {
-    "title": "19-26\nYouth Ambassador Program",
+    "title": "Ambassador Program",
     "about": {
-      "dates": "Oct 14 - Nov 16",
-      "location": "COP31, Antalya, Türkiye",
-      "lede": "You'll spend a week inside the room where climate decisions get made - not on the sidelines, but shaping the pavilion itself.",
+      "dates": "On-going",
+      "location": "Accepting applicants globally",
+      "lede": "Build an active global network of individuals with diverse skills, expertise and lived experiences, contributing to a shared understanding of climate mobility.",
       "body": [
         "This program starts from one truth: migration is how people have survived crisis for generations, and if you're one of the millions displaced by a changing climate, you're not a data point - you're the expert in the room.",
-        "This isn't a one-time trip. COP31 is the launchpad: the presence, relationships, and power you build here carry into evergreen projects and a network that outlasts the summit."
+        "The presence, relationships, and power you build here carry into evergreen projects and a network that outlasts the summit."
       ],
-      "accordion": "About the program",
-      "stats": [
+      "accordion": "About the program"
+    },
+    "canGet": {
+      "heading": "Ambassadors can get",
+      "items": [
         {
-          "value": "20",
-          "label": "ambassadors"
+          "label": "Knowledge",
+          "text": "Climate mobility and learning"
         },
         {
-          "value": "8-10",
-          "label": "online"
+          "label": "Network",
+          "text": "Connections with peers and experts"
         },
         {
-          "value": "10-12",
-          "label": "at COP31"
+          "label": "Durable Skills",
+          "text": "Communication, leadership"
+        },
+        {
+          "label": "Recognition",
+          "text": "Pavilion Passport, badges"
+        },
+        {
+          "label": "Access",
+          "text": "Events, content, mentoring"
+        },
+        {
+          "label": "Advancement",
+          "text": "Leadership and travel sponsorships"
         }
-      ],
-      "online": "3 week capacity building online",
-      "onlineDates": "[Oct 14 - Nov 4]",
-      "antalya": "1 week in Antalya",
-      "antalyaDates": "[Nov 9 - 16]"
+      ]
+    },
+    "practice": {
+      "heading": "Ambassadors put their skills into practice through",
+      "items": [
+        "Interviews, storytelling and content gathering",
+        "Research, analysis and information collection",
+        "Hosting gatherings and building local networks",
+        "Developing and activating local missions",
+        "Recruiting participants and organisations",
+        "Participating in funded projects"
+      ]
     },
     "aboutPopup": {
       "title": "About the program",
@@ -353,37 +411,32 @@
       ]
     },
     "whatYouGet": {
-      "heading": "What you get",
+      "heading": "You will be part of building",
       "cards": [
         {
-          "title": "4 week",
-          "badge": "Online",
-          "description": "Before COP, you'll train in storytelling, policy, negotiation, and media. Not every ambassador travels to COP31 - some stay online-only, but you're still fully looped into the pavilion's projects and the network we build together."
+          "title": "Shared Knowledge",
+          "description": "Our approach is to connect people, knowledge and capabilities across disciplines, learning and building together"
         },
         {
-          "title": "1 week in Antalya",
-          "badge": "Travel",
-          "description": "Flights, visa, housing, meals - covered. You show up ready; we handle the logistics."
+          "title": "The Two-Way Value Exchange",
+          "description": "Your stories are at the heart of what we do with complete ownership that stays with you."
         },
         {
-          "title": "",
-          "badge": "",
-          "description": "Official UNFCCC accreditation and Blue Zone Pavilion access."
+          "title": "Name & build durable skills",
+          "description": "Durable skills are transferable human capabilities that remain valuable across professions and changing industries, including communication, leadership, collaboration, problem-solving and adaptability.\nHiddenSkills.net makes skills ambassadors develop visible and measurable."
         },
         {
-          "title": "Mentorship",
-          "badge": "",
-          "description": "You won't navigate this alone. Negotiators, legal experts, scientists, storytellers, and organizers show up here for one reason: to back you and help you go further."
+          "title": "How it works",
+          "description": "Step 1: Applications & Onboarding\nStep 2: Ambassador 101 — Before COP31\nStep 3: COP31 Mini-Programme"
         },
         {
-          "title": "Post-\nCOP",
-          "badge": "",
-          "description": "You go home ready to Build on Climate Mobility Solutions - an evergreen project, a lasting network, and real presence, relationships, and power."
+          "title": "Ongoing Membership & Progression",
+          "description": "Join → Onboard → Connect → Contribute → Earn → Level Up"
         }
       ]
     },
     "applyBand": {
-      "body": "We fund young people to represent their communities at COP31 in Antalya - because the people most affected by climate displacement belong in the room, not just in the data.",
+      "body": "The Ambassador Network supports CRP's larger mission to gather, organize, analyze, connect and syndicate climate mobility knowledge.",
       "process": "Application process"
     },
     "applicationProcess": {
@@ -463,53 +516,59 @@
     },
     "testimonials": [
       {
-        "role": "Program\nDirector",
+        "role": "Programme\nCoordinator",
         "quote": "\"This initiative empowers young climate advocates with essential tools for COP31.\""
       },
       {
-        "role": "Youth\nPrograms",
+        "role": "Youth Program\nLead (North America)",
         "quote": "“The program amplifies young climate activists' voices, providing tools for advocacy at COP31”"
       },
       {
-        "role": "Francophone\nPrograms Advocate",
+        "role": "Youth Program\nLead (Francophone)",
         "quote": "\"This initiative empowers young climate advocates with essential tools for COP31.\""
       }
     ]
   },
   "apply": {
-    "title": "Youth Ambassador Program",
-    "subtitle": "Bringing voices from around the world together",
-    "location": "COP31, Antalya, Türkiye",
-    "headline": "As an ambassador, you’ll join us on the path toward legal protection for climate refugees.",
-    "body": "You’ll represent your community, help spark conversations around climate mobility, and connect with participants from across the world. Together, we’ll help you strengthen your skills, amplify your voice, and contribute to solutions for climate mobility.",
-    "benefits": {
-      "travel": "Full travel, visa, accommodation, and per diem coverage",
-      "accreditationBefore": "Official UNFCCC accreditation and ",
-      "accreditationAfter": " Pavilion access",
-      "capacity": "A 3-week pre-COP capacity-building program",
-      "mentorship": "Direct mentorship",
-      "blueZone": "Blue Zone"
-    },
-    "ages1926": "Ages\n19-26",
-    "online": "3 weeks online",
-    "antalya": "1 week in Antalya",
-    "ages1518": "Ages 15-18",
-    "ages2734": "Ages 27-34",
+    "title": "Ambassadorship",
+    "subtitle": "Bringing action takers from around the world together",
+    "facts": [
+      "Become an official ambassador",
+      "Next batch starting\nNov 12",
+      "1 month training for ambassadorship (Age 19+)"
+    ],
+    "headline": "Build a global network sharing insights on climate mobility",
+    "body": "Not a traditional cohort programme, but an ongoing membership journey where members help shape the programme as it evolves.",
+    "journey": [
+      "Ambassadors join on a rolling basis, at different levels of experience",
+      "Onboarding, seminars, networking, and learning.",
+      "Members develop skills, earn badges, and participate in projects.",
+      "Contributors bring expertise and lead initiatives."
+    ],
+    "programsHeading": "Earn your badges: Programs we offer",
+    "programs": [
+      {
+        "tag": "Mandatory for all ambassadors",
+        "title": "Ambassador 101"
+      },
+      {
+        "tag": "",
+        "title": "UNFCC 101"
+      },
+      {
+        "tag": "Fully paid attendance",
+        "title": "COP 32"
+      },
+      {
+        "tag": "Mobilize and contribute",
+        "title": "Content Missions"
+      }
+    ],
+    "comingSoon": "Coming soon",
+    "viewDetails": "View details",
     "interest": "Express interest",
-    "applyNow": "Apply Now",
-    "nominate": "Nominate",
-    "programDetails": "Program details",
     "namePlaceholder": "name",
-    "emailPlaceholder": "Email",
-    "more": "More\ncom\ning\nsoon",
-    "heroAlt": "Coastal view of Antalya with the Taurus mountains across the bay",
-    "dates": "Oct 14 - Nov 16",
-    "readMore": "more"
-  },
-  "nominateLanding": {
-    "title": "Youth Ambassador Program Nomination",
-    "headline": "Ambassadors join us on the path toward legal protection for climate refugees.",
-    "body": "Representing their communities, help spark conversations around climate mobility, and connect with participants from across the world. Together, we'll help strengthen their skills, amplify their voice, and contribute to solutions for climate mobility."
+    "emailPlaceholder": "Email"
   },
   "privacyPage": {
     "title": "Privacy policy",

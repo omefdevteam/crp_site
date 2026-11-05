@@ -11,9 +11,9 @@ import { useText } from "@/lib/ui-text";
 import { APPLY_DRAFT, NOMINATE_DRAFT } from "@/lib/formDraft";
 import { useDraftOpen } from "@/lib/useFormDraft";
 
-const BAR =
+export const BAR =
   "gradient-brand pointer-events-auto flex w-full max-w-[632px] items-center justify-center rounded-full px-6 py-6 shadow-[0_0_5.45px_rgba(0,0,0,0.25)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] desk:h-[80px] desk:px-8 desk:py-0 desk:shadow-[0_8px_28px_rgba(236,38,143,0.35)]";
-const LABEL =
+export const LABEL =
   "text-[20px] font-medium leading-[0.9] tracking-[-0.8px] text-white desk:font-semibold desk:uppercase desk:tracking-[0.8px]";
 
 /**

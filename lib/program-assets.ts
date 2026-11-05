@@ -3,11 +3,10 @@ const icon = (file: string) => `/icons/programs/${file}` as const;
 
 export const programPhotos = {
   heroLeft: photo("hero-left.png"),
-  heroMid: photo("hero-mid.png"),
+  heroMid: photo("hero-mid-ambassadors.jpg"),
   heroRight: photo("hero-right.png"),
   blueZone: photo("blue-zone.png"),
   earth: photo("earth.png"),
-  accreditation: photo("accreditation.png"),
   interest: {
     adaptation: photo("interest-adaptation.png"),
     predictiveTech: photo("interest-predictive-tech.png"),
@@ -53,13 +52,27 @@ export const programPhotos = {
     step5: photo("process-5.png"),
   },
   aboutProgram: photo("about-program.png"),
+  canGet: {
+    knowledge: photo("can-get-knowledge.png"),
+    network: photo("can-get-network.png"),
+    skills: photo("can-get-skills.png"),
+    recognition: photo("can-get-recognition.png"),
+    access: photo("can-get-access.png"),
+    advancement: photo("can-get-advancement.png"),
+  },
+  practice: {
+    star: photo("practice-star.png"),
+    recruit: photo("practice-recruit.png"),
+    // Partner and funder logos: lib/logos/model.ts (LOGO_GROUPS), editable under Website text.
+  },
 } as const;
 
 export const programIcons = {
   speakerX: icon("speaker-x.svg"),
   calendarBlank: icon("calendar-blank.svg"),
-  turkeyFlag: icon("turkey-flag.svg"),
   questionMark: icon("question-mark.svg"),
+  microphone: icon("microphone.svg"),
+  treeStructure: icon("tree-structure.svg"),
   laptop: icon("laptop.svg"),
   airplaneTakeoff: icon("airplane-takeoff.svg"),
   arrowLeft: icon("arrow-left.svg"),

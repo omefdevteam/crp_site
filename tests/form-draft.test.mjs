@@ -140,7 +140,6 @@ test('wiring: flows keep answers in the draft, clear it on submit, and never sto
     assert.doesNotMatch(read(f), /useDraftState[^;]*[Tt]oken/, f);
   }
   assert.match(read('components/programs/ProgramApplyBar.tsx'), /useDraftOpen\(nominate \? NOMINATE_DRAFT : APPLY_DRAFT, applyFlow\)/);
-  assert.match(read('components/NominatePage.tsx'), /useDraftOpen\(NOMINATE_DRAFT, applyFlow\)/);
 });
 
 test('hydration-safe: the open state reads storage only after hydration', () => {

@@ -9,7 +9,7 @@ import {
   useTransform,
   type MotionValue,
 } from "framer-motion";
-import { programIcons, programPhotos } from "@/lib/program-assets";
+import { programPhotos } from "@/lib/program-assets";
 import { fitVars } from "@/lib/fitSize";
 import { useFitText } from "@/lib/useFitText";
 import { useCopy } from "../LanguageProvider";
@@ -105,77 +105,31 @@ function Collage({
   );
 }
 
-function Badge({ iconSrc, label }: { iconSrc: string; label: string }) {
-  return (
-    <div className="inline-flex w-fit items-center gap-[7px] rounded-full bg-white py-[5px] pl-[7px] pr-[10px] desk:gap-3 desk:py-[8px] desk:pl-[12px] desk:pr-[16px]">
-      <FigmaImg src={iconSrc} alt="" width={16} height={16} className="size-4 shrink-0 desk:size-8" />
-      <span className="whitespace-nowrap text-[12px] font-semibold uppercase leading-[0.9] tracking-[0.48px] text-black desk:text-[16px] desk:tracking-[1.28px]">
-        {label}
-      </span>
-    </div>
-  );
-}
-
 type Card = {
-  title?: string;
-  image?: string;
-  badge?: { iconSrc: string; label: string };
+  title: string;
+  /** One paragraph (or how-it-works step) per line. */
   description: string;
   cardClass: string;
   titleClass: string;
   descriptionClass: string;
-  /**
-   * Keep the title clear of the photo column (as the English is in Figma):
-   * it wraps and its words shrink to fit before the collage. Other cards
-   * overlap the photos by design.
-   */
-  fitTitle?: boolean;
+  /** How-it-works steps sit further apart than paragraphs (Figma 35:776). */
+  steps?: boolean;
 };
 
-// Title room before the collage (180px / desk 290px wide, flush right), from the
-// card's content box: collage width - card padding + a small gap.
+// Titles overlap the photo column by design (Figma 32:424–32:483); on narrow
+// cards a long word shrinks to the card's width instead of overflowing it.
 const FIT_TITLE =
-  "max-w-[calc(100%-148px)] desk:max-w-[calc(100%-258px)] supports-[width:1cqw]:fit-text desk:supports-[width:1cqw]:fit-text [--fit-max:48px] [--fit-room:calc(100cqw-148px)] [--fit-track-em:-0.04] desk:[--fit-max:96px] desk:[--fit-room:calc(100cqw-258px)]";
+  "supports-[width:1cqw]:fit-text [--fit-max:48px] [--fit-room:100cqw] [--fit-track-em:-0.04] desk:[--fit-max:96px]";
 
-const CARDS: Card[] = [
-  {
-    title: "4 week",
-    badge: { iconSrc: programIcons.laptop, label: "Online" },
-    description: "",
-    cardClass: "bg-black",
-    titleClass: "text-white",
-    descriptionClass: "text-white",
-    fitTitle: true,
-  },
-  {
-    title: "1 week in Antalya",
-    badge: { iconSrc: programIcons.airplaneTakeoff, label: "Travel" },
-    description: "",
-    cardClass: "bg-magenta",
-    titleClass: "text-white",
-    descriptionClass: "text-black",
-  },
-  {
-    image: programPhotos.accreditation,
-    description: "",
-    cardClass: "bg-lime",
-    titleClass: "text-black",
-    descriptionClass: "text-black",
-  },
-  {
-    title: "Mentorship",
-    description: "",
-    cardClass: "bg-orange",
-    titleClass: "text-white",
-    descriptionClass: "text-black",
-  },
-  {
-    title: "Post-\nCOP",
-    description: "",
-    cardClass: "bg-white",
-    titleClass: "text-black",
-    descriptionClass: "text-black",
-  },
+type Style = Omit<Card, "title" | "description">;
+
+// Figma 32:259 "You will be part of building", top to bottom.
+const CARDS: readonly Style[] = [
+  { cardClass: "bg-black", titleClass: "text-white", descriptionClass: "text-white" },
+  { cardClass: "bg-magenta", titleClass: "text-white", descriptionClass: "text-black" },
+  { cardClass: "bg-lime", titleClass: "text-white", descriptionClass: "text-black" },
+  { cardClass: "bg-orange", titleClass: "text-white", descriptionClass: "text-black", steps: true },
+  { cardClass: "bg-white", titleClass: "text-black", descriptionClass: "text-black" },
 ];
 
 function WhatYouGetCard({
@@ -195,47 +149,28 @@ function WhatYouGetCard({
   // the same parallax y in every card keeps tiles continuous across seams.
   // Square by default (the before: spacer is as tall as the content box is wide),
   // but taller when the text needs it, so a long translation is never cut off.
-  // Only the fitTitle card's heading is measured (ref is attached to it alone).
-  const titleRef = useFitText<HTMLHeadingElement>(card.fitTitle ? (card.title ?? "") : "");
+  const titleRef = useFitText<HTMLHeadingElement>(card.title);
+  const lines = card.description.split("\n").filter(Boolean);
   return (
     <div
-      className={`relative grid overflow-hidden rounded-[88px] p-10 before:col-start-1 before:row-start-1 before:pt-[100%] before:content-[''] desk:rounded-[105px] desk:p-12 ${card.fitTitle ? "@container" : ""} ${card.cardClass}`}
+      className={`@container relative grid overflow-hidden rounded-[88px] p-10 before:col-start-1 before:row-start-1 before:pt-[100%] before:content-[''] desk:rounded-[105px] desk:p-12 ${card.cardClass}`}
     >
       <Collage y={y} reduceMotion={reduceMotion} cardIndex={cardIndex} offset={offset} />
-      <div className="relative z-10 col-start-1 row-start-1 flex flex-col justify-between">
-        <div className="flex flex-col gap-6 desk:gap-12">
-          {card.title ? (
-            <h3
-              ref={card.fitTitle ? titleRef : undefined}
-              className={`${card.fitTitle ? FIT_TITLE : "max-w-[calc(100%-160px)] desk:max-w-full"} text-[48px] font-normal leading-[0.8] tracking-[-1.92px] desk:text-[96px] desk:tracking-[-3.84px] ${card.titleClass}`}
-              style={card.fitTitle ? fitVars(card.title, "outfit") : undefined}
-            >
-              {card.title.split("\n").map((line, i) => (
-                <span key={line}>
-                  {i > 0 ? <br /> : null}
-                  {line}
-                </span>
-              ))}
-            </h3>
-          ) : null}
-          {card.image ? (
-            <div className="h-[140px] w-[120px] overflow-hidden rounded-[500px] bg-white desk:h-[219px] desk:w-[195px]">
-              <FigmaImg
-                src={card.image}
-                alt=""
-                width={195}
-                height={219}
-                className="size-full object-cover"
-              />
-            </div>
-          ) : null}
-          {card.badge ? <Badge iconSrc={card.badge.iconSrc} label={card.badge.label} /> : null}
-        </div>
-        <p
-          className={`max-w-[149px] text-[15px] font-normal leading-[1.2] tracking-[-0.6px] desk:max-w-[241px] desk:text-[20px] desk:tracking-[-0.8px] ${card.descriptionClass}`}
+      <div className="relative z-10 col-start-1 row-start-1 flex flex-col justify-between gap-6">
+        <h3
+          ref={titleRef}
+          className={`${FIT_TITLE} text-[48px] font-normal leading-[0.8] tracking-[-1.92px] desk:text-[96px] desk:tracking-[-3.84px] ${card.titleClass}`}
+          style={fitVars(card.title, "outfit")}
         >
-          {card.description}
-        </p>
+          {card.title}
+        </h3>
+        <div
+          className={`flex max-w-[149px] flex-col text-[15px] font-normal leading-[1.2] tracking-[-0.6px] desk:max-w-[241px] desk:text-[20px] desk:tracking-[-0.8px] ${card.steps ? "gap-4 desk:gap-6" : "gap-2 desk:gap-3"} ${card.descriptionClass}`}
+        >
+          {lines.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -292,20 +227,12 @@ export function ProgramWhatYouGet() {
           const text = cardsCopy[i];
           return (
             <WhatYouGetCard
-              key={text.title || text.description}
+              key={text.title}
               y={y}
               reduceMotion={reduceMotion}
               cardIndex={i}
               offset={offsets?.[i]}
-              card={{
-                ...card,
-                title: text.title || undefined,
-                badge:
-                  card.badge && text.badge
-                    ? { ...card.badge, label: text.badge }
-                    : undefined,
-                description: text.description,
-              }}
+              card={{ ...card, title: text.title, description: text.description }}
             />
           );
         })}
