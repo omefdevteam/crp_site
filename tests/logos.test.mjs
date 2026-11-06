@@ -173,12 +173,51 @@ describe("permissions", () => {
     assert.match(fs.readFileSync("app/admin/(console)/copy/logos/page.tsx", "utf8"), /requireStaff\("copy\.edit"\)/);
   });
 
-  test("logo uploads use their own public store token, never the private store's", () => {
+  test("logo uploads use their own public store, never the private store's token", async () => {
     const manage = fs.readFileSync("lib/logos/manage.ts", "utf8");
-    assert.match(manage, /LOGO_BLOB_READ_WRITE_TOKEN/);
     assert.doesNotMatch(manage, /env\.BLOB_READ_WRITE_TOKEN|access: "private"/);
-    const { logoStoreFromEnv } = loader({ "next/cache": { unstable_cache: (fn) => fn, updateTag() {}, revalidatePath() {} } })("lib/logos/manage.ts");
-    assert.equal(logoStoreFromEnv({ BLOB_READ_WRITE_TOKEN: "private-store" }), null);
+    const calls = [];
+    let oidc = "oidc-from-vercel";
+    const blob = {
+      async put(pathname, _body, options) {
+        calls.push(["put", pathname, options]);
+        return { url: `https://ukomauzokz8rw9gd.public.blob.vercel-storage.com/${pathname}`, pathname };
+      },
+      async del(pathname, options) { calls.push(["del", pathname, options]); },
+    };
+    const { logoStoreFromEnv } = loader({
+      "next/cache": { unstable_cache: (fn) => fn, updateTag() {}, revalidatePath() {} },
+      "@vercel/blob": blob,
+      "@vercel/oidc": { async getVercelOidcToken() { if (!oidc) throw new Error("no token"); return oidc; } },
+    })("lib/logos/manage.ts");
+
+    // Only the private store is configured: uploads stay off.
+    assert.equal(logoStoreFromEnv({ BLOB_READ_WRITE_TOKEN: "private-store", BLOB_STORE_ID: "store_private" }), null);
+    assert.equal(logoStoreFromEnv({ LOGO_STORE_ID: "  " }), null);
+
+    // Connected store: the store id and the deployment's OIDC token go with every call, and no token.
+    const connected = logoStoreFromEnv({ LOGO_STORE_ID: " store_UkOMAuZoKZ8rW9gd ", BLOB_READ_WRITE_TOKEN: "private-store" });
+    assert.ok(connected);
+    await connected.put("site-logos/a.png", new Uint8Array([1]), "image/png");
+    await connected.remove("site-logos/a.png");
+    assert.deepEqual(calls[0][2], { storeId: "store_UkOMAuZoKZ8rW9gd", oidcToken: "oidc-from-vercel", access: "public", contentType: "image/png", addRandomSuffix: false, allowOverwrite: false });
+    assert.deepEqual(calls[1][2], { storeId: "store_UkOMAuZoKZ8rW9gd", oidcToken: "oidc-from-vercel" });
+    for (const [, , options] of calls) assert.equal("token" in options, false);
+
+    // No OIDC token (off Vercel): the call fails instead of falling back to another credential.
+    oidc = "";
+    calls.length = 0;
+    await assert.rejects(connected.put("site-logos/b.png", new Uint8Array([1]), "image/png"));
+    assert.equal(calls.length, 0);
+
+    // A logo store token wins when it is set.
+    oidc = "oidc-from-vercel";
+    const withToken = logoStoreFromEnv({ LOGO_BLOB_READ_WRITE_TOKEN: "logo-token", LOGO_STORE_ID: "store_UkOMAuZoKZ8rW9gd", BLOB_READ_WRITE_TOKEN: "private-store" });
+    await withToken.put("site-logos/c.png", new Uint8Array([1]), "image/png");
+    await withToken.remove("site-logos/c.png");
+    assert.equal(calls[0][2].token, "logo-token");
+    assert.equal("storeId" in calls[0][2] || "oidcToken" in calls[0][2], false);
+    assert.deepEqual(calls[1][2], { token: "logo-token" });
   });
 });
 
