@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { del, put } from "@vercel/blob";
+import { getVercelOidcToken } from "@vercel/oidc";
 import { recordEvent, type AdminEvent } from "@/lib/admin/events";
 import { expireCopy } from "@/lib/copy/read";
 import { siteLogos, type Db, type SiteLogo, type Tx } from "@/lib/db";
@@ -31,19 +32,35 @@ export type LogoStore = {
   remove(pathname: string): Promise<void>;
 };
 
-// A public Vercel Blob store has its own token; the main BLOB_READ_WRITE_TOKEN
-// belongs to the private store and is never used for logos.
+type LogoAuth = { readonly token: string } | { readonly storeId: string; readonly oidcToken: string };
+
+async function vercelOidcToken(): Promise<string> {
+  const token = (await getVercelOidcToken()).trim();
+  if (!token) throw new Error("No Vercel OIDC token");
+  return token;
+}
+
+// Logos live in their own public Vercel Blob store. On Vercel the store is
+// connected to the project as LOGO_STORE_ID and reached with the deployment's
+// OIDC token, passed explicitly with the store id so the SDK can never fall
+// back to BLOB_READ_WRITE_TOKEN, which belongs to the private identity and clip
+// store. LOGO_BLOB_READ_WRITE_TOKEN, a token for the logo store itself, wins
+// when it is set (tests, or a token-based connection).
 export function logoStoreFromEnv(env: Readonly<Record<string, string | undefined>> = process.env): LogoStore | null {
   const token = env.LOGO_BLOB_READ_WRITE_TOKEN?.trim();
-  if (!token) return null;
+  const storeId = env.LOGO_STORE_ID?.trim();
+  let auth: () => Promise<LogoAuth>;
+  if (token) auth = async () => ({ token });
+  else if (storeId) auth = async () => ({ storeId, oidcToken: await vercelOidcToken() });
+  else return null;
   return {
     async put(pathname, bytes, contentType) {
-      const blob = await put(pathname, Buffer.from(bytes), { access: "public", token, contentType, addRandomSuffix: false, allowOverwrite: false });
+      const blob = await put(pathname, Buffer.from(bytes), { ...(await auth()), access: "public", contentType, addRandomSuffix: false, allowOverwrite: false });
       return { url: blob.url, pathname: blob.pathname };
     },
     async remove(pathname) {
       try {
-        await del(pathname, { token });
+        await del(pathname, await auth());
       } catch (err) {
         if (err instanceof Error && err.name === "BlobNotFoundError") return;
         throw err;
