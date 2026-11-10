@@ -29,7 +29,7 @@ function TranslateIcon() {
 const MENU =
   "absolute right-0 top-[calc(100%+8px)] z-[60] min-w-full overflow-hidden rounded-[20px] bg-white p-[4px] text-black shadow-[0_8px_24px_rgba(0,0,0,0.18)]";
 const OPTION =
-  "outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1 flex w-full items-center justify-center rounded-full px-[12px] py-[8px] text-center font-semibold uppercase leading-[0.9]";
+  "outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-1 flex min-h-11 w-full items-center justify-center rounded-full px-[12px] py-[8px] text-center font-semibold uppercase leading-[0.9]";
 
 export function LanguageDropdown({
   variant,
@@ -154,7 +154,7 @@ export function LanguageDropdown({
         ref={triggerRef}
         onKeyDown={onTriggerKeyDown}
         onClick={toggle}
-        className="flex h-[27px] shrink-0 items-center rounded-full bg-white py-[2px] pl-[2px] pr-[8px] text-black transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+        className="relative flex h-[27px] shrink-0 items-center rounded-full bg-white py-[2px] pl-[2px] pr-[8px] text-black transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black after:absolute after:-inset-y-[8.5px] after:-inset-x-2 after:content-['']"
       >
         {/* Mobile header pill, Figma Contact frame 2282:11269: 71×27. */}
         <span className="flex items-center justify-center gap-[4px] rounded-full px-[8px] py-[6px] text-[12px] font-semibold uppercase leading-[0.9] tracking-[0.48px]">
@@ -173,7 +173,7 @@ export function LanguageDropdown({
         ref={triggerRef}
         onKeyDown={onTriggerKeyDown}
         onClick={toggle}
-        className="relative flex h-[27px] items-center rounded-full bg-white py-[2px] pl-[2px] pr-2 text-black shadow-[inset_0_0_18px_rgba(255,255,255,0.25)] desk:h-auto desk:p-[4px] desk:pr-[4px] outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+        className="relative flex h-[27px] items-center rounded-full bg-white py-[2px] pl-[2px] pr-2 text-black shadow-[inset_0_0_18px_rgba(255,255,255,0.25)] desk:h-auto desk:p-[4px] desk:pr-[4px] outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black after:absolute after:-inset-y-[8.5px] after:-inset-x-2 after:content-[''] desk:after:hidden"
       >
         <span className="flex h-[23px] items-center justify-center gap-1 px-2 text-[12px] font-semibold uppercase leading-[0.9] tracking-[0.48px] desk:h-[32px] desk:w-auto desk:gap-0 desk:px-[12px] desk:py-[10px] desk:text-[14px] desk:tracking-[0.56px] desk:mix-blend-hard-light">
           <span className="desk:hidden">

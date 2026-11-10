@@ -125,7 +125,7 @@ export function Hero() {
         {/* Figma sets the headline below the square's centre, clear of his face. */}
         <HeroCopy heading="h1" square={0} className="desk:pt-[35%]">
           {copy.hero.line1Before}
-          <span className="text-lime">{copy.hero.line1Accent}</span>
+          <span className="text-[#8B9410] [text-shadow:0_1px_10px_rgba(0,0,0,0.55)]">{copy.hero.line1Accent}</span>
           {copy.hero.line1After}
         </HeroCopy>
         <HeroCopy heading="h2" square={1}>

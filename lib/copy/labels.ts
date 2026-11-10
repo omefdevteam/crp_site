@@ -57,6 +57,8 @@ const PAGE: Readonly<Record<string, string>> = {
   "a11y.closeExpressInterest": "Close Express interest",
   "a11y.closeTeamMember": "Close team member",
   "a11y.submitInterest": "Submit interest button",
+  "a11y.verifyingCheck": "Verification in progress",
+  "a11y.checkIncomplete": "Verification did not finish",
 
   "nav.about": "About link",
   "nav.involved": "Get involved link",

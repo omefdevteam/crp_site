@@ -52,7 +52,7 @@ export default async function ProgramsPage({ params }: LangParams) {
 
       <Footer />
       {/* Reserve space so the fixed Apply bar never covers footer content */}
-      <div className="h-[110px]" aria-hidden />
+      <div className="h-[calc(6.875rem+env(safe-area-inset-bottom))]" aria-hidden />
 
       <ProgramApplyBarFromUrl />
     </div>

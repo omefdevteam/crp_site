@@ -363,7 +363,7 @@ export function Waitlist() {
         </div>
 
         {showTurnstile ? (
-          <Turnstile key={challengeKey} onToken={setTurnstileToken} />
+          <Turnstile key={challengeKey} onToken={setTurnstileToken} appearance="interaction-only" float />
         ) : null}
         {error ? (
           <p role="alert" className="text-center text-sm text-white">

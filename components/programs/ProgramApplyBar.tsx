@@ -10,6 +10,7 @@ import { useLanguage } from "../LanguageProvider";
 import { useText } from "@/lib/ui-text";
 import { APPLY_DRAFT, NOMINATE_DRAFT } from "@/lib/formDraft";
 import { useDraftOpen } from "@/lib/useFormDraft";
+import { useConsent } from "../cookies/ConsentProvider";
 
 export const BAR =
   "gradient-brand pointer-events-auto flex w-full max-w-[632px] items-center justify-center rounded-full px-6 py-6 shadow-[0_0_5.45px_rgba(0,0,0,0.25)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] desk:h-[80px] desk:px-8 desk:py-0 desk:shadow-[0_8px_28px_rgba(236,38,143,0.35)]";
@@ -48,8 +49,9 @@ const ALWAYS_EXPRESS_INTEREST =
 
 function ProgramApplyBarPlaceholder() {
   const { copy } = useLanguage();
+  const { bannerVisible } = useConsent();
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-2 desk:p-[10px]">
+    <div className={`pointer-events-none fixed inset-x-0 bottom-0 z-40 justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] desk:px-[10px] desk:pt-[10px] desk:pb-[max(10px,env(safe-area-inset-bottom))] ${bannerVisible ? "hidden" : "flex"}`}>
       <button
         id="apply"
         type="button"
@@ -69,6 +71,7 @@ function ProgramApplyBarPlaceholder() {
 /** Floating CTA pinned to the bottom of the viewport. */
 export function ProgramApplyBar({ mode = "apply" }: { mode?: "apply" | "nominate" }) {
   const { copy } = useLanguage();
+  const { bannerVisible } = useConsent();
   const nominate = mode === "nominate";
   const applyFlow = useApplyFlowEnabled();
   // With the full flow, an open form (and its typed answers) survives a language switch.
@@ -82,7 +85,7 @@ export function ProgramApplyBar({ mode = "apply" }: { mode?: "apply" | "nominate
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-2 desk:p-[10px]">
+      <div className={`pointer-events-none fixed inset-x-0 bottom-0 z-40 justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] desk:px-[10px] desk:pt-[10px] desk:pb-[max(10px,env(safe-area-inset-bottom))] ${bannerVisible ? "hidden" : "flex"}`}>
         <button
           id="apply"
           type="button"

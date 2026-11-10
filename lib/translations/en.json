@@ -29,7 +29,9 @@
     "expressInterest": "Express interest",
     "closeExpressInterest": "Close express interest",
     "closeTeamMember": "Close team member",
-    "submitInterest": "Submit interest"
+    "submitInterest": "Submit interest",
+    "verifyingCheck": "Verifying…",
+    "checkIncomplete": "The check did not complete. Try again."
   },
   "nav": {
     "about": "About",
@@ -309,7 +311,7 @@
   "programs": {
     "title": "Ambassador Program",
     "about": {
-      "dates": "On-going",
+      "dates": "Ongoing",
       "location": "Accepting applicants globally",
       "lede": "Build an active global network of individuals with diverse skills, expertise and lived experiences, contributing to a shared understanding of climate mobility.",
       "body": [

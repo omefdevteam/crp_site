@@ -10,6 +10,7 @@ import { useCopy } from "../LanguageProvider";
 import { TicketTab } from "../TicketTab";
 import { BAR, LABEL } from "../programs/ProgramApplyBar";
 import { ApplyFooter, ApplyHeader } from "./ApplyChrome";
+import { useConsent } from "../cookies/ConsentProvider";
 
 const ART = "/images/apply/ambassadorship";
 
@@ -189,6 +190,7 @@ export function AmbassadorshipLanding({ intent }: { intent: "apply" | "nominate"
   const copy = useCopy();
   const a = copy.apply;
   const titleRef = useFitText<HTMLHeadingElement>(a.title);
+  const { bannerVisible } = useConsent();
 
   return (
     <div className="relative bg-cream">
@@ -299,9 +301,9 @@ export function AmbassadorshipLanding({ intent }: { intent: "apply" | "nominate"
 
       <ApplyFooter />
       {/* Room for the pinned bar, so it never covers the copyright line. */}
-      <div aria-hidden className="h-[72px] desk:h-[100px]" />
+      <div aria-hidden className="h-[calc(5.5rem+env(safe-area-inset-bottom))] desk:h-[calc(6.25rem+env(safe-area-inset-bottom))]" />
 
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center p-2 desk:p-[10px]">
+      <div className={`pointer-events-none fixed inset-x-0 bottom-0 z-40 justify-center p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] desk:px-[10px] desk:pt-[10px] desk:pb-[max(10px,env(safe-area-inset-bottom))] ${bannerVisible ? "hidden" : "flex"}`}>
         <Link href={`/programs?intent=${intent}`} className={BAR}>
           <span className={LABEL}>{a.viewDetails}</span>
         </Link>

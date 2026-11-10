@@ -39,7 +39,7 @@ export function ProgramFaq() {
                 type="button"
                 onClick={() => setOpen(isOpen ? -1 : i)}
                 aria-expanded={isOpen}
-                className="group flex w-full items-center gap-6 text-left"
+                className="group flex min-h-11 w-full items-center gap-6 text-left"
               >
                 <span className="flex-1 text-[20px] font-normal leading-none tracking-[-0.8px] text-black transition-colors group-hover:text-black/60 desk:text-[32px] desk:tracking-[-1.28px]">
                   {item.q}

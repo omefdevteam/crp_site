@@ -18,6 +18,7 @@ export const aboutTeam = [
     role: "Founder & President",
     quote: "Pioneering digital leader advancing technology for climate-vulnerable communities.",
     image: photo("genevieve-leveille.jpg"),
+    imagePosition: "center 22%",
     place: { lat: 40.71, lng: -74.01 },
   },
   {
@@ -43,6 +44,7 @@ export const aboutTeam = [
     role: "Creative Director",
     quote: "Creative strategist using art and storytelling for social change.",
     image: photo("tochukwu-macfoy.jpg"),
+    imagePosition: "center 22%",
     place: { lat: 11.2, lng: 12.0 },
   },
   {
@@ -84,6 +86,7 @@ export const aboutTeam = [
     role: "Sponsors Relations Director",
     quote: "Partnership leader connecting global capital with climate action.",
     image: photo("nathan-khrupalo.jpg"),
+    imagePosition: "center 13%",
   },
   {
     id: "joseph-raymond-hammond",
@@ -99,6 +102,7 @@ export const aboutTeam = [
     role: "Interactive Experience Advisor",
     quote: "Award-winning artist pioneering immersive digital storytelling.",
     image: photo("sutu-campbell.jpg"),
+    imagePosition: "center 20%",
     place: { lat: -33.87, lng: 151.21 },
   },
   {
@@ -107,6 +111,7 @@ export const aboutTeam = [
     role: "UX Designer",
     quote: "Product designer creating intuitive, accessible digital experiences.",
     image: photo("anirudha-ghosh.jpg"),
+    imagePosition: "center 30%",
     place: { lat: 22.6, lng: 79.0 },
   },
   {
@@ -115,6 +120,7 @@ export const aboutTeam = [
     role: "Web Developer",
     quote: "Web developer converting curated designs into functional web products.",
     image: photo("faithful-kobina-quayson.jpg"),
+    imagePosition: "center 40%",
     place: { lat: 6.8, lng: -2.0 },
   },
   {
@@ -123,6 +129,7 @@ export const aboutTeam = [
     role: "Head of Technology",
     quote: "Technology strategist powering secure, connected global experiences.",
     image: photo("rowland-jones.jpg"),
+    imagePosition: "center 12%",
     place: { lat: 5.6, lng: -0.19 },
   },
   {
@@ -155,6 +162,7 @@ export const aboutTeam = [
     role: "Brand Designer",
     quote: "Designer who loves turning ideas into clear visual solutions.",
     image: photo("gift-adedayo.jpg"),
+    imagePosition: "center 16%",
     place: { lat: 8.6, lng: 6.4 },
   },
   {
@@ -163,6 +171,7 @@ export const aboutTeam = [
     role: "member",
     quote: "...",
     image: photo("naquetta-ricks.jpg"),
+    imagePosition: "center 12%",
     place: { lat: 39.83, lng: -98.58 },
   },
   // {
