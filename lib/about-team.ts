@@ -25,7 +25,7 @@ export const aboutTeam = [
     name: "Tafadzwa Chando",
     role: "Original Founder",
     quote: "Original founder advancing climate mobility from Zimbabwe to the global stage.",
-    image: blankAvatar,
+    image: photo("tafadzwa-chando.jpg"),
     place: { lat: -17.83, lng: 31.05 },
   },
   {
@@ -130,22 +130,6 @@ export const aboutTeam = [
     role: "Team member",
     quote: "…",
     image: blankAvatar,
-  },
-  {
-    id: "chiamaka-chukwudi",
-    name: "Chiamaka Chukwudi",
-    role: "Production Coordinator",
-    quote: "Production coordinator delivering complex international events.",
-    image: blankAvatar,
-    place: { lat: 7.4, lng: 4.2 },
-  },
-  {
-    id: "oyelese-oreoluwa-daniel",
-    name: "Oyelese Oreoluwa Daniel",
-    role: "Event Coordinator",
-    quote: "Event coordinator ensuring smooth logistics and delegate experiences.",
-    image: blankAvatar,
-    place: { lat: 10.4, lng: 10.2 },
   },
   {
     id: "danielle-kyony",
