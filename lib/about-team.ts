@@ -25,7 +25,7 @@ export const aboutTeam = [
     name: "Tafadzwa Chando",
     role: "Original Founder",
     quote: "Original founder advancing climate mobility from Zimbabwe to the global stage.",
-    image: blankAvatar,
+    image: photo("tafadzwa-chando.jpg"),
     place: { lat: -17.83, lng: 31.05 },
   },
   {
