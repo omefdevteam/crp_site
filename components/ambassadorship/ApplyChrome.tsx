@@ -17,7 +17,7 @@ export function ApplyHeader() {
       <Link
         href="/"
         aria-label={copy.a11y.backHome}
-        className="relative flex size-8 items-center justify-center rounded-full bg-white p-1 shadow-[inset_0_0_18px_rgba(255,255,255,0.25)] desk:size-10"
+        className="relative flex size-8 items-center justify-center rounded-full bg-white p-1 shadow-[inset_0_0_18px_rgba(255,255,255,0.25)] after:absolute after:size-11 after:content-[''] desk:size-10 desk:after:hidden"
       >
         <span className="flex size-6 items-center justify-center desk:size-8">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -74,7 +74,7 @@ export function ApplyFooter() {
               {col.links.map((link, linkIndex) => {
                 const href = footerHref(columnIndex, linkIndex);
                 const className =
-                  "text-[14px] text-black/72 transition-colors hover:text-black";
+                  "inline-flex min-h-11 items-center text-[14px] text-black/72 transition-colors hover:text-black desk:min-h-0";
                 return href === "#" ? (
                   <a key={link} href="#" className={className}>
                     {link}

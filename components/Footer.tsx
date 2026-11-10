@@ -44,7 +44,7 @@ export function footerSocials(links: SocialLinks): { key: SocialKey; name: strin
 const HEADING =
   "text-[12px] font-semibold uppercase leading-none tracking-[0.96px] text-black desk:text-[14px] desk:tracking-[1.12px]";
 const LINK =
-  "text-[15px] leading-[1.2] tracking-[-0.6px] text-black/84 transition-colors hover:text-black";
+  "inline-flex min-h-11 items-center text-[15px] leading-[1.2] tracking-[-0.6px] text-black/84 transition-colors hover:text-black desk:min-h-0";
 const TILE =
   "flex aspect-square min-w-0 flex-1 items-center justify-center rounded-[12px] bg-white desk:size-16 desk:flex-none";
 

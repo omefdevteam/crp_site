@@ -3,7 +3,6 @@ import { StructuredData } from "@/components/StructuredData";
 import type { Metadata } from "next";
 import { routeLocale, type LangParams } from "@/lib/locale";
 import { Footer } from "@/components/Footer";
-import { GetInvolvedPill } from "@/components/GetInvolvedPill";
 import { Header } from "@/components/Header";
 import { PrivacyPage } from "@/components/privacy/PrivacyPage";
 import { outfit } from "@/lib/fonts";
@@ -22,8 +21,7 @@ export default async function PrivacyRoute({ params }: LangParams) {
         <main className="flex-1">
           <PrivacyPage />
         </main>
-        <Footer />
-        <GetInvolvedPill />
+        <Footer pillSpace={false} />
       </div>
     </>
   );

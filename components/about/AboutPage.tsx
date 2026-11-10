@@ -13,6 +13,8 @@ import Image from "next/image";
 import { useCopy } from "../LanguageProvider";
 import { TicketTab } from "../TicketTab";
 import { trail } from "@/lib/fonts";
+import { fitVars } from "@/lib/fitSize";
+import { useFitText } from "@/lib/useFitText";
 import { aboutImages } from "@/lib/about-assets";
 import { aboutTeam, type AboutTeamMember } from "@/lib/about-team";
 import { useText } from "@/lib/ui-text";
@@ -601,6 +603,7 @@ function TeamQuote({ quote, group }: { quote: string; group: "left" | "lead" | "
 export function AboutPage() {
   const copy = useCopy();
   const a = copy.aboutUs;
+  const titleRef = useFitText<HTMLHeadingElement>(a.heroTitle);
   const team = useTeam();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedMember = team.find((member) => member.id === selectedId) ?? null;
@@ -640,13 +643,15 @@ export function AboutPage() {
         />
         <div className="relative z-auto flex w-full flex-col items-center gap-8 text-white desk:z-10 desk:min-h-[589px] desk:justify-between desk:gap-0">
           <h1
-            className={`${trail.className} relative z-10 h-[81px] w-[421px] shrink-0 text-center text-[90px] uppercase leading-[0.9] tracking-[3.6px] desk:h-auto desk:w-auto desk:text-[clamp(64px,14vw,130px)] desk:tracking-[5.2px]`}
+            ref={titleRef}
+            className={`${trail.className} fit-text relative z-10 w-full max-w-[min(421px,calc(100vw-24px))] shrink-0 text-center uppercase leading-[0.9] tracking-[3.6px] [--fit-max:90px] [--fit-room:min(421px,calc(100vw-48px))] [--fit-track-px:3.6px] desk:h-auto desk:w-auto desk:max-w-none desk:tracking-[5.2px] desk:[--fit-max:clamp(64px,14vw,130px)] desk:[--fit-room:min(1072px,100vw-128px)] desk:[--fit-track-px:5.2px]`}
+            style={fitVars(a.heroTitle, "trail", { upper: true })}
           >
             {a.heroTitle}
           </h1>
           {/* Mobile: reserve the 407x430 Figma globe slot; the globe itself is absolutely positioned over it. */}
           <div aria-hidden className="h-[430px] w-full shrink-0 desk:hidden" />
-          <p className="relative z-30 max-w-[632px] text-center text-[20px] desk:z-auto leading-[0.9] tracking-[-0.8px] text-white desk:text-[32px] desk:tracking-[-1.28px]">
+          <p className="relative z-30 max-w-[632px] text-center text-[20px] desk:z-auto leading-[0.9] tracking-[-0.8px] text-white [text-shadow:0_2px_16px_rgba(0,0,0,0.55)] desk:text-[32px] desk:tracking-[-1.28px]">
             {a.heroBody}
           </p>
         </div>

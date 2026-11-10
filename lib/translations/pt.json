@@ -29,7 +29,9 @@
     "expressInterest": "Manifestar interesse",
     "closeExpressInterest": "Fechar o formulário de interesse",
     "closeTeamMember": "Fechar a ficha do membro",
-    "submitInterest": "Enviar o meu interesse"
+    "submitInterest": "Enviar o meu interesse",
+    "verifyingCheck": "A verificar…",
+    "checkIncomplete": "A verificação não foi concluída. Tente de novo."
   },
   "nav": {
     "about": "Sobre nós",
