@@ -6,4 +6,4 @@ const BUTTON =
 export const BUTTON_WHITE = `${BUTTON} bg-white text-black`;
 export const BUTTON_GRADIENT = `${BUTTON} gradient-brand text-white`;
 export const POLICY_LINK =
-  "text-[14px] leading-[1.2] tracking-[-0.56px] text-[#4651c2] whitespace-nowrap hover:underline";
+  "inline-flex min-h-11 items-center text-[14px] leading-[1.2] tracking-[-0.56px] text-[#4651c2] whitespace-nowrap hover:underline";

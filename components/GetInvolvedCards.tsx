@@ -369,7 +369,7 @@ export function WaitlistCard() {
           }`}
         />
       </form>
-      <Turnstile key={challengeKey} onToken={setToken} />
+      <Turnstile key={challengeKey} onToken={setToken} appearance="interaction-only" float />
       {error ? (
         <p role="alert" className="sr-only">
           {copy.waitlist.saveError}

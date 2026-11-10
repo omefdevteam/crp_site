@@ -73,13 +73,18 @@ export function Header({
 
   useEffect(() => {
     if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setOpen(false);
       menuBtnRef.current?.focus();
     };
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("keydown", onKeyDown);
+    };
   }, [open]);
 
   useEffect(() => {
@@ -165,7 +170,7 @@ export function Header({
               aria-label={open ? copy.a11y.closeMenu : copy.a11y.openMenu}
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
-              className={`flex h-[27px] shrink-0 items-center transition-opacity duration-300 hover:opacity-60 ${
+              className={`relative flex h-[27px] w-6 shrink-0 items-center justify-center transition-opacity duration-300 hover:opacity-60 after:absolute after:left-1/2 after:top-1/2 after:size-11 after:-translate-x-1/2 after:-translate-y-1/2 after:content-[''] ${
                 showPill || lightChrome ? "text-white" : "text-black"
               }`}
             >

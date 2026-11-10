@@ -178,6 +178,7 @@ export function ExpressInterestPopup({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileStatus, setTurnstileStatus] = useState<"loading" | "ready" | "error">("loading");
   const [phase, setPhase] = useState<Phase>("idle");
 
   const submitted = phase === "success";
@@ -351,8 +352,6 @@ export function ExpressInterestPopup({
                   />
                 </Field>
 
-                <Turnstile key={challengeKey} onToken={setTurnstileToken} />
-
                 {showSubmit ? (
                   <button
                     type="submit"
@@ -367,6 +366,12 @@ export function ExpressInterestPopup({
                   </button>
                 ) : null}
 
+                {TURNSTILE_SITE_KEY && turnstileStatus !== "ready" ? (
+                  <p aria-live="polite" className="max-w-[280px] text-center text-[16px] leading-snug text-white">
+                    {turnstileStatus === "error" ? copy.a11y.checkIncomplete : copy.a11y.verifyingCheck}
+                  </p>
+                ) : null}
+
                 {invalid ? (
                   <p id={errorId} role="alert" className="sr-only">
                     {copy.a11y.emailInvalid}
@@ -376,6 +381,17 @@ export function ExpressInterestPopup({
             )}
           </ScaledInterestCard>
         </div>
+        {submitted ? null : (
+          <div className="flex shrink-0 flex-col items-center gap-2 px-2">
+            <Turnstile
+              key={challengeKey}
+              onToken={setTurnstileToken}
+              onStatus={setTurnstileStatus}
+              theme="dark"
+              className="flex w-full justify-center"
+            />
+          </div>
+        )}
         {error ? (
           <p role="alert" className="shrink-0 text-center text-sm text-white">
             {copy.waitlist.saveError}

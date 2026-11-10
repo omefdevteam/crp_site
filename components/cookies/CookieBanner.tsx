@@ -60,12 +60,12 @@ export function CookieBanner({
         role="region"
         aria-labelledby="cookie-banner-title"
         data-testid="cookie-banner"
-        className={`${CARD} pointer-events-auto flex w-full max-w-[874px] flex-col gap-3 rounded-[16px] px-3 pb-3 pt-4 desk:gap-6 desk:rounded-[32px] desk:p-6`}
+        className={`${CARD} pointer-events-auto flex w-full max-w-[874px] flex-col gap-2 rounded-[16px] px-3 py-3 desk:gap-6 desk:rounded-[32px] desk:p-6`}
       >
-        <div className="flex flex-col gap-3 desk:gap-6">
+        <div className="flex flex-col gap-2 desk:gap-6">
           <h2
             id="cookie-banner-title"
-            className="text-[20px] leading-[0.9] tracking-[-0.8px] desk:text-[32px] desk:tracking-[-1.28px]"
+            className="text-[18px] leading-[0.9] tracking-[-0.72px] desk:text-[32px] desk:tracking-[-1.28px]"
           >
             {tr("We use cookies")}
           </h2>
@@ -75,7 +75,7 @@ export function CookieBanner({
         </div>
 
         {/* Mobile (Figma 2308:13437): stacked Manage, Reject, Accept, then links. */}
-        <div className="flex flex-col gap-3 desk:hidden">
+        <div className="flex flex-col gap-2 desk:hidden">
           <div className="flex flex-col gap-2">
             {manage}
             {reject}

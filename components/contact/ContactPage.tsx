@@ -37,10 +37,11 @@ function useDesk() {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const US = COUNTRIES.find((c) => c.code === "US") ?? COUNTRIES[0];
 
-const PILL =
-  "w-full border border-black/12 bg-white font-semibold uppercase leading-[0.9] text-black outline-none placeholder:font-semibold placeholder:uppercase placeholder:leading-[0.9] placeholder:text-black/48";
+const PILL_BOX =
+  "w-full border border-black/12 bg-white font-semibold leading-[0.9] text-black outline-none placeholder:font-semibold placeholder:leading-[0.9] placeholder:text-black/48";
+const PILL = `${PILL_BOX} uppercase placeholder:uppercase`;
 const PILL_TYPE =
-  "text-[12px] tracking-[0.48px] placeholder:text-[12px] placeholder:tracking-[0.48px] desk:text-[14px] desk:tracking-[0.56px] desk:placeholder:text-[14px] desk:placeholder:tracking-[0.56px]";
+  "text-[16px] tracking-[0.64px] placeholder:text-[16px] placeholder:tracking-[0.64px] desk:text-[14px] desk:tracking-[0.56px] desk:placeholder:text-[14px] desk:placeholder:tracking-[0.56px]";
 const FIELD_SM = `${PILL} ${PILL_TYPE} h-[61px] rounded-[48px] px-6 desk:h-[63px]`;
 const FIELD_INVALID = "border-magenta";
 
@@ -182,7 +183,7 @@ export function ContactPage() {
       : {};
   const fieldError = (field: ContactField) =>
     fieldInvalid(field) ? (
-      <p id={fieldErrorId(field)} className="w-full px-6 text-sm font-semibold text-magenta">
+      <p id={fieldErrorId(field)} className="w-full min-h-5 px-6 text-sm font-semibold text-magenta">
         {c[FIELD_ERROR_LEAF[field]]}
       </p>
     ) : null;
@@ -260,6 +261,7 @@ export function ContactPage() {
           <p role="status" className="relative z-10 text-[16px] font-semibold leading-snug text-black desk:flex-1">{c[CONTACT_PAGE_FEEDBACK.sent]}</p>
         ) : (
         <form
+          noValidate
           onSubmit={onSubmit}
           className="relative z-10 flex w-full flex-col gap-2 desk:h-[420px] desk:flex-1 desk:items-end desk:justify-center"
         >
@@ -338,11 +340,16 @@ export function ContactPage() {
             onBlur={touch("message")}
             aria-label={c.message}
             {...invalidProps("message")}
-            className={`${PILL} ${PILL_TYPE} h-[171px] w-full resize-none rounded-[31.5px] py-6 pl-6 pr-8 desk:h-auto desk:min-h-0 desk:flex-1 ${fieldInvalid("message") ? FIELD_INVALID : ""}`}
+            className={`${PILL_BOX} ${PILL_TYPE} h-[171px] w-full resize-none rounded-[31.5px] py-6 pl-6 pr-8 placeholder:uppercase desk:h-auto desk:min-h-0 desk:flex-1 ${fieldInvalid("message") ? FIELD_INVALID : ""}`}
           />
           {fieldError("message")}
           {error ? <p role="alert" className="w-full text-sm font-semibold text-magenta">{error}</p> : null}
-          <Turnstile key={widgetKey} onToken={setTurnstileToken} />
+          {TURNSTILE_SITE_KEY && !turnstileToken ? (
+            <p aria-live="polite" className="w-full text-sm font-semibold text-black/64">
+              {copy.a11y.verifyingCheck}
+            </p>
+          ) : null}
+          <Turnstile key={widgetKey} onToken={setTurnstileToken} className="flex w-full justify-center py-1" />
           <button
             type="submit"
             disabled={!ready || submitting}

@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { locales, localePath, nativeLanguageNames } from "@/lib/locale";
 import { requestLocale } from "@/lib/request-locale";
 import { siteCopy } from "@/lib/copy/read";
 import { lookupUi } from "@/lib/ui-messages";
@@ -15,8 +16,8 @@ import { TrailPreload } from "@/components/TrailPreload";
 // saved language for URLs without one.
 async function translator() {
   const locale = await requestLocale();
-  const { ui } = await siteCopy(locale);
-  return { locale, t: (text: string) => lookupUi(locale, text, ui) };
+  const { messages, ui } = await siteCopy(locale);
+  return { locale, messages, t: (text: string) => lookupUi(locale, text, ui) };
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -25,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function GlobalNotFound() {
-  const { locale, t } = await translator();
+  const { locale, messages, t } = await translator();
 
   return (
     <html lang={locale} className={`${outfit.variable} h-full antialiased`}>
@@ -58,6 +59,31 @@ export default async function GlobalNotFound() {
               {t("Go to the homepage")}
             </span>
           </Link>
+          <nav className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[15px]">
+            <Link href={localePath("/about", locale)} className="inline-flex min-h-11 items-center underline underline-offset-4">
+              {messages.nav.about}
+            </Link>
+            <Link href={localePath("/contact", locale)} className="inline-flex min-h-11 items-center underline underline-offset-4">
+              {messages.nav.contact}
+            </Link>
+            <Link href={localePath("/privacy", locale)} className="inline-flex min-h-11 items-center underline underline-offset-4">
+              {t("Privacy Policy")}
+            </Link>
+          </nav>
+          <nav aria-label={t("Languages")} className="mt-2 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm">
+            {locales.map((code) => (
+              <a
+                key={code}
+                href={localePath("/", code)}
+                hrefLang={code}
+                lang={code}
+                aria-current={locale === code ? "page" : undefined}
+                className="inline-flex min-h-11 items-center underline underline-offset-4"
+              >
+                {nativeLanguageNames[code]}
+              </a>
+            ))}
+          </nav>
         </main>
       </body>
     </html>

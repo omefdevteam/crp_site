@@ -35,7 +35,7 @@ function Toggle({ checked, onChange, labelledBy, describedBy }: { checked: boole
       aria-labelledby={labelledBy}
       aria-describedby={describedBy}
       onClick={() => onChange(!checked)}
-      className="flex w-[72px] shrink-0 items-center rounded-full bg-white p-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+      className="flex min-h-11 w-[72px] shrink-0 items-center rounded-full bg-white p-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
     >
       <span
         aria-hidden

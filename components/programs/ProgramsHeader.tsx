@@ -17,7 +17,7 @@ export function ProgramsHeader() {
         <Link
           href="/"
           aria-label={copy.a11y.back}
-          className="flex size-8 items-center justify-center rounded-full bg-white p-1 text-black shadow-[0_4px_20px_rgba(0,0,0,0.15)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 active:scale-95 desk:size-auto desk:p-1"
+          className="relative flex size-8 items-center justify-center rounded-full bg-white p-1 text-black shadow-[0_4px_20px_rgba(0,0,0,0.15)] transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 active:scale-95 after:absolute after:size-11 after:content-[''] desk:size-auto desk:p-1 desk:after:hidden"
         >
           <span className="flex size-8 items-center justify-center">
             <FigmaImg
@@ -46,7 +46,7 @@ export function ProgramsHeader() {
           <button
             type="button"
             aria-label={copy.a11y.discord}
-            className="flex h-[27px] items-center justify-center rounded-full bg-[#5865f2] px-3 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 active:scale-95 desk:h-10 desk:w-14 desk:px-0"
+            className="relative flex h-[27px] items-center justify-center rounded-full bg-[#5865f2] px-3 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-105 active:scale-95 after:absolute after:-inset-y-[8.5px] after:inset-x-0 after:content-[''] desk:h-10 desk:w-14 desk:px-0 desk:after:hidden"
           >
             <FigmaImg
               src={programIcons.discord}

@@ -60,7 +60,7 @@ export function ProgramHero() {
                   sizes={index === 1 ? "(min-width: 900px) 632px, 100vw" : "632px"}
                 />
               </div>
-              <div className="absolute inset-0 rounded-[88px] bg-gradient-to-b from-transparent from-[72%] to-black/20" />
+              <div className="absolute inset-0 rounded-[88px] bg-gradient-to-b from-transparent from-[50%] to-black/55" />
               {photo.muted ? (
                 <span className="absolute bottom-[64px] right-[64px] flex size-[32px] items-center justify-center rounded-full bg-white/12 p-[8px]">
                   <FigmaImg
