@@ -224,14 +224,14 @@ export function AmbassadorshipLanding({ intent }: { intent: "apply" | "nominate"
           </div>
         </div>
 
-        {/* Title sits over the photo; contrast comes from white type and a soft shadow. */}
+        {/* Not a stacking context, so the title's overlay blend still mixes with the photo. */}
         <div className="apply-frame-content relative px-6 desk:px-0 desk:pt-[120px]">
           <div className="relative mx-auto flex w-full max-w-[1200px] flex-col desk:gap-16 desk:p-16">
             {/* Title; the subtitle sits over it (Figma 37:905). */}
             <div className="relative flex flex-col items-center pb-8 pt-24 text-white desk:p-0">
               <h1
                 ref={titleRef}
-                className={`${trail.className} w-full text-[82.08px] uppercase leading-[0.9] tracking-[-3.28px] text-white [overflow-wrap:anywhere] [text-shadow:0_2px_24px_rgba(0,0,0,0.55)] desk:fit-text desk:text-center desk:[--fit-max:130px] desk:[--fit-room:min(1072px,100vw-128px)] desk:[--fit-track-px:-5.2px] desk:tracking-[-5.2px] desk:[overflow-wrap:normal]`}
+                className={`${trail.className} w-full text-[82.08px] uppercase leading-[0.9] tracking-[-3.28px] mix-blend-overlay [overflow-wrap:anywhere] desk:fit-text desk:text-center desk:[--fit-max:130px] desk:[--fit-room:min(1072px,100vw-128px)] desk:[--fit-track-px:-5.2px] desk:tracking-[-5.2px] desk:[overflow-wrap:normal]`}
                 style={fitVars(a.title, "trail", { upper: true })}
               >
                 {a.title}
