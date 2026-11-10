@@ -132,22 +132,6 @@ export const aboutTeam = [
     image: blankAvatar,
   },
   {
-    id: "chiamaka-chukwudi",
-    name: "Chiamaka Chukwudi",
-    role: "Production Coordinator",
-    quote: "Production coordinator delivering complex international events.",
-    image: blankAvatar,
-    place: { lat: 7.4, lng: 4.2 },
-  },
-  {
-    id: "oyelese-oreoluwa-daniel",
-    name: "Oyelese Oreoluwa Daniel",
-    role: "Event Coordinator",
-    quote: "Event coordinator ensuring smooth logistics and delegate experiences.",
-    image: blankAvatar,
-    place: { lat: 10.4, lng: 10.2 },
-  },
-  {
     id: "danielle-kyony",
     name: "Danielle Kyony",
     role: "Intern & Volunteer Coordinator",
