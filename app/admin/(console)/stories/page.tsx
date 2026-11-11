@@ -73,7 +73,7 @@ export default async function StoriesPage({ searchParams }: { searchParams: Prom
       </nav>
       <section className={card}>
         {rows === null ? (
-          <p className="text-sm text-black/60">Stories aren&rsquo;t set up on this database yet. Apply migration 0021 first.</p>
+          <p className="text-sm text-black/60">Stories aren&rsquo;t switched on yet.</p>
         ) : rows.length === 0 ? (
           <p className="text-sm text-black/60">{filter === "submitted" ? "Nothing waiting. New stories show up here." : "No stories in this list."}</p>
         ) : (

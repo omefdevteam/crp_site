@@ -8,6 +8,7 @@ import { parseLocale } from "@/lib/locale";
 import { memberPath } from "@/lib/ambassador/link";
 import { AMBASSADOR_STATUSES, isAmbassadorStatus } from "@/lib/ambassador/status";
 import { parseEmail } from "@/lib/staff/users";
+import { isMissingTable } from "@/lib/db/missing-table";
 
 export const WELCOME_TEMPLATE = "ambassador_welcome";
 
@@ -73,4 +74,15 @@ export async function countMissingAmbassadors(db: Store): Promise<number> {
     .leftJoin(ambassadors, eq(ambassadors.applicantId, applicants.id))
     .where(and(inArray(applicants.status, [...AMBASSADOR_STATUSES]), isNull(ambassadors.id)));
   return rows.length;
+}
+
+// For the Staff page: null while the Ambassador tables don't exist yet, so the
+// page still opens and says accounts aren't switched on instead of failing.
+export async function countMissingAmbassadorsOrNull(db: Store): Promise<number | null> {
+  try {
+    return await countMissingAmbassadors(db);
+  } catch (err) {
+    if (isMissingTable(err)) return null;
+    throw err;
+  }
 }

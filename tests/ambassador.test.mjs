@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test, { after, before } from "node:test";
 import pg from "pg";
+import sharp from "sharp";
 import { loader } from "./helpers.mjs";
 import { startDatabase } from "./db.mjs";
 
@@ -330,7 +331,30 @@ function fakeStore() {
   };
 }
 
-const JPEG = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46]);
+// A real (tiny) JPEG: uploads are decoded and re-encoded, so header bytes alone are not enough.
+const JPEG = new Uint8Array(await sharp({ create: { width: 8, height: 8, channels: 3, background: "#c33" } }).jpeg().toBuffer());
+
+// A 40x20 picture tagged "rotate 90°" (EXIF orientation 6) with a GPS position
+// and a camera make, the way a phone writes them.
+const PHONE_EXIF = {
+  IFD0: { Make: "TestPhone", Model: "Pocket 9" },
+  IFD3: { GPSLatitudeRef: "N", GPSLatitude: "5/1 33/1 0/1", GPSLongitudeRef: "W", GPSLongitude: "0/1 12/1 0/1" },
+};
+async function phonePhoto(format) {
+  const image = sharp({ create: { width: 40, height: 20, channels: 3, background: "#3a6" } });
+  const encoded = format === "png" ? image.png() : format === "webp" ? image.webp() : image.jpeg();
+  return new Uint8Array(await encoded.withMetadata({ orientation: 6 }).withExif(PHONE_EXIF).toBuffer());
+}
+
+// Tag numbers in the first EXIF directory (0x8825 is the pointer to the GPS block).
+function exifTags(exif) {
+  const tiff = exif.subarray(exif.indexOf("Exif\0\0") === 0 ? 6 : 0);
+  const le = tiff.toString("latin1", 0, 2) === "II";
+  const u16 = (at) => (le ? tiff.readUInt16LE(at) : tiff.readUInt16BE(at));
+  const u32 = (at) => (le ? tiff.readUInt32LE(at) : tiff.readUInt32BE(at));
+  const start = u32(4);
+  return Array.from({ length: u16(start) }, (_, i) => u16(start + 2 + i * 12));
+}
 const draftAt = (placeId, extra = {}) => ({ kind: "beacon", title: "T", body: "B", language: "en", placeId, ...extra });
 
 test("city search finds places by prefix, ignoring accents, within one country", () => {
@@ -469,6 +493,61 @@ test("photos are checked, replaced cleanly and private until approval", async ()
 
   assert.equal((await stories.deleteStory(getDb(), member, created.id, store)).ok, true);
   assert.equal(store.files.size, 0);
+});
+
+test("story photos are stored without EXIF or GPS, turned the right way up", async () => {
+  const stories = mod("lib/ambassador/stories.ts");
+  const member = await signedInMember();
+  const store = fakeStore();
+  const created = await stories.saveStory(getDb(), member, null, draftAt(nairobi().id), null);
+
+  const phone = await phonePhoto("jpeg");
+  const before = await sharp(phone).metadata();
+  assert.equal(before.orientation, 6);
+  assert.ok(exifTags(before.exif).includes(0x8825), "the test photo carries a GPS block");
+
+  assert.equal((await stories.setStoryPhoto(getDb(), member, created.id, store, { bytes: phone, size: phone.length })).ok, true);
+  const [[, saved]] = [...store.files];
+  const after = await sharp(Buffer.from(saved.bytes)).metadata();
+  assert.equal(after.exif, undefined);
+  assert.equal(after.orientation, undefined);
+  assert.equal(Buffer.from(saved.bytes).includes(Buffer.from("TestPhone")), false);
+  assert.equal(after.format, "jpeg");
+  assert.deepEqual([after.width, after.height], [20, 40], "orientation is applied to the pixels");
+  assert.equal(saved.contentType, "image/jpeg");
+
+  const { rows: [row] } = await sql.query("select photo_content_type, photo_byte_size from stories where id = $1", [created.id]);
+  assert.equal(row.photo_content_type, "image/jpeg");
+  assert.equal(row.photo_byte_size, saved.bytes.length);
+  assert.notEqual(saved.bytes.length, phone.length);
+});
+
+test("PNG and WebP photos keep their type and lose their metadata; broken ones are refused", async () => {
+  const { cleanPhoto } = mod("lib/ambassador/photo-clean.ts");
+  for (const [format, type] of [["png", "image/png"], ["webp", "image/webp"]]) {
+    const phone = await phonePhoto(format);
+    assert.ok((await sharp(phone).metadata()).exif, `${format} test photo carries EXIF`);
+    const clean = await cleanPhoto(phone, type);
+    assert.equal(clean.type, type);
+    assert.equal(clean.size, clean.bytes.length);
+    const meta = await sharp(Buffer.from(clean.bytes)).metadata();
+    assert.equal(meta.format, format);
+    assert.equal(meta.exif, undefined);
+    assert.equal(meta.orientation, undefined);
+    assert.deepEqual([meta.width, meta.height], [20, 40]);
+  }
+  const headerOnly = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46]);
+  assert.deepEqual(await cleanPhoto(headerOnly, "image/jpeg"), { reason: "photo_type" });
+});
+
+test("the Staff page count degrades to null while the Ambassador tables are missing", async () => {
+  const { countMissingAmbassadorsOrNull } = mod("lib/ambassador/provision.ts");
+  const failing = (err) => ({ select() { throw err; } });
+  const missing = Object.assign(new Error('relation "ambassadors" does not exist'), { code: "42P01" });
+  assert.equal(await countMissingAmbassadorsOrNull(failing(missing)), null);
+  assert.equal(await countMissingAmbassadorsOrNull(failing(new Error("wrapped", { cause: missing }))), null);
+  await assert.rejects(countMissingAmbassadorsOrNull(failing(Object.assign(new Error("timeout"), { code: "57014" }))), /timeout/);
+  assert.equal(typeof (await countMissingAmbassadorsOrNull(getDb())), "number");
 });
 
 test("profile changes keep the globe opt-in tied to a home city", async () => {
