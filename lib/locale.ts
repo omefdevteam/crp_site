@@ -7,6 +7,18 @@ export const defaultLocale: Locale = "en";
 export const LOCALE_COOKIE = "crp-locale";
 export const nativeLanguageNames: Record<Locale, string> = { en: "English", fr: "Français", es: "Español", pt: "Português" };
 export const publicPaths = ["/", "/about", "/programs", "/partner", "/partner/reach-out", "/contact", "/apply", "/nominate", "/privacy"] as const;
+// The Ambassador space. Not public (no sitemap, no index, no bare-path redirect
+// list), but it lives under the locale prefix, so the language switch works there.
+export const MEMBER_PREFIX = "/ambassador";
+/** The internal route folder proxy.ts rewrites /{lang}/ambassador/... to. */
+export const MEMBER_ROUTE = "/ambassador-space";
+export function isMemberSitePath(path: string): boolean {
+  return path === MEMBER_PREFIX || path.startsWith(`${MEMBER_PREFIX}/`);
+}
+/** A path the language switch can move between locales. */
+export function isLocalizedPath(path: string): boolean {
+  return (publicPaths as readonly string[]).includes(path) || isMemberSitePath(path);
+}
 export function isLocale(value: string | undefined | null): value is Locale {
   return locales.some((locale) => locale === value);
 }
@@ -19,7 +31,7 @@ export function localePath(href: string, locale: Locale): string {
   const segments = match[1].split("/");
   if (isLocale(segments[1])) segments.splice(1, 1);
   const path = segments.join("/").replace(/\/$/, "") || "/";
-  if (!(publicPaths as readonly string[]).includes(path)) return href;
+  if (!isLocalizedPath(path)) return href;
   return `/${locale}${path === "/" ? "" : path}${match[2]}`;
 }
 /** Remembering the language is a functional cookie: only stored with consent. The URL still carries the locale. */

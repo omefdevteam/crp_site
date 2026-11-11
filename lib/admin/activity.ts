@@ -125,6 +125,10 @@ export function activityLabel(kind: string, detail: Record<string, unknown>): st
     const summary = `Downloaded ${textOf(detail, "rows") || "0"} ${LIST_NAME[list] ?? list}`;
     return filters ? `${summary} (${filters})` : summary;
   }
+  if (kind === "ambassadors.backfilled") {
+    const created = textOf(detail, "created") || "0";
+    return `Opened ${created} Ambassador ${created === "1" ? "account" : "accounts"} for earlier acceptances`;
+  }
   if (kind === "copy.published") return copyChange(detail);
   if (kind.startsWith("logo.")) return logoChange(kind, detail);
   if (kind === "review.saved") {

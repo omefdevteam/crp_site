@@ -260,6 +260,13 @@ export function findCountry(code: string): Country | undefined {
   return byCode.get(code);
 }
 
+const byName = new Map(COUNTRIES.map((country) => [country.name.toLowerCase(), country]));
+
+// The apply form stores the English country name (basedIn, nationality).
+export function findCountryByName(name: string): Country | undefined {
+  return byName.get(name.trim().toLowerCase());
+}
+
 export function countryLabel(country: Country, locale: string): string {
   try {
     const localized = new Intl.DisplayNames([locale], { type: "region" }).of(country.code);

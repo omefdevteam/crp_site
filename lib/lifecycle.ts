@@ -9,6 +9,8 @@ import {
 } from "@/lib/db";
 import { applicantSyncRow } from "@/lib/sync";
 import { recordChange } from "@/lib/sync-log";
+import { provisionAmbassador } from "@/lib/ambassador/provision";
+import { isAmbassadorStatus } from "@/lib/ambassador/status";
 
 export type Status = Applicant["status"];
 export const STATUSES = applicantStatus.enumValues;
@@ -110,6 +112,10 @@ export async function transition(tx: Store, input: TransitionInput): Promise<Tra
     version: updated.version,
   });
   await recordChange(tx, "applicants", current.id, "update", applicantSyncRow(updated));
+  // Reaching an Ambassador status opens an Ambassador account and queues its
+  // welcome email in this same transaction. Moving between Ambassador
+  // statuses, or back into one, finds the account already there.
+  if (isAmbassadorStatus(input.to)) await provisionAmbassador(tx, updated);
   return { ok: true, from: current.status, to: input.to, version: updated.version, applicant: updated };
 }
 

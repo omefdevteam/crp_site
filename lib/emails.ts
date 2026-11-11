@@ -360,3 +360,92 @@ export function decisionEmail(
   }
   return { subject: appLine(language, sources, "selectedSubject", "subject"), html: render(language, [appLine(language, sources, "congratulations", "body"), appLine(language, sources, "selected", "body")], null, shell) };
 }
+
+// Ambassador mail. Bundled here in all four site languages; these strings are
+// not in the copy desk yet. Every value is plain text and is escaped below.
+const AMBASSADOR_MAIL = {
+  en: {
+    welcomeSubject: "Welcome, Ambassador",
+    welcomeHello: "Hi {name},",
+    welcomeBody: "You're now a Climate Refugee Pavilion Ambassador. You have your own Ambassador space on our website, where you can share stories from where you are. Once our team approves a story, it appears on the globe on our home page.",
+    welcomeHow: "To sign in, open the link below and enter this email address. We'll send you a sign-in link each time.",
+    welcomeCta: "Open my space",
+    signInSubject: "Your Ambassador sign-in link",
+    signInBody: "Use the button below to sign in to your Ambassador space.",
+    signInExpiry: "This link works once and expires in 15 minutes.",
+    copyLink: "Button not working? Copy this link into your browser:",
+    ignore: "Didn't request this? You can ignore this email.",
+    signInCta: "Sign in",
+  },
+  fr: {
+    welcomeSubject: "Bienvenue, Ambassadeur·rice",
+    welcomeHello: "Bonjour {name},",
+    welcomeBody: "Vous êtes désormais Ambassadeur·rice du Climate Refugee Pavilion. Vous disposez de votre propre espace Ambassadeur sur notre site, où vous pouvez partager des histoires depuis l'endroit où vous vous trouvez. Une fois qu'une histoire est approuvée par notre équipe, elle apparaît sur le globe de notre page d'accueil.",
+    welcomeHow: "Pour vous connecter, ouvrez le lien ci-dessous et saisissez cette adresse e-mail. Nous vous enverrons un lien de connexion à chaque fois.",
+    welcomeCta: "Ouvrir mon espace",
+    signInSubject: "Votre lien de connexion Ambassadeur",
+    signInBody: "Utilisez le bouton ci-dessous pour vous connecter à votre espace Ambassadeur.",
+    signInExpiry: "Ce lien ne fonctionne qu'une fois et expire dans 15 minutes.",
+    copyLink: "Le bouton ne fonctionne pas ? Copiez ce lien dans votre navigateur :",
+    ignore: "Vous n'avez rien demandé ? Vous pouvez ignorer cet e-mail.",
+    signInCta: "Se connecter",
+  },
+  es: {
+    welcomeSubject: "Bienvenido/a, Embajador/a",
+    welcomeHello: "Hola {name}:",
+    welcomeBody: "Ya eres Embajador/a del Climate Refugee Pavilion. Tienes tu propio espacio de Embajador/a en nuestra web, donde puedes compartir historias desde donde estás. Cuando nuestro equipo aprueba una historia, aparece en el globo de nuestra página de inicio.",
+    welcomeHow: "Para entrar, abre el enlace de abajo e introduce esta dirección de correo. Te enviaremos un enlace de acceso cada vez.",
+    welcomeCta: "Abrir mi espacio",
+    signInSubject: "Tu enlace de acceso de Embajador/a",
+    signInBody: "Usa el botón de abajo para entrar en tu espacio de Embajador/a.",
+    signInExpiry: "Este enlace funciona una sola vez y caduca en 15 minutos.",
+    copyLink: "¿El botón no funciona? Copia este enlace en tu navegador:",
+    ignore: "¿No lo has pedido? Puedes ignorar este correo.",
+    signInCta: "Entrar",
+  },
+  pt: {
+    welcomeSubject: "Boas-vindas, Embaixador/a",
+    welcomeHello: "Olá {name},",
+    welcomeBody: "Agora você é Embaixador/a do Climate Refugee Pavilion. Você tem seu próprio espaço de Embaixador/a no nosso site, onde pode compartilhar histórias de onde está. Quando nossa equipe aprova uma história, ela aparece no globo da nossa página inicial.",
+    welcomeHow: "Para entrar, abra o link abaixo e digite este endereço de e-mail. Enviaremos um link de acesso a cada vez.",
+    welcomeCta: "Abrir meu espaço",
+    signInSubject: "Seu link de acesso de Embaixador/a",
+    signInBody: "Use o botão abaixo para entrar no seu espaço de Embaixador/a.",
+    signInExpiry: "Este link funciona uma única vez e expira em 15 minutos.",
+    copyLink: "O botão não funciona? Copie este link no seu navegador:",
+    ignore: "Não pediu isto? Pode ignorar este e-mail.",
+    signInCta: "Entrar",
+  },
+} as const satisfies Record<Locale, Record<string, string>>;
+
+// Sent once, when an applicant becomes an Ambassador. It carries no sign-in
+// code: the link opens the sign-in page, which mails a fresh 15-minute link.
+// So the queued job never stores a credential.
+export function ambassadorWelcomeEmail(locale: string | null | undefined, name: string, signInUrl: string): Email {
+  const language = parseLocale(locale);
+  const t = AMBASSADOR_MAIL[language];
+  const lines = [
+    escapeHtml(t.welcomeHello.replace("{name}", name)),
+    escapeHtml(t.welcomeBody),
+    escapeHtml(t.welcomeHow),
+  ];
+  return {
+    subject: t.welcomeSubject,
+    html: render(language, lines, { label: escapeHtml(t.welcomeCta), url: escapeHtml(signInUrl) }, shellFor(language, undefined)),
+  };
+}
+
+export function ambassadorSignInEmail(locale: string | null | undefined, link: string): Email {
+  const language = parseLocale(locale);
+  const t = AMBASSADOR_MAIL[language];
+  const lines = [
+    escapeHtml(t.signInBody),
+    escapeHtml(t.signInExpiry),
+    `${escapeHtml(t.copyLink)} ${escapeHtml(link)}`,
+    escapeHtml(t.ignore),
+  ];
+  return {
+    subject: t.signInSubject,
+    html: render(language, lines, { label: escapeHtml(t.signInCta), url: escapeHtml(link) }, shellFor(language, undefined)),
+  };
+}
