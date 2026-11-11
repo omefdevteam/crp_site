@@ -126,3 +126,16 @@ test("interface lookup keeps an empty override and ignores inherited keys", () =
   assert.equal(uiOverrides(published).es["Only program"], "Programa");
   assert.equal(uiOverrides(published).en, undefined);
 });
+
+test("the copy desk keeps a known language in its address and falls back to English", () => {
+  const { deskLanguage, entryLanguage, deskHref } = load("lib/copy/deskUrl.ts");
+  assert.equal(deskLanguage("pt"), "pt");
+  assert.equal(deskLanguage("de"), "en");
+  assert.equal(deskLanguage(""), "en");
+  assert.equal(deskLanguage(undefined), "en");
+  assert.equal(entryLanguage("pt", ["en", "fr", "es"]), "en");
+  assert.equal(entryLanguage("es", ["en", "fr", "es"]), "es");
+  assert.equal(deskHref({ catalog: "page", key: "nav.about", lang: "en" }), "/admin/copy?catalog=page&key=nav.about");
+  assert.equal(deskHref({ all: true, review: true, q: "x y", lang: "es" }), "/admin/copy?all=1&review=1&q=x+y&lang=es");
+  assert.equal(deskHref({}), "/admin/copy");
+});

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CopyDesk } from "@/components/admin/CopyDesk";
 import { CATALOGS, type CatalogId } from "@/lib/copy/catalog";
 import { copyHistory, entryRef, loadDesk, type Head } from "@/lib/copy/editor";
+import { deskLanguage } from "@/lib/copy/deskUrl";
 import { getDb } from "@/lib/db";
 import { requireStaff } from "@/lib/staff/gate";
 
@@ -18,7 +19,7 @@ function isCatalog(value: string | undefined): value is CatalogId {
 export default async function CopyPage({
   searchParams,
 }: {
-  searchParams: Promise<{ catalog?: string; key?: string; q?: string; error?: string; review?: string; all?: string }>;
+  searchParams: Promise<{ catalog?: string; key?: string; q?: string; error?: string; review?: string; all?: string; lang?: string }>;
 }) {
   const staff = await requireStaff("copy.edit");
   const params = await searchParams;
@@ -27,6 +28,7 @@ export default async function CopyPage({
   const query = firstParam(params.q);
   const needsReview = firstParam(params.review) === "1";
   const scopeAll = firstParam(params.all) === "1";
+  const language = deskLanguage(firstParam(params.lang));
   const catalog: CatalogId = isCatalog(catalogParam) ? catalogParam : "page";
   const desk = await loadDesk(getDb(), {
     catalog: scopeAll ? null : catalog,
@@ -53,6 +55,7 @@ export default async function CopyPage({
       selected={selected}
       history={history}
       error={params.error}
+      language={language}
     />
   );
 }

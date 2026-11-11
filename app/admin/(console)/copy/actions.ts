@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { entryRef, markReviewed, problemsFor, publishCopy, saveDraft, type PublishFrom, type ReviewCell } from "@/lib/copy/editor";
+import { DESK_DEFAULT_LANGUAGE, deskLanguage } from "@/lib/copy/deskUrl";
 import { getDb } from "@/lib/db";
 import { assertStaffAction } from "@/lib/staff/gate";
 import { can } from "@/lib/staff/roles";
@@ -16,6 +17,8 @@ function back(formData: FormData, error?: string): never {
   const query = String(formData.get("q") ?? "");
   if (query) params.set("q", query);
   if (String(formData.get("review") ?? "") === "1") params.set("review", "1");
+  const lang = deskLanguage(String(formData.get("lang") ?? ""));
+  if (lang !== DESK_DEFAULT_LANGUAGE) params.set("lang", lang);
   if (error) params.set("error", error);
   redirect(`/admin/copy?${params.toString()}`);
 }
