@@ -290,5 +290,9 @@
   "Delete this story?": "Supprimer cette histoire ?",
   "The story and its photo are deleted for good.": "L'histoire et sa photo seront supprimées définitivement.",
   "Delete": "Supprimer",
-  "Delete story": "Supprimer l'histoire"
+  "Delete story": "Supprimer l'histoire",
+  "Ambassador": "Ambassadeur·rice",
+  "By {name}": "Par {name}",
+  "On the globe": "Sur le globe",
+  "See {count} on the globe": "Voir {count} sur le globe"
 }

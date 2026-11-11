@@ -46,6 +46,10 @@ type GlobeProps = {
   onReady?: () => void;
   /** Starting spin angle in radians. */
   initialYaw?: number;
+  /** Pins with a card: click opens it. Others stay as they are. */
+  onSelect?: (pin: Pin) => void;
+  selectable?: ReadonlySet<string>;
+  labels?: Readonly<Record<string, string>>;
 };
 
 // Pin id -> its wrapper div, shared by the DOM pin layer and the projector in the canvas.
@@ -235,11 +239,17 @@ function PinLayer({
   emphasis,
   pinElsRef,
   revealed,
+  onSelect,
+  selectable,
+  labels,
 }: {
   visiblePins: readonly Pin[];
   emphasis: PinGroup | null;
   pinElsRef: RefObject<PinElMap>;
   revealed: boolean;
+  onSelect?: (pin: Pin) => void;
+  selectable?: ReadonlySet<string>;
+  labels?: Readonly<Record<string, string>>;
 }) {
   return (
     <div
@@ -252,6 +262,8 @@ function PinLayer({
           key={pin.id}
           pin={pin}
           emphasized={emphasis === null || pin.group === emphasis}
+          onSelect={selectable?.has(pin.id) ? onSelect : undefined}
+          label={labels?.[pin.id]}
           ref={(el) => {
             if (el) pinElsRef.current.set(pin.id, el);
             else pinElsRef.current.delete(pin.id);
@@ -268,6 +280,9 @@ export default function Globe({
   pins: source = pins,
   onReady,
   initialYaw,
+  onSelect,
+  selectable,
+  labels,
 }: GlobeProps) {
   const pinElsRef = useRef<PinElMap>(new Map());
   const [pinsReady, setPinsReady] = useState(false);
@@ -310,6 +325,9 @@ export default function Globe({
         emphasis={emphasis}
         pinElsRef={pinElsRef}
         revealed={pinsReady}
+        onSelect={onSelect}
+        selectable={selectable}
+        labels={labels}
       />
     </div>
   );

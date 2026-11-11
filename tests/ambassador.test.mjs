@@ -656,3 +656,123 @@ test("activity lines describe story decisions", () => {
   assert.equal(activityLabel("story.reviewed", { verb: "takedown" }), "Took a story off the globe");
   assert.equal(activityLabel("story.moved", { from: "Nairobi", to: "Mombasa" }), "Moved a story's pin from Nairobi to Mombasa");
 });
+
+// ---- Phase 4: the home page globe ----
+
+test("excerpts cut at a word and pins at one spot are spread apart", () => {
+  const { excerpt, spread } = mod("lib/ambassador/globe-model.ts");
+  assert.equal(excerpt("Short  story\n\nhere."), "Short story here.");
+  const long = excerpt(`${"word ".repeat(100)}end`, 40);
+  assert.ok([...long].length <= 41);
+  assert.ok(long.endsWith("…"));
+  assert.doesNotMatch(long, /\s…$/);
+
+  const spot = { lat: -1.283, lng: 36.817 };
+  const out = spread([spot, spot, spot, { lat: 10, lng: 10 }]);
+  assert.deepEqual(out[0], spot);
+  assert.deepEqual(out[3], { lat: 10, lng: 10 });
+  assert.notDeepEqual(out[1], spot);
+  assert.notDeepEqual(out[1], out[2]);
+  for (const point of out.slice(1, 3)) {
+    assert.ok(Math.abs(point.lat - spot.lat) < 0.5 && Math.abs(point.lng - spot.lng) < 0.5);
+  }
+  assert.deepEqual(spread([spot, spot]), spread([spot, spot]));
+  // Near the date line a nudge wraps instead of leaving the map.
+  assert.ok(spread([{ lat: 0, lng: 179.99 }, { lat: 0, lng: 179.99 }])[1].lng <= 180);
+});
+
+test("a group with real pins drops its demo pins; one without keeps them", () => {
+  const { globePins, buildGlobe } = mod("lib/ambassador/globe-model.ts");
+  const { pins: demo } = mod("lib/pins.ts");
+  assert.deepEqual(globePins([], demo), demo);
+
+  const data = buildGlobe({
+    stories: [
+      { id: "s1", kind: "beacon", title: "River", body: "Text", city: "Nairobi", country: "KE", lat: -1.28, lng: 36.82, language: "en", hasPhoto: true, publishedAt: new Date("2026-11-01T10:00:00Z"), author: "Amara" },
+      { id: "s2", kind: "beacon", title: null, body: "No title", city: "Nairobi", country: "KE", lat: -1.28, lng: 36.82, language: "en", hasPhoto: false, publishedAt: null, author: "Amara" },
+    ],
+    people: [{ id: "a1", name: "Joao", bio: "Coasts.", city: "Recife", country: "BR", lat: -8.05, lng: -34.9 }],
+  });
+  assert.deepEqual(data.pins.map((p) => p.id), ["story-s1", "ambassador-a1"]);
+  assert.equal(data.pins[0].kind, "photo");
+  assert.equal(data.pins[0].image, "/api/stories/s1/photo");
+  assert.equal(data.cards["story-s1"].author, "Amara");
+  assert.equal(data.cards["story-s1"].publishedAt, "2026-11-01T10:00:00.000Z");
+  assert.equal(data.cards["ambassador-a1"].excerpt, "Coasts.");
+  // The cards survive the trip from server to browser.
+  assert.deepEqual(JSON.parse(JSON.stringify(data)), data);
+
+  const shown = globePins(data.pins, demo);
+  const groups = (g) => shown.filter((p) => p.group === g).map((p) => p.id);
+  assert.deepEqual(groups("beacons"), ["story-s1"]);
+  assert.deepEqual(groups("ambassadors"), ["ambassador-a1"]);
+  assert.deepEqual(groups("missions"), demo.filter((p) => p.group === "missions").map((p) => p.id));
+});
+
+test("the globe reads only approved stories and opted-in Ambassadors who are still active", async () => {
+  const { queryGlobe } = mod("lib/ambassador/globe.ts");
+  const { reviewStory } = mod("lib/ambassador/review.ts");
+  const { parseProfile } = mod("lib/ambassador/story-model.ts");
+  const { updateProfile } = mod("lib/ambassador/profile.ts");
+  const admin = await staffUser("admin");
+
+  const live = await sentStory({ title: "Live one" });
+  await reviewStory(getDb(), admin, { storyId: live.id, verb: "approve", expectedVersion: live.version });
+  const waiting = await sentStory({ title: "Still waiting" });
+  const gone = await sentStory({ title: "Author left" });
+  await reviewStory(getDb(), admin, { storyId: gone.id, verb: "approve", expectedVersion: gone.version });
+  await move(gone.member.applicantId, "rejected");
+
+  const parsed = parseProfile({ displayName: "Amara", bio: "Rivers.", homePlaceId: String(nairobi().id), showOnGlobe: "on", language: "en" });
+  await updateProfile(getDb(), live.member.id, parsed.profile);
+
+  const data = await queryGlobe(getDb());
+  const ids = data.pins.map((p) => p.id);
+  assert.ok(ids.includes(`story-${live.id}`));
+  assert.ok(!ids.includes(`story-${waiting.id}`));
+  assert.ok(!ids.includes(`story-${gone.id}`), "a story leaves the globe when its author is no longer an Ambassador");
+  assert.ok(ids.includes(`ambassador-${live.member.id}`));
+  assert.ok(!ids.includes(`ambassador-${waiting.member.id}`), "the map is opt-in");
+  assert.equal(data.cards[`story-${live.id}`].title, "Live one");
+  assert.equal(data.cards[`ambassador-${live.member.id}`].excerpt, "Rivers.");
+  // Nothing private reaches the page.
+  assert.doesNotMatch(JSON.stringify(data), /@example\.org|applicant/);
+});
+
+test("a failed globe read falls back to the last good pins, then to the demo pins", async () => {
+  const { createGlobeSource } = mod("lib/ambassador/globe.ts");
+  const { EMPTY_GLOBE } = mod("lib/ambassador/globe-model.ts");
+  const good = { pins: [{ id: "story-x", kind: "icon", group: "beacons", city: "Nairobi", lat: 0, lng: 0 }], cards: {} };
+  let fail = true;
+  let shortened = 0;
+  const logs = [];
+  const read = createGlobeSource({
+    query: async () => {
+      if (fail) throw new Error("connection refused");
+      return good;
+    },
+    deadlineMs: 200,
+    shortenPageLifetime: () => { shortened += 1; },
+    log: (key, line) => logs.push(line),
+  });
+  assert.deepEqual(await read(), EMPTY_GLOBE);
+  assert.equal(shortened, 1);
+  fail = false;
+  assert.deepEqual(await read(), good);
+  fail = true;
+  assert.deepEqual(await read(), good);
+  assert.equal(shortened, 2);
+  assert.ok(logs.every((line) => line.startsWith("[globe]")));
+
+  const slow = createGlobeSource({ query: () => new Promise(() => {}), deadlineMs: 50, log: () => {} });
+  assert.deepEqual(await slow(), EMPTY_GLOBE);
+});
+
+test("globe text exists in every language", () => {
+  const { uiMessages } = mod("lib/ui-messages.ts");
+  for (const key of ["By {name}", "On the globe", "See {count} on the globe", "Ambassador"]) {
+    for (const locale of ["en", "fr", "es", "pt"]) assert.ok(uiMessages[locale][key], `${locale}: ${key}`);
+  }
+  assert.ok(uiMessages.pt["By {name}"].includes("{name}"));
+  assert.ok(uiMessages.es["See {count} on the globe"].includes("{count}"));
+});

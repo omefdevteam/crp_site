@@ -290,5 +290,9 @@
   "Delete this story?": "Delete this story?",
   "The story and its photo are deleted for good.": "The story and its photo are deleted for good.",
   "Delete": "Delete",
-  "Delete story": "Delete story"
+  "Delete story": "Delete story",
+  "Ambassador": "Ambassador",
+  "By {name}": "By {name}",
+  "On the globe": "On the globe",
+  "See {count} on the globe": "See {count} on the globe"
 }

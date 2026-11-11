@@ -25,6 +25,10 @@ export type PlatformGlobeProps = {
   initialYaw?: number;
   /** Preload the static underlay (set when the globe is the above-the-fold LCP, e.g. About's hero). */
   staticPriority?: boolean;
+  /** Ambassador pins open a card when clicked. */
+  onSelect?: (pin: Pin) => void;
+  selectable?: ReadonlySet<string>;
+  labels?: Readonly<Record<string, string>>;
 };
 
 function useGlobeReady(imageKeys: readonly string[]): boolean {
@@ -101,6 +105,9 @@ export function PlatformGlobe({
   waitForImages: imageKeys = HOME_GLOBE_WAIT_IMAGES,
   initialYaw,
   staticPriority = false,
+  onSelect,
+  selectable,
+  labels,
 }: PlatformGlobeProps) {
   // The static underlay renders immediately; the Three.js chunk + texture only
   // load once the globe's frame scrolls near (and the page's key images settle).
@@ -129,6 +136,9 @@ export function PlatformGlobe({
             pins={pins}
             initialYaw={initialYaw}
             onReady={() => setLive(true)}
+            onSelect={onSelect}
+            selectable={selectable}
+            labels={labels}
           />
         </div>
       ) : null}

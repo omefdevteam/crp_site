@@ -11,12 +11,15 @@ import {
   useTransform,
   type MotionValue,
 } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DisplayWordmark } from "./DisplayWordmark";
 import { PlatformGlobe } from "./platform/PlatformGlobe";
 import { PinIcon } from "./platform/PinIcon";
 import { ComingSoonBadge } from "./platform/ComingSoonBadge";
 import { pinGroupIds, type PinGroup } from "@/lib/pins";
+import { EMPTY_GLOBE, globePins, type GlobeCard, type GlobeData } from "@/lib/ambassador/globe-model";
+import { useText } from "@/lib/ui-text";
+import { StoryCard, StoryList } from "./platform/StoryCard";
 import { useCopy } from "./LanguageProvider";
 import { MOBILE_GLOBE_YAW, useIsMobile } from "@/lib/useIsMobile";
 
@@ -283,15 +286,29 @@ function PlatformBackdrop() {
   );
 }
 
-export function PlatformSection() {
+// `globe` carries the Ambassador pins and their cards, read on the server
+// (lib/ambassador/globe.ts). Without it, or when that read failed, the globe
+// shows its built-in demo pins exactly as before.
+export function PlatformSection({ globe = EMPTY_GLOBE }: { globe?: GlobeData }) {
   const globeYaw = useIsMobile() ? MOBILE_GLOBE_YAW : 0;
   const copy = useCopy();
+  const tr = useText();
+  const [selected, setSelected] = useState<string | null>(null);
+  const [listOpen, setListOpen] = useState(false);
+  const shownPins = useMemo(() => globePins(globe.pins), [globe.pins]);
+  const selectable = useMemo(() => new Set(Object.keys(globe.cards)), [globe.cards]);
+  const labels = useMemo(
+    () => Object.fromEntries(Object.values(globe.cards).map((card) => [card.pinId, `${card.title}, ${card.city}`])),
+    [globe.cards],
+  );
   const sectionRef = useRef<HTMLElement>(null);
   const inView = useInView(sectionRef, { amount: 0.15 });
   const [activeGroup, setActiveGroup] = useState<PinGroup>("beacons");
   const [mode, setMode] = useState<"auto" | "manual">("auto");
 
   const activeIdx = pinGroupIds.indexOf(activeGroup);
+  const groupCards: GlobeCard[] = Object.values(globe.cards).filter((card) => card.group === activeGroup);
+  const card = selected ? globe.cards[selected] ?? null : null;
   const visibleGroups: readonly PinGroup[] =
     mode === "manual"
       ? [activeGroup]
@@ -307,6 +324,16 @@ export function PlatformSection() {
       <PlatformBackdrop />
 
       <div className="relative mx-auto flex h-full w-full max-w-[1200px] flex-col items-center @container">
+        <StoryCard card={card} onClose={() => setSelected(null)} />
+        <StoryList
+          open={listOpen && !card}
+          cards={groupCards}
+          onPick={(picked) => {
+            setListOpen(false);
+            setSelected(picked.pinId);
+          }}
+          onClose={() => setListOpen(false)}
+        />
         <ComingSoonBadge className="absolute top-[32px] right-0 z-40 w-[81px] desk:!hidden" />
         <div className="relative z-20 flex w-full flex-col items-center gap-[11px] px-0 pt-[96px] text-center leading-[0.9] desk:max-w-[955px] desk:gap-0 desk:px-0 desk:pt-[96px]">
           <DisplayWordmark
@@ -327,6 +354,13 @@ export function PlatformSection() {
                 visibleGroups={visibleGroups}
                 emphasis={mode === "manual" ? activeGroup : null}
                 initialYaw={globeYaw}
+                pins={shownPins}
+                selectable={selectable}
+                labels={labels}
+                onSelect={(pin) => {
+                  setListOpen(false);
+                  setSelected(pin.id);
+                }}
               />
             </div>
             <ComingSoonBadge className="platform-soon-badge !hidden desk:!block" />
@@ -359,6 +393,21 @@ export function PlatformSection() {
                 <p className="w-full px-[38px] text-center text-[20px] font-normal leading-[0.9] tracking-[-0.8px] text-white desk:w-[422px] desk:px-0 desk:text-[24px] desk:tracking-[-0.96px]">
                   {copy.platform.groups[activeGroup].blurb}
                 </p>
+                {groupCards.length > 0 ? (
+                  <div className="flex justify-center">
+                    <button
+                      type="button"
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onClick={() => {
+                        setSelected(null);
+                        setListOpen(true);
+                      }}
+                      className="rounded-full bg-black/40 px-4 py-2 text-[12px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-[8px] transition hover:bg-black/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime"
+                    >
+                      {tr("See {count} on the globe").replace("{count}", String(groupCards.length))}
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>

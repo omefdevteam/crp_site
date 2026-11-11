@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getDb } from "@/lib/db";
+import { expireGlobe } from "@/lib/ambassador/globe";
 import { isReviewVerb, reviewStory, type ReviewFailure } from "@/lib/ambassador/review";
 import { assertStaffAction } from "@/lib/staff/gate";
 
@@ -23,6 +24,8 @@ export async function reviewStoryAction(_previous: ReviewFormState, formData: Fo
     placeId: /^\d{1,7}$/.test(rawPlace) ? Number(rawPlace) : null,
   });
   if (!result.ok) return { result: result.reason, verb };
+  // Approve and take down change the globe; a moved pin does when it is live.
+  if (verb !== "move" || result.status === "approved") expireGlobe();
   revalidatePath(`/admin/stories/${storyId}`);
   revalidatePath("/admin/stories");
   return { result: "saved", verb };

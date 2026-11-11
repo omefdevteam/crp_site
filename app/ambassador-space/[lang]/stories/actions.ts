@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
 import { parseLocale } from "@/lib/locale";
 import { assertMemberAction } from "@/lib/ambassador/gate";
+import { expireGlobe } from "@/lib/ambassador/globe";
 import { memberPath } from "@/lib/ambassador/link";
 import { storyPhotoStoreFromEnv } from "@/lib/ambassador/photo-store";
 import { parseDraft, type DraftProblem, type MissingPart } from "@/lib/ambassador/story-model";
@@ -55,6 +56,8 @@ export async function withdrawStoryAction(formData: FormData) {
   const member = await assertMemberAction();
   if (!member) redirect(memberPath(locale, "/sign-in"));
   const result = await withdrawStory(getDb(), member, id);
+  // Withdrawing a live story takes it off the home page globe straight away.
+  if (result.ok) expireGlobe();
   redirect(memberPath(locale, `/stories/${id}?notice=${result.ok ? "withdrawn" : result.reason}`));
 }
 
