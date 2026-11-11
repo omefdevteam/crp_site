@@ -8,7 +8,7 @@ import { card } from "@/components/admin/marks";
 import { ConfirmSubmit, SubmitButton } from "@/components/admin/SubmitButton";
 import { InviteForm } from "@/components/admin/InviteForm";
 import { backfillAmbassadorsAction, changeStaffAction } from "@/app/admin/(console)/staff/actions";
-import { countMissingAmbassadors } from "@/lib/ambassador/provision";
+import { countMissingAmbassadorsOrNull } from "@/lib/ambassador/provision";
 import { listStaff } from "@/lib/staff/manage";
 import { getDb } from "@/lib/db";
 import { requireStaff } from "@/lib/staff/gate";
@@ -36,7 +36,7 @@ function word(value: string): string {
 export default async function StaffPage({ searchParams }: { searchParams: Promise<{ notice?: string; created?: string }> }) {
   await requireStaff("users.manage");
   const params = await searchParams;
-  const [members, missingAmbassadors] = await Promise.all([listStaff(getDb()), countMissingAmbassadors(getDb())]);
+  const [members, missingAmbassadors] = await Promise.all([listStaff(getDb()), countMissingAmbassadorsOrNull(getDb())]);
   const created = Number.parseInt(params.created ?? "", 10);
   const notice = params.notice === "ambassadors"
     ? `Opened ${Number.isFinite(created) ? created : 0} Ambassador ${created === 1 ? "account" : "accounts"}. Welcome emails are queued.`
@@ -53,13 +53,17 @@ export default async function StaffPage({ searchParams }: { searchParams: Promis
       </section>
       <section className={card}>
         <h2 className="text-lg font-semibold">Ambassador accounts</h2>
+        {missingAmbassadors === null ? (
+          <p className="mt-2 text-sm text-black/70">Ambassador accounts aren&rsquo;t switched on yet.</p>
+        ) : (
         <p className="mt-2 text-sm text-black/70">
           An Ambassador account opens on its own when an applicant is accepted, and they get a welcome email.
           {missingAmbassadors > 0
             ? ` ${missingAmbassadors} accepted ${missingAmbassadors === 1 ? "applicant was" : "applicants were"} accepted before accounts existed and ${missingAmbassadors === 1 ? "has" : "have"} no account yet.`
             : " Every accepted applicant has an account."}
         </p>
-        {missingAmbassadors > 0 ? (
+        )}
+        {missingAmbassadors !== null && missingAmbassadors > 0 ? (
           <form action={backfillAmbassadorsAction} className="mt-4">
             <ConfirmSubmit
               className={buttonClass("solid")}

@@ -4,6 +4,7 @@ import { stories, storyEvents, type Db, type Story, type StoryStatus, type Tx } 
 import { placeById } from "@/lib/places/search";
 import type { Member } from "@/lib/ambassador/auth";
 import type { StoryPhotoStore } from "@/lib/ambassador/photo-store";
+import { cleanPhoto } from "@/lib/ambassador/photo-clean";
 import {
   DELETABLE,
   PENDING_MAX,
@@ -176,8 +177,11 @@ export async function setStoryPhoto(
   const story = await getMyStory(db, member.id, storyId);
   if (!story) return { ok: false, reason: "not_found" };
   if (!canEdit(story.status)) return { ok: false, reason: "locked" };
-  const pathname = `story-photos/${story.id}/${randomUUID()}.${PHOTO_EXT[type]}`;
-  await store.put(pathname, file.bytes, type);
+  // Re-encode before storing so no EXIF (GPS location included) is kept.
+  const clean = await cleanPhoto(file.bytes, type);
+  if ("reason" in clean) return { ok: false, reason: clean.reason };
+  const pathname = `story-photos/${story.id}/${randomUUID()}.${PHOTO_EXT[clean.type]}`;
+  await store.put(pathname, clean.bytes, clean.type);
   const result = await db.transaction(async (tx): Promise<StoryResult<{ id: string; old: string | null }>> => {
     const current = await lockMine(tx, member.id, storyId);
     if (!current) return { ok: false, reason: "not_found" };
@@ -186,8 +190,8 @@ export async function setStoryPhoto(
       .update(stories)
       .set({
         photoPathname: pathname,
-        photoContentType: type,
-        photoByteSize: file.size,
+        photoContentType: clean.type,
+        photoByteSize: clean.size,
         status: "draft",
         version: current.version + 1,
       })
