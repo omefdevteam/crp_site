@@ -6,7 +6,7 @@ import { card } from "@/components/admin/marks";
 import { countryLabel, findCountry } from "@/lib/countries";
 import { getDb } from "@/lib/db";
 import { languageLabel } from "@/lib/admin/labels";
-import { listForReview, parseQueueFilter, type QueueFilter, type QueueRow } from "@/lib/ambassador/review";
+import { listForReviewOrNull, parseQueueFilter, type QueueFilter, type QueueRow } from "@/lib/ambassador/review";
 import { requireStaff } from "@/lib/staff/gate";
 
 export const metadata: Metadata = { title: "Stories" };
@@ -36,19 +36,10 @@ function place(row: QueueRow): string {
   return `${row.city}, ${country ? countryLabel(country, "en") : row.country}`;
 }
 
-async function load(filter: QueueFilter): Promise<QueueRow[] | null> {
-  try {
-    return await listForReview(getDb(), filter);
-  } catch {
-    // The stories table arrives with migration 0021.
-    return null;
-  }
-}
-
 export default async function StoriesPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
   await requireStaff("stories.review");
   const filter = parseQueueFilter((await searchParams).status);
-  const rows = await load(filter);
+  const rows = await listForReviewOrNull(getDb(), filter);
   return (
     <div className="grid gap-6">
       <div>

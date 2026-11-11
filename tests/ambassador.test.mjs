@@ -550,6 +550,16 @@ test("the Staff page count degrades to null while the Ambassador tables are miss
   assert.equal(typeof (await countMissingAmbassadorsOrNull(getDb())), "number");
 });
 
+test("the Stories page list degrades to null only while the stories table is missing", async () => {
+  const { listForReviewOrNull } = mod("lib/ambassador/review.ts");
+  const failing = (err) => ({ select() { throw err; } });
+  const missing = Object.assign(new Error('relation "stories" does not exist'), { code: "42P01" });
+  assert.equal(await listForReviewOrNull(failing(missing), "submitted"), null);
+  assert.equal(await listForReviewOrNull(failing(new Error("wrapped", { cause: missing })), "all"), null);
+  await assert.rejects(listForReviewOrNull(failing(Object.assign(new Error("timeout"), { code: "57014" })), "submitted"), /timeout/);
+  assert.ok(Array.isArray(await listForReviewOrNull(getDb(), "all")));
+});
+
 test("profile changes keep the globe opt-in tied to a home city", async () => {
   const { parseProfile } = mod("lib/ambassador/story-model.ts");
   const { getProfile, updateProfile } = mod("lib/ambassador/profile.ts");
