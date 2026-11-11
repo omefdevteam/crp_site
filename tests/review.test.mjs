@@ -84,8 +84,13 @@ async function receipts(id) {
   return result.rows;
 }
 
+// Decision mail only. Acceptance also queues the Ambassador welcome email,
+// which tests/ambassador.test.mjs covers.
 async function jobs(id) {
-  const result = await sql.query("select payload from jobs where applicant_id = $1 order by created_at", [id]);
+  const result = await sql.query(
+    "select payload from jobs where applicant_id = $1 and payload->>'template' is distinct from 'ambassador_welcome' order by created_at",
+    [id],
+  );
   return result.rows;
 }
 

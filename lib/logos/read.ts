@@ -4,6 +4,7 @@ import { asc, sql } from "drizzle-orm";
 import { getDb, siteLogos, type Db } from "@/lib/db";
 import { cachedRenderPhase, COPY_TAG, type CachedRenderPhase } from "@/lib/copy/read";
 import { queryWithRetry, rateLimitedWarn, shortReason, withTimeout, isConnectionError, type RetryOptions } from "@/lib/copy/resilience";
+import { isMissingTable } from "@/lib/db/missing-table";
 import { BUILTIN_LOGOS, shownLogos, type LogoRow, type SiteLogos } from "@/lib/logos/model";
 
 // Logos are read the same way as the site copy (lib/copy/read.ts): through the
@@ -26,14 +27,7 @@ export class LogosUnavailableError extends Error {
 }
 
 // Postgres "undefined_table": the 0020 migration has not been applied yet.
-export function isMissingTable(err: unknown): boolean {
-  for (let current: unknown = err, depth = 0; current && depth < 5; depth++) {
-    const record = current as { code?: unknown; cause?: unknown };
-    if (record.code === "42P01") return true;
-    current = record.cause;
-  }
-  return false;
-}
+export { isMissingTable };
 
 export async function queryLogoRows(db: Db): Promise<LogoRow[]> {
   try {

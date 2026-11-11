@@ -34,7 +34,8 @@ function names(text) {
 
 test("each catalog has the bundled leaf count and every locale has those leaves", () => {
   assert.equal(leaves("page").length, 388);
-  assert.equal(leaves("ui").length, 171);
+  // 171 site strings, 121 for the Ambassador space and 4 for the globe's story cards.
+  assert.equal(leaves("ui").length, 296);
   assert.equal(leaves("ackEmail").length, 15);
   assert.equal(leaves("appEmail").length, 43);
   for (const leaf of leaves("page")) {
@@ -124,4 +125,17 @@ test("interface lookup keeps an empty override and ignores inherited keys", () =
   const published = indexPublished([{ catalog: "ui", locale: "es", key: "Only program", value: "Programa" }]);
   assert.equal(uiOverrides(published).es["Only program"], "Programa");
   assert.equal(uiOverrides(published).en, undefined);
+});
+
+test("the copy desk keeps a known language in its address and falls back to English", () => {
+  const { deskLanguage, entryLanguage, deskHref } = load("lib/copy/deskUrl.ts");
+  assert.equal(deskLanguage("pt"), "pt");
+  assert.equal(deskLanguage("de"), "en");
+  assert.equal(deskLanguage(""), "en");
+  assert.equal(deskLanguage(undefined), "en");
+  assert.equal(entryLanguage("pt", ["en", "fr", "es"]), "en");
+  assert.equal(entryLanguage("es", ["en", "fr", "es"]), "es");
+  assert.equal(deskHref({ catalog: "page", key: "nav.about", lang: "en" }), "/admin/copy?catalog=page&key=nav.about");
+  assert.equal(deskHref({ all: true, review: true, q: "x y", lang: "es" }), "/admin/copy?all=1&review=1&q=x+y&lang=es");
+  assert.equal(deskHref({}), "/admin/copy");
 });

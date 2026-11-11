@@ -8,6 +8,10 @@ import { PinIcon } from "./PinIcon";
 type GlobePinProps = {
   pin: Pin;
   emphasized: boolean;
+  /** Set for pins that open a card (Ambassador stories and profiles). */
+  onSelect?: (pin: Pin) => void;
+  /** Accessible name; defaults to the city. */
+  label?: string;
 };
 
 // Shape from Figma: a circle tapering to a point, in the export's 58x70 box.
@@ -160,7 +164,7 @@ function PinFace({
 
 // Positioned by Globe.tsx, which writes a transform onto this ref every frame.
 export const GlobePin = forwardRef<HTMLDivElement, GlobePinProps>(function GlobePin(
-  { pin, emphasized },
+  { pin, emphasized, onSelect, label },
   ref,
 ) {
   const meta = pinGroups[pin.group];
@@ -185,12 +189,14 @@ export const GlobePin = forwardRef<HTMLDivElement, GlobePinProps>(function Globe
               ? { duration: 0 }
               : { type: "spring", stiffness: 380, damping: 24 }
           }
-          aria-label={pin.city}
+          aria-label={label ?? pin.city}
+          aria-haspopup={onSelect ? "dialog" : undefined}
+          onClick={onSelect ? () => onSelect(pin) : undefined}
           onPointerEnter={() => setOpen(true)}
           onPointerLeave={() => setOpen(false)}
           onFocus={() => setOpen(true)}
           onBlur={() => setOpen(false)}
-          className="pointer-events-auto relative flex flex-col items-center"
+          className={`pointer-events-auto relative flex flex-col items-center ${onSelect ? "cursor-pointer" : ""}`}
           style={{ color: meta.accent }}
         >
           <motion.span

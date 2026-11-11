@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { usePathname } from "next/navigation";
-import { isLocale, localePath, persistLocale, publicPaths, type Locale } from "@/lib/locale";
+import { isLocale, isLocalizedPath, localePath, persistLocale, type Locale } from "@/lib/locale";
 import type { Messages } from "@/lib/messages";
 import type { UiOverrides } from "@/lib/ui-messages";
 import type { SocialLinks } from "@/lib/copy/social";
@@ -28,10 +28,14 @@ const NO_SOCIAL: SocialLinks = {};
 
 /** The unprefixed public path for a URL path, as the proxy's x-site-path ("/" for anything else). */
 export function sitePath(pathname: string): string {
+  // The Ambassador space is rewritten from /{lang}/ambassador to its own
+  // folder; a render that sees the internal path still names the public one.
+  const internal = pathname.match(/^\/ambassador-space\/[a-z]{2}(\/.*)?$/);
+  if (internal) return `/ambassador${internal[1] ?? ""}`.replace(/\/$/, "");
   const segments = pathname.split("/");
   if (isLocale(segments[1])) segments.splice(1, 1);
   const path = segments.join("/").replace(/\/$/, "") || "/";
-  return (publicPaths as readonly string[]).includes(path) ? path : "/";
+  return isLocalizedPath(path) ? path : "/";
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);

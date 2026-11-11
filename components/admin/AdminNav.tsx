@@ -10,7 +10,7 @@ export function AdminNav({
   signOut,
 }: {
   email: string;
-  items: readonly { readonly href: string; readonly label: string; readonly badge?: number }[];
+  items: readonly { readonly href: string; readonly label: string; readonly badge?: number; readonly badgeLabel?: string }[];
   signOut: () => Promise<void>;
 }) {
   const pathname = usePathname();
@@ -36,7 +36,7 @@ export function AdminNav({
           onClick={() => setOpen((value) => !value)}
         >
           {open ? "Close" : "Menu"}
-          {!open && badge > 0 ? <span className="rounded-full bg-lime px-2 py-0.5 text-xs text-black">{badge}<span className="sr-only"> new messages</span></span> : null}
+          {!open && badge > 0 ? <span className="rounded-full bg-lime px-2 py-0.5 text-xs text-black">{badge}<span className="sr-only"> waiting</span></span> : null}
         </Button>
       </div>
       <nav
@@ -52,7 +52,7 @@ export function AdminNav({
               {item.badge ? (
                 <span className={`rounded-full px-2 py-0.5 text-xs ${active ? "bg-white text-black" : "bg-lime text-black"}`}>
                   {item.badge}
-                  <span className="sr-only"> new messages</span>
+                  <span className="sr-only"> {item.badgeLabel ?? "new messages"}</span>
                 </span>
               ) : null}
             </Button>
