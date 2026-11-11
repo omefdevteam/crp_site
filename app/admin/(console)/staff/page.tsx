@@ -7,7 +7,8 @@ import { When } from "@/components/admin/When";
 import { card } from "@/components/admin/marks";
 import { ConfirmSubmit, SubmitButton } from "@/components/admin/SubmitButton";
 import { InviteForm } from "@/components/admin/InviteForm";
-import { changeStaffAction } from "@/app/admin/(console)/staff/actions";
+import { backfillAmbassadorsAction, changeStaffAction } from "@/app/admin/(console)/staff/actions";
+import { countMissingAmbassadors } from "@/lib/ambassador/provision";
 import { listStaff } from "@/lib/staff/manage";
 import { getDb } from "@/lib/db";
 import { requireStaff } from "@/lib/staff/gate";
@@ -32,20 +33,45 @@ function word(value: string): string {
   return value ? value.slice(0, 1).toUpperCase() + value.slice(1) : "";
 }
 
-export default async function StaffPage({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
+export default async function StaffPage({ searchParams }: { searchParams: Promise<{ notice?: string; created?: string }> }) {
   await requireStaff("users.manage");
   const params = await searchParams;
-  const members = await listStaff(getDb());
-  const notice = params.notice ? NOTICES[params.notice] : undefined;
+  const [members, missingAmbassadors] = await Promise.all([listStaff(getDb()), countMissingAmbassadors(getDb())]);
+  const created = Number.parseInt(params.created ?? "", 10);
+  const notice = params.notice === "ambassadors"
+    ? `Opened ${Number.isFinite(created) ? created : 0} Ambassador ${created === 1 ? "account" : "accounts"}. Welcome emails are queued.`
+    : params.notice ? NOTICES[params.notice] : undefined;
   return (
     <div className="grid gap-6">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">Staff</h1>
-        <ResultLine message={notice ?? null} tone={params.notice === "saved" ? "ok" : "warn"} />
+        <ResultLine message={notice ?? null} tone={params.notice === "saved" || params.notice === "ambassadors" ? "ok" : "warn"} />
       </div>
       <section className={card}>
         <h2 className="text-lg font-semibold">Invite</h2>
         <InviteForm />
+      </section>
+      <section className={card}>
+        <h2 className="text-lg font-semibold">Ambassador accounts</h2>
+        <p className="mt-2 text-sm text-black/70">
+          An Ambassador account opens on its own when an applicant is accepted, and they get a welcome email.
+          {missingAmbassadors > 0
+            ? ` ${missingAmbassadors} accepted ${missingAmbassadors === 1 ? "applicant was" : "applicants were"} accepted before accounts existed and ${missingAmbassadors === 1 ? "has" : "have"} no account yet.`
+            : " Every accepted applicant has an account."}
+        </p>
+        {missingAmbassadors > 0 ? (
+          <form action={backfillAmbassadorsAction} className="mt-4">
+            <ConfirmSubmit
+              className={buttonClass("solid")}
+              pendingLabel="Opening accounts"
+              title={`Open ${missingAmbassadors} Ambassador ${missingAmbassadors === 1 ? "account" : "accounts"}?`}
+              message="Each person gets a welcome email with a link to sign in."
+              confirmLabel="Open accounts"
+            >
+              Open accounts and send welcome emails
+            </ConfirmSubmit>
+          </form>
+        ) : null}
       </section>
       <section className={card}>
         <h2 className="text-lg font-semibold">Accounts</h2>

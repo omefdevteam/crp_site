@@ -5,7 +5,8 @@ export type DeliveryResult =
   | { ok: false; error: string; retryable: boolean };
 
 // Talks to Resend once. The job worker is the usual caller. The staff sign-in
-// action and the staff invite action also call it, with the token hash as the
+// action, the staff invite action and the Ambassador sign-in action
+// (app/ambassador-space/[lang]/sign-in) also call it, with the token hash as the
 // idempotency key, because a magic link has to leave in the request that
 // created it. Every other email is
 // stored as a job in the same transaction as the record it belongs to, and this

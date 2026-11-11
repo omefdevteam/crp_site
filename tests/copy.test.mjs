@@ -34,7 +34,8 @@ function names(text) {
 
 test("each catalog has the bundled leaf count and every locale has those leaves", () => {
   assert.equal(leaves("page").length, 388);
-  assert.equal(leaves("ui").length, 171);
+  // 171 site strings, 121 for the Ambassador space and 4 for the globe's story cards.
+  assert.equal(leaves("ui").length, 296);
   assert.equal(leaves("ackEmail").length, 15);
   assert.equal(leaves("appEmail").length, 43);
   for (const leaf of leaves("page")) {

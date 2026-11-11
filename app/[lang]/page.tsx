@@ -15,6 +15,7 @@ import { PlatformSection } from "@/components/PlatformSection";
 import { Sponsors } from "@/components/Sponsors";
 import { AboutTicker } from "@/components/about/AboutTicker";
 import { Waitlist } from "@/components/Waitlist";
+import { publicGlobe } from "@/lib/ambassador/globe";
 
 export async function generateMetadata({ params }: LangParams): Promise<Metadata> {
   return metadataFor("home", await routeLocale(params));
@@ -22,6 +23,7 @@ export async function generateMetadata({ params }: LangParams): Promise<Metadata
 
 export default async function Home({ params }: LangParams) {
   const locale = await routeLocale(params);
+  const globe = await publicGlobe();
   return (<>
       <StructuredData page="home" locale={locale} />
     <div className="relative flex flex-1 flex-col">
@@ -30,7 +32,7 @@ export default async function Home({ params }: LangParams) {
         <Hero />
         <HeroExtension />
         <PavilionPanel />
-        <PlatformSection />
+        <PlatformSection globe={globe} />
         <ContentGrid />
         <GetInvolved compactMobile />
         <Waitlist />

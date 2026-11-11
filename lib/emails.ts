@@ -360,3 +360,194 @@ export function decisionEmail(
   }
   return { subject: appLine(language, sources, "selectedSubject", "subject"), html: render(language, [appLine(language, sources, "congratulations", "body"), appLine(language, sources, "selected", "body")], null, shell) };
 }
+
+// Ambassador mail. Bundled here in all four site languages; these strings are
+// not in the copy desk yet. Every value is plain text and is escaped below.
+const AMBASSADOR_MAIL = {
+  en: {
+    welcomeSubject: "Welcome, Ambassador",
+    welcomeHello: "Hi {name},",
+    welcomeBody: "You're now a Climate Refugee Pavilion Ambassador. You have your own Ambassador space on our website, where you can share stories from where you are. Once our team approves a story, it appears on the globe on our home page.",
+    welcomeHow: "To sign in, open the link below and enter this email address. We'll send you a sign-in link each time.",
+    welcomeCta: "Open my space",
+    signInSubject: "Your Ambassador sign-in link",
+    signInBody: "Use the button below to sign in to your Ambassador space.",
+    signInExpiry: "This link works once and expires in 15 minutes.",
+    copyLink: "Button not working? Copy this link into your browser:",
+    ignore: "Didn't request this? You can ignore this email.",
+    signInCta: "Sign in",
+  },
+  fr: {
+    welcomeSubject: "Bienvenue, Ambassadeur·rice",
+    welcomeHello: "Bonjour {name},",
+    welcomeBody: "Vous êtes désormais Ambassadeur·rice du Climate Refugee Pavilion. Vous disposez de votre propre espace Ambassadeur sur notre site, où vous pouvez partager des histoires depuis l'endroit où vous vous trouvez. Une fois qu'une histoire est approuvée par notre équipe, elle apparaît sur le globe de notre page d'accueil.",
+    welcomeHow: "Pour vous connecter, ouvrez le lien ci-dessous et saisissez cette adresse e-mail. Nous vous enverrons un lien de connexion à chaque fois.",
+    welcomeCta: "Ouvrir mon espace",
+    signInSubject: "Votre lien de connexion Ambassadeur",
+    signInBody: "Utilisez le bouton ci-dessous pour vous connecter à votre espace Ambassadeur.",
+    signInExpiry: "Ce lien ne fonctionne qu'une fois et expire dans 15 minutes.",
+    copyLink: "Le bouton ne fonctionne pas ? Copiez ce lien dans votre navigateur :",
+    ignore: "Vous n'avez rien demandé ? Vous pouvez ignorer cet e-mail.",
+    signInCta: "Se connecter",
+  },
+  es: {
+    welcomeSubject: "Bienvenido/a, Embajador/a",
+    welcomeHello: "Hola {name}:",
+    welcomeBody: "Ya eres Embajador/a del Climate Refugee Pavilion. Tienes tu propio espacio de Embajador/a en nuestra web, donde puedes compartir historias desde donde estás. Cuando nuestro equipo aprueba una historia, aparece en el globo de nuestra página de inicio.",
+    welcomeHow: "Para entrar, abre el enlace de abajo e introduce esta dirección de correo. Te enviaremos un enlace de acceso cada vez.",
+    welcomeCta: "Abrir mi espacio",
+    signInSubject: "Tu enlace de acceso de Embajador/a",
+    signInBody: "Usa el botón de abajo para entrar en tu espacio de Embajador/a.",
+    signInExpiry: "Este enlace funciona una sola vez y caduca en 15 minutos.",
+    copyLink: "¿El botón no funciona? Copia este enlace en tu navegador:",
+    ignore: "¿No lo has pedido? Puedes ignorar este correo.",
+    signInCta: "Entrar",
+  },
+  pt: {
+    welcomeSubject: "Boas-vindas, Embaixador/a",
+    welcomeHello: "Olá {name},",
+    welcomeBody: "Agora você é Embaixador/a do Climate Refugee Pavilion. Você tem seu próprio espaço de Embaixador/a no nosso site, onde pode compartilhar histórias de onde está. Quando nossa equipe aprova uma história, ela aparece no globo da nossa página inicial.",
+    welcomeHow: "Para entrar, abra o link abaixo e digite este endereço de e-mail. Enviaremos um link de acesso a cada vez.",
+    welcomeCta: "Abrir meu espaço",
+    signInSubject: "Seu link de acesso de Embaixador/a",
+    signInBody: "Use o botão abaixo para entrar no seu espaço de Embaixador/a.",
+    signInExpiry: "Este link funciona uma única vez e expira em 15 minutos.",
+    copyLink: "O botão não funciona? Copie este link no seu navegador:",
+    ignore: "Não pediu isto? Pode ignorar este e-mail.",
+    signInCta: "Entrar",
+  },
+} as const satisfies Record<Locale, Record<string, string>>;
+
+// Sent once, when an applicant becomes an Ambassador. It carries no sign-in
+// code: the link opens the sign-in page, which mails a fresh 15-minute link.
+// So the queued job never stores a credential.
+export function ambassadorWelcomeEmail(locale: string | null | undefined, name: string, signInUrl: string): Email {
+  const language = parseLocale(locale);
+  const t = AMBASSADOR_MAIL[language];
+  const lines = [
+    escapeHtml(t.welcomeHello.replace("{name}", name)),
+    escapeHtml(t.welcomeBody),
+    escapeHtml(t.welcomeHow),
+  ];
+  return {
+    subject: t.welcomeSubject,
+    html: render(language, lines, { label: escapeHtml(t.welcomeCta), url: escapeHtml(signInUrl) }, shellFor(language, undefined)),
+  };
+}
+
+export function ambassadorSignInEmail(locale: string | null | undefined, link: string): Email {
+  const language = parseLocale(locale);
+  const t = AMBASSADOR_MAIL[language];
+  const lines = [
+    escapeHtml(t.signInBody),
+    escapeHtml(t.signInExpiry),
+    `${escapeHtml(t.copyLink)} ${escapeHtml(link)}`,
+    escapeHtml(t.ignore),
+  ];
+  return {
+    subject: t.signInSubject,
+    html: render(language, lines, { label: escapeHtml(t.signInCta), url: escapeHtml(link) }, shellFor(language, undefined)),
+  };
+}
+
+// Story review outcomes. The title and the reviewer's reason are the
+// Ambassador's and staff's own words, so both are escaped.
+const STORY_MAIL = {
+  en: {
+    approvedSubject: "Your story is on the globe",
+    hello: "Hi {name},",
+    approvedBody: "Good news: our team approved “{title}”. It's now on the globe on our home page, at the place you chose.",
+    approvedMore: "Thank you for sharing it. You can withdraw it from your Ambassador space at any time.",
+    approvedCta: "See the globe",
+    changesSubject: "Your story needs a few changes",
+    changesBody: "Our team read “{title}” and would like a few changes before it goes on the globe.",
+    takedownSubject: "Your story has been taken off the globe",
+    takedownBody: "Our team has taken “{title}” off the globe for now.",
+    note: "Their note:",
+    changesMore: "You can edit the story in your Ambassador space and send it again.",
+    changesCta: "Open my story",
+  },
+  fr: {
+    approvedSubject: "Votre histoire est sur le globe",
+    hello: "Bonjour {name},",
+    approvedBody: "Bonne nouvelle : notre équipe a approuvé « {title} ». Elle est désormais sur le globe de notre page d'accueil, à l'endroit choisi.",
+    approvedMore: "Merci de l'avoir partagée. Vous pouvez la retirer à tout moment depuis votre espace Ambassadeur.",
+    approvedCta: "Voir le globe",
+    changesSubject: "Votre histoire demande quelques modifications",
+    changesBody: "Notre équipe a lu « {title} » et souhaite quelques modifications avant de la publier sur le globe.",
+    takedownSubject: "Votre histoire a été retirée du globe",
+    takedownBody: "Notre équipe a retiré « {title} » du globe pour le moment.",
+    note: "Sa note :",
+    changesMore: "Vous pouvez modifier l'histoire dans votre espace Ambassadeur et la renvoyer.",
+    changesCta: "Ouvrir mon histoire",
+  },
+  es: {
+    approvedSubject: "Tu historia está en el globo",
+    hello: "Hola {name}:",
+    approvedBody: "Buenas noticias: nuestro equipo aprobó «{title}». Ya está en el globo de nuestra página de inicio, en el lugar que elegiste.",
+    approvedMore: "Gracias por compartirla. Puedes retirarla desde tu espacio de Embajador/a cuando quieras.",
+    approvedCta: "Ver el globo",
+    changesSubject: "Tu historia necesita algunos cambios",
+    changesBody: "Nuestro equipo leyó «{title}» y quiere pedirte algunos cambios antes de publicarla en el globo.",
+    takedownSubject: "Hemos quitado tu historia del globo",
+    takedownBody: "Nuestro equipo ha quitado «{title}» del globo por ahora.",
+    note: "Su nota:",
+    changesMore: "Puedes editar la historia en tu espacio de Embajador/a y enviarla de nuevo.",
+    changesCta: "Abrir mi historia",
+  },
+  pt: {
+    approvedSubject: "Sua história está no globo",
+    hello: "Olá {name},",
+    approvedBody: "Boa notícia: nossa equipe aprovou “{title}”. Ela já está no globo da nossa página inicial, no lugar que você escolheu.",
+    approvedMore: "Obrigado por compartilhar. Você pode retirá-la do seu espaço de Embaixador/a quando quiser.",
+    approvedCta: "Ver o globo",
+    changesSubject: "Sua história precisa de algumas alterações",
+    changesBody: "Nossa equipe leu “{title}” e gostaria de algumas alterações antes de publicá-la no globo.",
+    takedownSubject: "Sua história foi retirada do globo",
+    takedownBody: "Nossa equipe retirou “{title}” do globo por enquanto.",
+    note: "A nota da equipe:",
+    changesMore: "Você pode editar a história no seu espaço de Embaixador/a e enviá-la novamente.",
+    changesCta: "Abrir minha história",
+  },
+} as const satisfies Record<Locale, Record<string, string>>;
+
+function fill(template: string, values: Record<string, string>): string {
+  // Escape the template and the values separately, then join them, so a
+  // value can never add markup.
+  return template.split(/(\{[a-z]+\})/).map((part) => {
+    const key = part.match(/^\{([a-z]+)\}$/)?.[1];
+    return key && Object.hasOwn(values, key) ? escapeHtml(values[key]!) : escapeHtml(part);
+  }).join("");
+}
+
+export function storyApprovedEmail(locale: string | null | undefined, name: string, title: string, globeUrl: string): Email {
+  const language = parseLocale(locale);
+  const t = STORY_MAIL[language];
+  const lines = [fill(t.hello, { name }), fill(t.approvedBody, { title }), escapeHtml(t.approvedMore)];
+  return {
+    subject: t.approvedSubject,
+    html: render(language, lines, { label: escapeHtml(t.approvedCta), url: escapeHtml(`${globeUrl}#platform`) }, shellFor(language, undefined)),
+  };
+}
+
+export function storyChangesEmail(
+  locale: string | null | undefined,
+  name: string,
+  title: string,
+  reason: string,
+  takenDown: boolean,
+  storyUrl: string,
+): Email {
+  const language = parseLocale(locale);
+  const t = STORY_MAIL[language];
+  const lines: Block[] = [
+    fill(t.hello, { name }),
+    fill(takenDown ? t.takedownBody : t.changesBody, { title }),
+    { kind: "lead", lead: escapeHtml(t.note), text: escapeHtml(reason).replaceAll("\n", "<br />") },
+    escapeHtml(t.changesMore),
+  ];
+  return {
+    subject: takenDown ? t.takedownSubject : t.changesSubject,
+    html: render(language, lines, { label: escapeHtml(t.changesCta), url: escapeHtml(storyUrl) }, shellFor(language, undefined)),
+  };
+}

@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { changeStaff, inviteStaff, type ChangeOutcome, type InviteOutcome } from "@/lib/staff/manage";
 import { getDb } from "@/lib/db";
+import { recordEvent } from "@/lib/admin/events";
+import { backfillAmbassadors } from "@/lib/ambassador/provision";
 import { assertStaffAction } from "@/lib/staff/gate";
 import { isUserRole } from "@/lib/staff/roles";
 import { parseEmail, parseUserId } from "@/lib/staff/users";
@@ -43,4 +45,15 @@ export async function changeStaffAction(formData: FormData) {
   const result: ChangeOutcome = await changeStaff(getDb(), staff, target, change);
   if (!result.ok) redirect(`/admin/staff?notice=${result.reason}`);
   redirect("/admin/staff?notice=saved");
+}
+
+// Opens Ambassador accounts for applicants accepted before accounts existed,
+// and queues each one's welcome email. Running it again finds nobody new.
+export async function backfillAmbassadorsAction() {
+  const staff = await assertStaffAction("users.manage");
+  if (!staff) redirect("/admin/staff?notice=forbidden");
+  const db = getDb();
+  const { created } = await backfillAmbassadors(db);
+  await db.transaction((tx) => recordEvent(tx, staff.id, { kind: "ambassadors.backfilled", created }));
+  redirect(`/admin/staff?notice=ambassadors&created=${created}`);
 }

@@ -15,6 +15,7 @@ import {
   boolean,
   primaryKey,
   check,
+  doublePrecision,
 } from "drizzle-orm/pg-core";
 
 // One source of truth for every closed set. These names match the Excel mirror
@@ -620,3 +621,97 @@ export const siteLogos = pgTable("site_logos", {
 ]);
 
 export type SiteLogo = typeof siteLogos.$inferSelect;
+
+// Ambassadors: accepted applicants who post stories to the home page globe.
+// They are not staff. Their own sign-in links and sessions live in their own
+// tables, so nothing an Ambassador holds can open /admin. Whether an account
+// can sign in is read live from the applicant's status (lib/ambassador/status.ts).
+// The CHECK constraints are in drizzle/0021_ambassadors.sql.
+export const ambassadors = pgTable("ambassadors", {
+  id: id(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+  applicantId: uuid("applicant_id").notNull().references(() => applicants.id, { onDelete: "cascade" }),
+  email: text("email").notNull(),
+  displayName: text("display_name").notNull(),
+  bio: text("bio"),
+  homeCountry: text("home_country"),
+  homeCity: text("home_city"),
+  homeLat: doublePrecision("home_lat"),
+  homeLng: doublePrecision("home_lng"),
+  showOnGlobe: boolean("show_on_globe").notNull().default(false),
+  language: text("language").notNull().default("en"),
+  invitedAt: timestamp("invited_at", { withTimezone: true }),
+  lastSignInAt: timestamp("last_sign_in_at", { withTimezone: true }),
+  disabledAt: timestamp("disabled_at", { withTimezone: true }),
+}, (t) => [
+  uniqueIndex("ambassadors_applicant_key").on(t.applicantId),
+  uniqueIndex("ambassadors_email_key").on(t.email),
+]);
+
+export const ambassadorSignInTokens = pgTable("ambassador_sign_in_tokens", {
+  hash: text("hash").primaryKey(),
+  createdAt: createdAt(),
+  ambassadorId: uuid("ambassador_id").notNull().references(() => ambassadors.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+}, (t) => [index("ambassador_sign_in_tokens_expires_idx").on(t.expiresAt)]);
+
+export const ambassadorSessions = pgTable("ambassador_sessions", {
+  hash: text("hash").primaryKey(),
+  createdAt: createdAt(),
+  ambassadorId: uuid("ambassador_id").notNull().references(() => ambassadors.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, (t) => [
+  index("ambassador_sessions_ambassador_idx").on(t.ambassadorId),
+  index("ambassador_sessions_expires_idx").on(t.expiresAt),
+]);
+
+export const storyKinds = ["beacon", "mission"] as const;
+export type StoryKind = (typeof storyKinds)[number];
+export const storyStatuses = ["draft", "submitted", "approved", "rejected", "withdrawn"] as const;
+export type StoryStatus = (typeof storyStatuses)[number];
+
+// Only approved stories are public. Photos stay private until then.
+export const stories = pgTable("stories", {
+  id: id(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+  ambassadorId: uuid("ambassador_id").notNull().references(() => ambassadors.id, { onDelete: "cascade" }),
+  kind: text("kind").$type<StoryKind>().notNull(),
+  status: text("status").$type<StoryStatus>().notNull().default("draft"),
+  title: text("title"),
+  body: text("body"),
+  language: text("language").notNull().default("en"),
+  country: text("country"),
+  city: text("city"),
+  lat: doublePrecision("lat"),
+  lng: doublePrecision("lng"),
+  photoPathname: text("photo_pathname"),
+  photoContentType: text("photo_content_type"),
+  photoByteSize: integer("photo_byte_size"),
+  submittedAt: timestamp("submitted_at", { withTimezone: true }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewedBy: uuid("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+  reviewReason: text("review_reason"),
+  publishedAt: timestamp("published_at", { withTimezone: true }),
+  version: integer("version").notNull().default(0),
+}, (t) => [
+  index("stories_ambassador_idx").on(t.ambassadorId, t.updatedAt),
+  index("stories_queue_idx").on(t.submittedAt).where(sql`${t.status} = 'submitted'`),
+  index("stories_public_idx").on(t.kind, t.publishedAt).where(sql`${t.status} = 'approved'`),
+]);
+
+export const storyEvents = pgTable("story_events", {
+  id: id(),
+  createdAt: createdAt(),
+  storyId: uuid("story_id").notNull().references(() => stories.id, { onDelete: "cascade" }),
+  actor: text("actor").$type<"ambassador" | "staff">().notNull(),
+  actorStaffId: uuid("actor_staff_id").references(() => users.id, { onDelete: "set null" }),
+  fromStatus: text("from_status").$type<StoryStatus>(),
+  toStatus: text("to_status").$type<StoryStatus>().notNull(),
+  reason: text("reason"),
+}, (t) => [index("story_events_story_idx").on(t.storyId, t.createdAt)]);
+
+export type Ambassador = typeof ambassadors.$inferSelect;
+export type Story = typeof stories.$inferSelect;
