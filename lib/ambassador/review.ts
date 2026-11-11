@@ -7,6 +7,7 @@ import { enqueueEmail } from "@/lib/jobs";
 import { parseLocale } from "@/lib/locale";
 import { placeById } from "@/lib/places/search";
 import type { StaffGrant } from "@/lib/staff/auth";
+import { isMissingTable } from "@/lib/db/missing-table";
 import { memberPath } from "@/lib/ambassador/link";
 import { AMBASSADOR_STATUSES } from "@/lib/ambassador/status";
 import { isUuid } from "@/lib/ambassador/stories";
@@ -169,6 +170,17 @@ export async function listForReview(db: Db, filter: QueueFilter, limit = 200): P
     .orderBy(filter === "submitted" ? asc(stories.submittedAt) : desc(stories.updatedAt))
     .limit(limit);
   return rows.map(({ photo, ...row }) => ({ ...row, hasPhoto: Boolean(photo) }));
+}
+
+// For the Stories page: null only while the stories table doesn't exist yet, so
+// the page says stories aren't switched on. Any other failure is a real error.
+export async function listForReviewOrNull(db: Db, filter: QueueFilter, limit = 200): Promise<QueueRow[] | null> {
+  try {
+    return await listForReview(db, filter, limit);
+  } catch (err) {
+    if (isMissingTable(err)) return null;
+    throw err;
+  }
 }
 
 export async function countWaiting(db: Db): Promise<number> {
