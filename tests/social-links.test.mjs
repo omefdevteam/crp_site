@@ -290,12 +290,12 @@ test("the version history of a social link is headed for all languages; other se
     catalog: "page", key: "nav.about", label: "Menu: About", help: null, section: "nav", sectionLabel: "Top menu",
     english: "About", digest: "d", cells: [cellOf("en", "About", "source"), cellOf("fr", "À propos", "current")],
   };
-  const summaries = async (row, history) => {
+  const summaries = async (row, history, language) => {
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
     await act(async () => {
-      root.render(React.createElement(CopyDesk, { catalog: row.catalog, scopeAll: false, query: "", needsReview: false, reviewCount: 0, rows: [row], selected: row, history }));
+      root.render(React.createElement(CopyDesk, { catalog: row.catalog, scopeAll: false, query: "", needsReview: false, reviewCount: 0, rows: [row], selected: row, history, language }));
     });
     try {
       return [...host.querySelectorAll("details > summary")].map((node) => node.textContent).filter((text) => text.endsWith("earlier versions"));
@@ -307,5 +307,8 @@ test("the version history of a social link is headed for all languages; other se
   const socialHistory = await summaries(social, { en: [head(2, "https://www.instagram.com/b"), head(1, "https://www.instagram.com/a")] });
   assert.deepEqual(socialHistory, ["All languages: earlier versions"]);
   const pageHistory = await summaries(page, { en: [head(2, "About"), head(1, "About us")], fr: [head(2, "À propos"), head(1, "A propos")] });
-  assert.deepEqual(pageHistory, ["English: earlier versions", "French: earlier versions"]);
+  // One language is edited at a time, so only that language's history shows.
+  assert.deepEqual(pageHistory, ["English: earlier versions"]);
+  const frenchHistory = await summaries(page, { en: [head(2, "About"), head(1, "About us")], fr: [head(2, "À propos"), head(1, "A propos")] }, "fr");
+  assert.deepEqual(frenchHistory, ["French: earlier versions"]);
 });

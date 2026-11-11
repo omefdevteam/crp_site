@@ -11,6 +11,7 @@ import { historyLabel } from "@/lib/copy/labels";
 import { When } from "@/components/admin/When";
 import type { CopyRow, Head } from "@/lib/copy/editor";
 import { REVIEW_CAP } from "@/lib/copy/editor";
+import { DESK_DEFAULT_LANGUAGE, deskHref } from "@/lib/copy/deskUrl";
 
 const ERRORS: Record<string, string> = {
   invalid: "Not saved. Keep the words in curly brackets, like {name}, the same as English.",
@@ -34,6 +35,7 @@ export function CopyDesk({
   selected,
   history,
   error,
+  language = DESK_DEFAULT_LANGUAGE,
 }: {
   catalog: CatalogId;
   scopeAll: boolean;
@@ -44,6 +46,8 @@ export function CopyDesk({
   selected: CopyRow | null;
   history: Readonly<Record<string, readonly Head[]>>;
   error?: string;
+  /** The language the editor shows (the `lang` search param), kept while moving around the desk. */
+  language?: string;
 }) {
   const sections = new Map<string, CopyRow[]>();
   for (const row of rows) {
@@ -70,9 +74,9 @@ export function CopyDesk({
         {error && ERRORS[error] ? <p className="mt-3 text-sm font-semibold text-magenta">{ERRORS[error]}</p> : null}
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button variant={scopeAll ? "solid" : "outline"} href={deskHref({ all: true, review: needsReview, q: query })}>All</Button>
+        <Button variant={scopeAll ? "solid" : "outline"} href={deskHref({ all: true, review: needsReview, q: query, lang: language })}>All</Button>
         {catalogIds().map((id) => (
-          <Button key={id} variant={!scopeAll && id === catalog ? "solid" : "outline"} href={deskHref({ catalog: id, review: needsReview, q: query })}>{CATALOGS[id].label}</Button>
+          <Button key={id} variant={!scopeAll && id === catalog ? "solid" : "outline"} href={deskHref({ catalog: id, review: needsReview, q: query, lang: language })}>{CATALOGS[id].label}</Button>
         ))}
         <Button variant="outline" href="/admin/copy/logos">Logos</Button>
       </div>
@@ -80,10 +84,11 @@ export function CopyDesk({
         {scopeAll ? <input type="hidden" name="all" value="1" /> : <input type="hidden" name="catalog" value={catalog} />}
         {needsReview ? <input type="hidden" name="review" value="1" /> : null}
         {selected ? <input type="hidden" name="key" value={selected.key} /> : null}
+        {language !== DESK_DEFAULT_LANGUAGE ? <input type="hidden" name="lang" value={language} /> : null}
         <label className="sr-only" htmlFor="copy-filter">Search text</label>
         <input id="copy-filter" key={query} name="q" type="search" defaultValue={query} placeholder="Search" autoComplete="off" className={`${field} max-w-md`} />
         <SubmitButton className={buttonClass("outline")} pendingLabel="Searching">Search</SubmitButton>
-        <Button variant={needsReview ? "solid" : "outline"} href={deskHref({ catalog: scopeAll ? undefined : catalog, all: scopeAll, review: !needsReview, q: query, key: selected?.key })}>
+        <Button variant={needsReview ? "solid" : "outline"} href={deskHref({ catalog: scopeAll ? undefined : catalog, all: scopeAll, review: !needsReview, q: query, key: selected?.key, lang: language })}>
 Needs review
         </Button>
       </form>
@@ -99,7 +104,7 @@ Needs review
               <input type="hidden" name="cellDigest" value={row.digest} />
             </span>
           ))}
-          <HiddenScope catalog={catalog} scopeAll={scopeAll} query={query} needsReview={needsReview} copyKey={selected?.key} />
+          <HiddenScope catalog={catalog} scopeAll={scopeAll} query={query} needsReview={needsReview} copyKey={selected?.key} language={language} />
           <SubmitButton className={buttonClass("primary")} pendingLabel="Saving">Mark these reviewed</SubmitButton>
         </form>
       ) : null}
@@ -111,21 +116,21 @@ Needs review
               <summary className="cursor-pointer text-sm font-semibold">{section}</summary>
               <ul className="mt-2 grid gap-1">
                 {items.map((item) => {
-                  const stale = item.cells.some((cell) => cell.state.kind === "stale");
-                  const missing = missingLocales(item).length > 0;
+                  const stale = item.cells.filter((cell) => cell.state.kind === "stale").map((cell) => cell.locale);
+                  const missing = missingLocales(item);
                   return (
                     <li key={`${item.catalog}:${item.key}`}>
                       <Link
                         title={item.key}
                         aria-current={selected?.key === item.key && selected.catalog === item.catalog ? "page" : undefined}
                         className={`block rounded-2xl px-3 py-2 text-sm ${focusRing} ${selected?.key === item.key && selected.catalog === item.catalog ? "bg-lime" : "hover:bg-cream"}`}
-                        href={deskHref({ catalog: item.catalog, all: scopeAll, review: needsReview, q: query, key: item.key })}
+                        href={deskHref({ catalog: item.catalog, all: scopeAll, review: needsReview, q: query, key: item.key, lang: language })}
                       >
                         <span className="block break-words">{item.label}</span>
-                        {stale || missing ? (
-                          <span className="mt-1 flex flex-wrap gap-1">
-                            {stale ? <span className="text-xs font-semibold">Needs review</span> : null}
-                            {missing ? <span className="text-xs font-semibold text-magenta">Missing translation</span> : null}
+                        {stale.length > 0 || missing.length > 0 ? (
+                          <span className="mt-1 flex flex-wrap gap-x-2 gap-y-1">
+                            {stale.length > 0 ? <span className="text-xs font-semibold">Needs review <Codes locales={stale} /></span> : null}
+                            {missing.length > 0 ? <span className="text-xs font-semibold text-magenta">Missing translation <Codes locales={missing} /></span> : null}
                           </span>
                         ) : null}
                       </Link>
@@ -137,11 +142,17 @@ Needs review
           ))}
         </nav>
         {selected ? (
-          <CopyEditor row={selected} scopeAll={scopeAll} query={query} needsReview={needsReview}>
-            {selected.cells.map((cell) => (
-              <History key={cell.locale} row={selected} scopeAll={scopeAll} query={query} needsReview={needsReview} locale={cell.locale} base={cell.revision} rows={history[cell.locale] ?? []} />
-            ))}
-          </CopyEditor>
+          <CopyEditor
+            row={selected}
+            scopeAll={scopeAll}
+            query={query}
+            needsReview={needsReview}
+            language={language}
+            history={Object.fromEntries(selected.cells.map((cell) => [
+              cell.locale,
+              <History key={cell.locale} row={selected} scopeAll={scopeAll} query={query} needsReview={needsReview} locale={cell.locale} base={cell.revision} rows={history[cell.locale] ?? []} />,
+            ]))}
+          />
         ) : <p className={`${card} text-sm`}>Choose an entry.</p>}
       </div>
     </div>
@@ -187,7 +198,7 @@ function History({
                 </div>
               ) : <p className="mt-2 whitespace-pre-wrap text-black/70">{item.value}</p>}
               <form action={updateCopy} className="mt-2">
-                <HiddenScope catalog={row.catalog} scopeAll={scopeAll} query={query} needsReview={needsReview} copyKey={row.key} />
+                <HiddenScope catalog={row.catalog} scopeAll={scopeAll} query={query} needsReview={needsReview} copyKey={row.key} language={locale} />
                 <input type="hidden" name="locale" value={locale} />
                 <input type="hidden" name="base" value={base} />
                 <input type="hidden" name="revision" value={item.revision} />
@@ -209,13 +220,8 @@ function catalogIds(): readonly CatalogId[] {
   return Object.keys(CATALOGS).filter((key): key is CatalogId => Object.hasOwn(CATALOGS, key));
 }
 
-function deskHref(input: { catalog?: CatalogId; all?: boolean; review?: boolean; q?: string; key?: string }): string {
-  const params = new URLSearchParams();
-  if (input.all) params.set("all", "1");
-  if (input.catalog) params.set("catalog", input.catalog);
-  if (input.review) params.set("review", "1");
-  if (input.q) params.set("q", input.q);
-  if (input.key) params.set("key", input.key);
-  const query = params.toString();
-  return query ? `/admin/copy?${query}` : "/admin/copy";
+/** The languages a list marker is about, e.g. "(FR, ES)", so staff see which tab to open. */
+function Codes({ locales }: { locales: readonly string[] }) {
+  if (locales.length === 0) return null;
+  return <span className="font-normal uppercase">({locales.join(", ")})</span>;
 }

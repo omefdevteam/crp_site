@@ -180,6 +180,69 @@ test("the copy filter shows the query from the page address", async () => {
   }
 });
 
+function languageLink(code) {
+  const nav = document.querySelector('nav[aria-label="Language"]');
+  assert.ok(nav, "language toggle");
+  const link = [...nav.querySelectorAll("a")].find((item) => item.textContent.startsWith(code));
+  assert.ok(link, code);
+  return link;
+}
+
+function shownForm(id) {
+  return !document.getElementById(id).closest("form").hidden;
+}
+
+test("the copy editor shows one language at a time and the toggle switches it", async () => {
+  load("lib/copy/draftState.ts").clearCopyDrafts();
+  const { CopyDesk } = load("components/admin/CopyDesk.tsx");
+  const about = copyRow("nav.about", "About", "À propos");
+  const view = await render(React.createElement(CopyDesk, copyProps(about, "")));
+  const stopNavigation = (event) => event.preventDefault();
+  document.addEventListener("click", stopNavigation);
+  try {
+    assert.equal(shownForm("page-nav.about-en"), true);
+    assert.equal(shownForm("page-nav.about-fr"), false);
+    assert.equal(languageLink("en").getAttribute("aria-current"), "page");
+    assert.equal(languageLink("fr").getAttribute("href"), "/admin/copy?catalog=page&key=nav.about&lang=fr");
+    await act(async () => {
+      languageLink("fr").click();
+    });
+    assert.equal(shownForm("page-nav.about-en"), false);
+    assert.equal(shownForm("page-nav.about-fr"), true);
+    assert.equal(languageLink("fr").getAttribute("aria-current"), "page");
+    const french = document.getElementById("page-nav.about-fr").closest("form");
+    assert.equal(french.querySelector('input[name="lang"]').value, "fr");
+    assert.match(document.getElementById("page-nav.about-fr-english").textContent, /About/);
+  } finally {
+    document.removeEventListener("click", stopNavigation);
+    await view.unmount();
+  }
+});
+
+test("the language from the address is kept in the desk links and marks languages needing a look", async () => {
+  load("lib/copy/draftState.ts").clearCopyDrafts();
+  const { CopyDesk } = load("components/admin/CopyDesk.tsx");
+  const about = copyRow("nav.about", "About", "À propos");
+  const stale = { ...about, cells: about.cells.map((item) => item.locale === "fr" ? { ...item, state: { kind: "stale" } } : item) };
+  const props = { ...copyProps(stale, ""), rows: [stale, copyRow("nav.programs", "Programs", "Programmes")], language: "fr" };
+  const view = await render(React.createElement(CopyDesk, props));
+  try {
+    assert.equal(shownForm("page-nav.about-fr"), true);
+    assert.equal(shownForm("page-nav.about-en"), false);
+    const entry = [...document.querySelectorAll('nav[aria-label="Text entries"] a')].find((item) => item.textContent.includes("Programs"));
+    assert.equal(entry.getAttribute("href"), "/admin/copy?catalog=page&key=nav.programs&lang=fr");
+    assert.match(languageLink("fr").textContent, /Needs review/);
+    assert.doesNotMatch(languageLink("en").textContent, /Unsaved/);
+    await act(async () => {
+      setControlValue(document.getElementById("page-nav.about-en"), "About us");
+    });
+    assert.match(languageLink("en").textContent, /Unsaved changes/);
+    assert.match(document.body.textContent, /Needs review \(fr\)/);
+  } finally {
+    await view.unmount();
+  }
+});
+
 function clip(questionId) {
   return { kind: "clip", questionId, position: 1, title: "Intro", medium: "video", transcript: "", playback: "ready" };
 }
