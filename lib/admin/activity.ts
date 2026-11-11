@@ -129,6 +129,11 @@ export function activityLabel(kind: string, detail: Record<string, unknown>): st
     const created = textOf(detail, "created") || "0";
     return `Opened ${created} Ambassador ${created === "1" ? "account" : "accounts"} for earlier acceptances`;
   }
+  if (kind === "story.reviewed") {
+    const verb = textOf(detail, "verb");
+    return verb === "approve" ? "Approved a story for the globe" : verb === "takedown" ? "Took a story off the globe" : "Sent a story back for changes";
+  }
+  if (kind === "story.moved") return `Moved a story's pin from ${textOf(detail, "from") || "?"} to ${textOf(detail, "to")}`;
   if (kind === "copy.published") return copyChange(detail);
   if (kind.startsWith("logo.")) return logoChange(kind, detail);
   if (kind === "review.saved") {

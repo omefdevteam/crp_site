@@ -4,7 +4,8 @@ export type UserRole = (typeof USER_ROLES)[number];
 // Editors run the public website text only. Reviewers get everything the
 // application review needs: applicants (answers, VideoAsk media, notes, scores),
 // confirming decisions (accept/reject, interview outcome, corrections, single or
-// bulk), and the nominations that feed applications. Assigning reviewers stays
+// bulk), the nominations that feed applications, and Ambassador stories
+// (approve, send back, take down). Assigning reviewers stays
 // with admins. Admins get everything.
 // dashboard.read is the bare console: a signed-in seat, the frame and sign-out.
 const GRANTS = [
@@ -27,6 +28,8 @@ const GRANTS = [
   ["identity.view", "admin"],
   ["messages.read", "admin"],
   ["messages.manage", "admin"],
+  // Ambassador stories: read the queue, approve, send back, take down, move a pin.
+  ["stories.review", "admin", "reviewer"],
 ] as const satisfies readonly (readonly [string, ...UserRole[]])[];
 
 export type Capability = (typeof GRANTS)[number][0];

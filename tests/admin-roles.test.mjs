@@ -236,8 +236,8 @@ test("reviewers see the decision controls; editors never reach them", async () =
 test("nav, home and not-found offer each role only what it can open", () => {
   const { consoleAreas } = load("lib/admin/access.ts");
   const { readableLists } = load("lib/admin/records.ts");
-  assert.deepEqual(consoleAreas("admin"), ["dashboard", "records", "copy", "staff", "activity"]);
-  assert.deepEqual(consoleAreas("reviewer"), ["dashboard", "records"]);
+  assert.deepEqual(consoleAreas("admin"), ["dashboard", "records", "stories", "copy", "staff", "activity"]);
+  assert.deepEqual(consoleAreas("reviewer"), ["dashboard", "records", "stories"]);
   assert.deepEqual(consoleAreas("editor"), ["copy"]);
   assert.deepEqual(readableLists("admin"), ["applicants", "nominations", "interest", "waitlist", "partners", "messages"]);
   assert.deepEqual(readableLists("reviewer"), ["applicants", "nominations"]);
@@ -266,6 +266,7 @@ test("the capability matrix", () => {
     "users.manage": ["admin"],
     "copy.edit": ["admin", "editor"],
     "copy.publish": ["admin", "editor"],
+    "stories.review": ["admin", "reviewer"],
   };
   const { ROLE_CAPABILITIES } = load("lib/staff/roles.ts");
   const every = new Set(Object.values(ROLE_CAPABILITIES).flat());

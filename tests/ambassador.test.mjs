@@ -508,3 +508,151 @@ test("phase 2 page text exists in every language", () => {
   }
   assert.equal(uiMessages.fr.Home, undefined);
 });
+
+// ---- Phase 3: staff review ----
+
+let staffSeq = 0;
+async function staffUser(role) {
+  staffSeq += 1;
+  const email = `${role}-${staffSeq}@example.org`;
+  const { rows } = await sql.query("insert into users (email, role) values ($1, $2) returning id", [email, role]);
+  return { id: rows[0].id, email, role, name: null };
+}
+
+async function sentStory(extra = {}) {
+  const stories = mod("lib/ambassador/stories.ts");
+  const member = await signedInMember(extra.member ?? {});
+  const made = await stories.saveStory(getDb(), member, null, draftAt(nairobi().id, { title: extra.title ?? "River <b>rising</b>" }), null);
+  await stories.submitStory(getDb(), member, made.id, null);
+  const { rows } = await sql.query("select version from stories where id = $1", [made.id]);
+  return { member, id: made.id, version: rows[0].version };
+}
+
+async function reviewJobs(storyId) {
+  const { rows } = await sql.query("select dedupe_key, payload from jobs where dedupe_key like $1 order by created_at", [`story-review:${storyId}:%`]);
+  return rows;
+}
+
+test("only admins and reviewers can review stories", () => {
+  const { can } = mod("lib/staff/roles.ts");
+  const { consoleAreas } = mod("lib/admin/access.ts");
+  assert.equal(can("admin", "stories.review"), true);
+  assert.equal(can("reviewer", "stories.review"), true);
+  assert.equal(can("editor", "stories.review"), false);
+  assert.equal(can("ambassador", "stories.review"), false);
+  assert.ok(consoleAreas("reviewer").includes("stories"));
+  assert.ok(!consoleAreas("editor").includes("stories"));
+});
+
+test("approving puts a story live and emails its Ambassador once", async () => {
+  const { reviewStory, listForReview, countWaiting } = mod("lib/ambassador/review.ts");
+  const { getMyStory } = mod("lib/ambassador/stories.ts");
+  const reviewer = await staffUser("reviewer");
+  const { member, id, version } = await sentStory();
+
+  assert.ok((await countWaiting(getDb())) >= 1);
+  assert.ok((await listForReview(getDb(), "submitted")).some((row) => row.id === id));
+
+  const result = await reviewStory(getDb(), reviewer, { storyId: id, verb: "approve", expectedVersion: version });
+  assert.deepEqual(result, { ok: true, status: "approved" });
+  const row = await getMyStory(getDb(), member.id, id);
+  assert.equal(row.status, "approved");
+  assert.ok(row.publishedAt);
+  assert.equal(row.reviewedBy, reviewer.id);
+
+  // The same decision from the same page again is refused as stale.
+  assert.deepEqual(await reviewStory(getDb(), reviewer, { storyId: id, verb: "approve", expectedVersion: version }), { ok: false, reason: "stale" });
+
+  const jobs = await reviewJobs(id);
+  assert.equal(jobs.length, 1);
+  assert.equal(jobs[0].payload.to, member.email);
+  assert.equal(jobs[0].payload.template, "story_approve");
+  assert.match(jobs[0].payload.html, /River &lt;b&gt;rising&lt;\/b&gt;/);
+  assert.doesNotMatch(jobs[0].payload.html, /<b>rising/);
+
+  const { rows: events } = await sql.query("select actor, actor_staff_id, from_status, to_status from story_events where story_id = $1 and actor = 'staff'", [id]);
+  assert.deepEqual(events.map((e) => `${e.from_status}>${e.to_status}`), ["submitted>approved"]);
+  assert.equal(events[0].actor_staff_id, reviewer.id);
+  const { rows: activity } = await sql.query("select kind from admin_events where actor_id = $1", [reviewer.id]);
+  assert.deepEqual(activity.map((a) => a.kind), ["story.reviewed"]);
+});
+
+test("sending back needs a note, which reaches the Ambassador in their language", async () => {
+  const { reviewStory } = mod("lib/ambassador/review.ts");
+  const { getMyStory, saveStory } = mod("lib/ambassador/stories.ts");
+  const reviewer = await staffUser("reviewer");
+  const { member, id, version } = await sentStory({ member: { language: "fr" } });
+
+  assert.deepEqual(await reviewStory(getDb(), reviewer, { storyId: id, verb: "reject", expectedVersion: version, reason: "   " }), { ok: false, reason: "reason" });
+  assert.deepEqual(await reviewStory(getDb(), reviewer, { storyId: id, verb: "reject", expectedVersion: version, reason: "x".repeat(501) }), { ok: false, reason: "reason" });
+
+  const note = "Please remove the full names.\nThanks!";
+  assert.equal((await reviewStory(getDb(), reviewer, { storyId: id, verb: "reject", expectedVersion: version, reason: note })).ok, true);
+  const row = await getMyStory(getDb(), member.id, id);
+  assert.equal(row.status, "rejected");
+  assert.equal(row.reviewReason, note);
+  assert.equal(row.publishedAt, null);
+
+  const [job] = await reviewJobs(id);
+  assert.equal(job.payload.subject, "Votre histoire demande quelques modifications");
+  assert.match(job.payload.html, /Please remove the full names\.<br \/>Thanks!/);
+  assert.match(job.payload.html, /\/fr\/ambassador\/stories\//);
+
+  // The Ambassador can now edit it again.
+  assert.equal((await saveStory(getDb(), member, id, draftAt(nairobi().id), null)).ok, true);
+});
+
+test("decisions only apply to stories in the right state", async () => {
+  const { reviewStory, allowedVerbs } = mod("lib/ambassador/review.ts");
+  const stories = mod("lib/ambassador/stories.ts");
+  const admin = await staffUser("admin");
+  assert.deepEqual(allowedVerbs("draft"), []);
+  assert.deepEqual(allowedVerbs("withdrawn"), []);
+  assert.deepEqual(allowedVerbs("submitted"), ["approve", "reject", "move"]);
+  assert.deepEqual(allowedVerbs("approved"), ["takedown", "move"]);
+
+  const member = await signedInMember();
+  const draft = await stories.saveStory(getDb(), member, null, draftAt(nairobi().id), null);
+  assert.deepEqual(await reviewStory(getDb(), admin, { storyId: draft.id, verb: "approve", expectedVersion: 0 }), { ok: false, reason: "not_allowed" });
+  assert.deepEqual(await reviewStory(getDb(), admin, { storyId: "nope", verb: "approve", expectedVersion: 0 }), { ok: false, reason: "not_found" });
+  const { loadForReview } = mod("lib/ambassador/review.ts");
+  assert.equal(await loadForReview(getDb(), draft.id), null);
+});
+
+test("taking a live story down and moving its pin", async () => {
+  const { reviewStory, loadForReview } = mod("lib/ambassador/review.ts");
+  const { searchCities } = mod("lib/places/search.ts");
+  const admin = await staffUser("admin");
+  const { id, version } = await sentStory();
+
+  const [mombasa] = searchCities("KE", "mombasa");
+  assert.deepEqual(await reviewStory(getDb(), admin, { storyId: id, verb: "move", expectedVersion: version, placeId: 99_999_999 }), { ok: false, reason: "place" });
+  assert.deepEqual(await reviewStory(getDb(), admin, { storyId: id, verb: "move", expectedVersion: version, placeId: mombasa.id }), { ok: true, status: "submitted" });
+  let detail = await loadForReview(getDb(), id);
+  assert.equal(detail.city, "Mombasa");
+  assert.equal(detail.lat, mombasa.lat);
+  assert.equal((await reviewJobs(id)).length, 0);
+
+  assert.equal((await reviewStory(getDb(), admin, { storyId: id, verb: "approve", expectedVersion: detail.version })).ok, true);
+  detail = await loadForReview(getDb(), id);
+  assert.deepEqual(await reviewStory(getDb(), admin, { storyId: id, verb: "takedown", expectedVersion: detail.version, reason: "" }), { ok: false, reason: "reason" });
+  assert.equal((await reviewStory(getDb(), admin, { storyId: id, verb: "takedown", expectedVersion: detail.version, reason: "A family asked us to remove the photo." })).ok, true);
+  detail = await loadForReview(getDb(), id);
+  assert.equal(detail.status, "rejected");
+  assert.equal(detail.publishedAt, null);
+  assert.deepEqual(detail.history.slice(0, 2).map((e) => `${e.from}>${e.to}:${e.actor}`), ["approved>rejected:staff", "submitted>approved:staff"]);
+  assert.equal(detail.author.active, true);
+
+  const jobs = await reviewJobs(id);
+  assert.deepEqual(jobs.map((j) => j.payload.template), ["story_approve", "story_takedown"]);
+  // Test applicants default to French.
+  assert.equal(jobs[1].payload.subject, "Votre histoire a été retirée du globe");
+});
+
+test("activity lines describe story decisions", () => {
+  const { activityLabel } = mod("lib/admin/activity.ts");
+  assert.equal(activityLabel("story.reviewed", { verb: "approve" }), "Approved a story for the globe");
+  assert.equal(activityLabel("story.reviewed", { verb: "reject" }), "Sent a story back for changes");
+  assert.equal(activityLabel("story.reviewed", { verb: "takedown" }), "Took a story off the globe");
+  assert.equal(activityLabel("story.moved", { from: "Nairobi", to: "Mombasa" }), "Moved a story's pin from Nairobi to Mombasa");
+});

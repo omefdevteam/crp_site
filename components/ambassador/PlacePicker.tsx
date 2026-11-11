@@ -16,6 +16,7 @@ export function PlacePicker({
   initial,
   initialCountry,
   keepValue,
+  searchUrl = "/api/places",
 }: {
   name: string;
   label: string;
@@ -24,6 +25,8 @@ export function PlacePicker({
   initialCountry?: string | null;
   /** Posted when the saved place is kept but has no list id. */
   keepValue?: string;
+  /** Ambassadors use /api/places; staff use the console's own search. */
+  searchUrl?: string;
 }) {
   const tr = useText();
   const listId = useId();
@@ -43,7 +46,7 @@ export function PlacePicker({
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
-        const response = await fetch(`/api/places?country=${country.code}&q=${encodeURIComponent(query.trim())}`, { signal: controller.signal });
+        const response = await fetch(`${searchUrl}?country=${country.code}&q=${encodeURIComponent(query.trim())}`, { signal: controller.signal });
         const data = (await response.json()) as { places?: PickedPlace[] };
         setOptions(data.places ?? []);
         setActive(0);
@@ -56,7 +59,7 @@ export function PlacePicker({
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [country, query]);
+  }, [country, query, searchUrl]);
 
   const choose = (place: PickedPlace) => {
     setPicked(place);
