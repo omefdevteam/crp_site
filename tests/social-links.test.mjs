@@ -34,7 +34,7 @@ const nextMocks = {
 };
 
 const load = loader(nextMocks);
-const { checkSocialLink, socialHref, SOCIAL_KEYS, SOCIAL_LINK_MAX } = load("lib/copy/social.ts");
+const { checkSocialLink, socialHref, SOCIAL_DEFAULTS, SOCIAL_KEYS, SOCIAL_LINK_MAX } = load("lib/copy/social.ts");
 const catalog = load("lib/copy/catalog.ts");
 const { locales } = load("lib/locale.ts");
 
@@ -112,8 +112,8 @@ test("social links are one English-only entry each, with plain labels and help",
   const leaves = catalog.leaves("social");
   assert.deepEqual(leaves.map((leaf) => leaf.key), [...SOCIAL_KEYS]);
   assert.deepEqual(leaves.map((leaf) => copyLabel("social", leaf.key)), ["Instagram link", "LinkedIn link", "X link", "YouTube link", "TikTok link", "Discord link"]);
+  assert.deepEqual(Object.fromEntries(leaves.map((leaf) => [leaf.key, leaf.english])), { ...SOCIAL_DEFAULTS });
   for (const leaf of leaves) {
-    assert.equal(leaf.english, "");
     assert.equal(leaf.format, "link");
     assert.equal(sectionLabel(leaf.section), "Social links");
     assert.match(copyHelp("social", leaf.key), /https:\/\/.*every language.*empty to show the .* icon in the footer without a link/);
@@ -154,9 +154,21 @@ test("stored links need no migration, reach every locale, and bad stored values 
   // A row written around the editor (or before a rule change) is never rendered.
   await sql.query("insert into copy_revisions (catalog, locale, key, revision, value, author_id) values ('social', 'en', 'tiktok', 1, 'javascript:alert(1)', $1)", [authorId]);
   const published = catalog.indexPublished(await queryPublishedRows(database));
-  assert.deepEqual(catalog.socialLinks(published), { instagram: "https://www.instagram.com/crp" });
-  assert.deepEqual(catalog.socialLinks(catalog.NO_OVERRIDES), {});
-  assert.deepEqual(catalog.socialLinks(catalog.indexPublished([{ catalog: "social", locale: "en", key: "x", value: "data:,x" }])), {});
+  assert.deepEqual(catalog.socialLinks(published), {
+    instagram: "https://www.instagram.com/crp",
+    linkedin: SOCIAL_DEFAULTS.linkedin,
+    x: SOCIAL_DEFAULTS.x,
+  });
+  assert.deepEqual(catalog.socialLinks(catalog.NO_OVERRIDES), {
+    instagram: SOCIAL_DEFAULTS.instagram,
+    linkedin: SOCIAL_DEFAULTS.linkedin,
+    x: SOCIAL_DEFAULTS.x,
+  });
+  assert.deepEqual(catalog.socialLinks(catalog.indexPublished([{ catalog: "social", locale: "en", key: "x", value: "data:,x" }])), {
+    instagram: SOCIAL_DEFAULTS.instagram,
+    linkedin: SOCIAL_DEFAULTS.linkedin,
+    x: SOCIAL_DEFAULTS.x,
+  });
 
   // The editor shows one input (one "en" cell) per social link.
   const desk = await loadDesk(database, { catalog: "social", query: "", needsReview: false, authorId });

@@ -6,11 +6,11 @@ export const SOCIAL_KEYS = ["instagram", "linkedin", "x", "youtube", "tiktok", "
 export type SocialKey = (typeof SOCIAL_KEYS)[number];
 export type SocialLinks = Readonly<Partial<Record<SocialKey, string>>>;
 
-/** Bundled defaults: empty means the icon shows without a link until one is published. */
+/** Bundled defaults. Empty means the icon shows without a link until one is published. */
 export const SOCIAL_DEFAULTS: Readonly<Record<SocialKey, string>> = {
-  instagram: "",
-  linkedin: "",
-  x: "",
+  instagram: "https://www.instagram.com/climaterefugeepavilion/",
+  linkedin: "https://www.linkedin.com/company/climaterefugeepavilion/",
+  x: "https://x.com/TheCRPavilion",
   youtube: "",
   tiktok: "",
   discord: "",
