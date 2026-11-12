@@ -111,12 +111,16 @@ test("social links are one English-only entry each, with plain labels and help",
   for (const id of ["page", "ui", "ackEmail", "appEmail"]) assert.equal(catalog.isSingleValue(id), false, id);
   const leaves = catalog.leaves("social");
   assert.deepEqual(leaves.map((leaf) => leaf.key), [...SOCIAL_KEYS]);
-  assert.deepEqual(leaves.map((leaf) => copyLabel("social", leaf.key)), ["Instagram link", "LinkedIn link", "X link", "YouTube link", "TikTok link", "Discord link"]);
+  assert.deepEqual(leaves.map((leaf) => copyLabel("social", leaf.key)), ["Instagram link", "Facebook link", "LinkedIn link", "X link", "YouTube link", "TikTok link", "Discord link"]);
   assert.deepEqual(Object.fromEntries(leaves.map((leaf) => [leaf.key, leaf.english])), { ...SOCIAL_DEFAULTS });
   for (const leaf of leaves) {
     assert.equal(leaf.format, "link");
     assert.equal(sectionLabel(leaf.section), "Social links");
-    assert.match(copyHelp("social", leaf.key), /https:\/\/.*every language.*empty to show the .* icon in the footer without a link/);
+    if (leaf.key === "facebook") {
+      assert.match(copyHelp("social", leaf.key), /https:\/\/.*every language.*empty to show the Facebook icon in the footer without a link/);
+    } else {
+      assert.match(copyHelp("social", leaf.key), /https:\/\/.*every language.*empty to hide the .* icon in the footer/);
+    }
   }
   assert.equal(copyHelp("page", "hero.line1Accent"), null);
   assert.ok(catalog.parseCopyRef({ catalog: "social", locale: "en", key: "instagram" }));
@@ -172,7 +176,7 @@ test("stored links need no migration, reach every locale, and bad stored values 
 
   // The editor shows one input (one "en" cell) per social link.
   const desk = await loadDesk(database, { catalog: "social", query: "", needsReview: false, authorId });
-  assert.equal(desk.rows.length, 6);
+  assert.equal(desk.rows.length, 7);
   for (const row of desk.rows) {
     assert.deepEqual(row.cells.map((cell) => cell.locale), ["en"]);
     assert.ok(row.help);
@@ -219,21 +223,31 @@ test("the footer links only icons with a valid link, opening in a new tab, in ev
     }
     assert.match(html, /aria-label="Instagram"/);
     assert.match(html, /aria-label="Discord"/);
-    // Networks without a valid link still show, as a plain tile that isn't a link.
-    for (const plain of ["LinkedIn", "X", "YouTube", "TikTok"]) assert.match(html, new RegExp(`<span role="img" aria-label="${plain}"`), plain);
-    for (const icon of ["linkedin", "x", "youtube", "tiktok"]) assert.match(html, new RegExp(`/icons/social/${icon}\\.svg`), icon);
+    // Facebook stays visible with no link; other empty or invalid networks are hidden.
+    assert.match(html, /<span role="img" aria-label="Facebook"/);
+    assert.match(html, /\/icons\/social\/facebook\.svg/);
+    for (const hidden of ["LinkedIn", "X", "YouTube", "TikTok"]) {
+      assert.doesNotMatch(html, new RegExp(`aria-label="${hidden}"`), hidden);
+    }
+    for (const icon of ["linkedin", "x", "youtube", "tiktok"]) {
+      assert.doesNotMatch(html, new RegExp(`/icons/social/${icon}\\.svg`), icon);
+    }
     assert.doesNotMatch(html, /javascript:|http:\/\/x\.com/);
     assert.ok(html.includes(getInTouch), locale);
   }
 });
 
-test("the footer shows all six icons and Get in touch, without links, when none are set", () => {
-  for (const social of [{}, { instagram: "", linkedin: "", x: "", youtube: "", tiktok: "", discord: " " }]) {
+test("the footer hides networks with no link, except Facebook, and keeps Get in touch", () => {
+  for (const social of [{}, { instagram: "", facebook: "", linkedin: "", x: "", youtube: "", tiktok: "", discord: " " }]) {
     for (const locale of locales) {
       const { html, getInTouch } = footerMarkup(social, locale);
       assert.ok(html.includes(getInTouch), locale);
-      for (const key of SOCIAL_KEYS) assert.match(html, new RegExp(`/icons/social/${key}\\.svg`), key);
-      assert.equal([...html.matchAll(/<span role="img" aria-label="/g)].length, 6, locale);
+      assert.match(html, /\/icons\/social\/facebook\.svg/);
+      assert.equal([...html.matchAll(/<span role="img" aria-label="/g)].length, 1, locale);
+      assert.match(html, /<span role="img" aria-label="Facebook"/);
+      for (const key of SOCIAL_KEYS.filter((item) => item !== "facebook")) {
+        assert.doesNotMatch(html, new RegExp(`/icons/social/${key}\\.svg`), key);
+      }
       assert.doesNotMatch(html, /target="_blank"/);
       assert.doesNotMatch(html, /<a href="https:/);
     }
@@ -242,10 +256,19 @@ test("the footer shows all six icons and Get in touch, without links, when none 
   const footer = loader(nextMocks)("components/Footer.tsx");
   assert.deepEqual(
     footer.footerSocials({ x: "https://x.com/crp", tiktok: " ", youtube: "http://youtube.com/crp" }).map((item) => [item.key, item.href]),
-    [["instagram", null], ["linkedin", null], ["x", "https://x.com/crp"], ["youtube", null], ["tiktok", null], ["discord", null]],
+    [["facebook", null], ["x", "https://x.com/crp"]],
   );
   const all = Object.fromEntries(SOCIAL_KEYS.map((key) => [key, `https://${key}.example.org/crp`]));
-  assert.deepEqual(footer.footerSocials(all).map((item) => item.href), SOCIAL_KEYS.map((key) => `https://${key}.example.org/crp`));
+  assert.deepEqual(footer.footerSocials(all).map((item) => [item.key, item.href]), SOCIAL_KEYS.map((key) => [key, `https://${key}.example.org/crp`]));
+  assert.deepEqual(
+    footer.footerSocials(SOCIAL_DEFAULTS).map((item) => [item.key, item.href]),
+    [
+      ["instagram", SOCIAL_DEFAULTS.instagram],
+      ["facebook", null],
+      ["linkedin", SOCIAL_DEFAULTS.linkedin],
+      ["x", SOCIAL_DEFAULTS.x],
+    ],
+  );
 });
 
 test("the editor shows a social link as one labelled input with a help line", async () => {
