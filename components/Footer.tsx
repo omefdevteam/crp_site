@@ -4,7 +4,7 @@ import Link from "@/components/LocaleLink";
 import { t } from "@/lib/messages";
 import { Logo } from "./Logo";
 import { useCopy, useSocialLinks } from "./LanguageProvider";
-import { socialHref, type SocialKey, type SocialLinks } from "@/lib/copy/social";
+import { keepSocialIconWithoutLink, socialHref, type SocialKey, type SocialLinks } from "@/lib/copy/social";
 import { useConsent } from "./cookies/ConsentProvider";
 import { useText } from "@/lib/ui-text";
 
@@ -23,12 +23,13 @@ const SECTION_HREFS = [
 
 /**
  * Profile links come from Website text > Social links (one value for every
- * language). All six icons always show. A network whose link is set and is a
- * safe https:// address renders as a link; an empty or bad value renders as a
- * plain, non-clickable tile.
+ * language). A network with a safe https:// link is shown as a clickable icon.
+ * Facebook also shows when it has no link, as a plain, non-clickable tile.
+ * Other networks with an empty or bad value are hidden.
  */
 const SOCIAL: readonly { key: SocialKey; name: string; icon: string }[] = [
   { key: "instagram", name: "Instagram", icon: "/icons/social/instagram.svg" },
+  { key: "facebook", name: "Facebook", icon: "/icons/social/facebook.svg" },
   { key: "linkedin", name: "LinkedIn", icon: "/icons/social/linkedin.svg" },
   { key: "x", name: "X", icon: "/icons/social/x.svg" },
   { key: "youtube", name: "YouTube", icon: "/icons/social/youtube.svg" },
@@ -36,9 +37,11 @@ const SOCIAL: readonly { key: SocialKey; name: string; icon: string }[] = [
   { key: "discord", name: "Discord", icon: "/icons/social/discord.svg" },
 ];
 
-/** Every icon, in footer order, with its link (null when none is set or it isn't a valid https link). */
+/** Icons to render, in footer order. Networks without a valid link are omitted, except Facebook, which stays visible. */
 export function footerSocials(links: SocialLinks): { key: SocialKey; name: string; icon: string; href: string | null }[] {
-  return SOCIAL.map((item) => ({ ...item, href: socialHref(links[item.key]) }));
+  return SOCIAL.map((item) => ({ ...item, href: socialHref(links[item.key]) })).filter(
+    (item) => item.href !== null || keepSocialIconWithoutLink(item.key),
+  );
 }
 
 const HEADING =
@@ -46,7 +49,7 @@ const HEADING =
 const LINK =
   "inline-flex min-h-11 items-center text-[15px] leading-[1.2] tracking-[-0.6px] text-black/84 transition-colors hover:text-black desk:min-h-0";
 const TILE =
-  "flex aspect-square min-w-0 flex-1 items-center justify-center rounded-[12px] bg-white desk:size-16 desk:flex-none";
+  "flex aspect-square min-w-0 max-w-[25%] flex-1 items-center justify-center rounded-[12px] bg-white desk:max-w-none desk:size-16 desk:flex-none";
 
 export function Footer({
   pillSpace = true,
