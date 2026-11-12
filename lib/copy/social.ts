@@ -2,19 +2,25 @@
 // Website text > Social links. Kept free of server imports: the footer uses
 // the same check before it renders a link.
 
-export const SOCIAL_KEYS = ["instagram", "linkedin", "x", "youtube", "tiktok", "discord"] as const;
+export const SOCIAL_KEYS = ["instagram", "facebook", "linkedin", "x", "youtube", "tiktok", "discord"] as const;
 export type SocialKey = (typeof SOCIAL_KEYS)[number];
 export type SocialLinks = Readonly<Partial<Record<SocialKey, string>>>;
 
-/** Bundled defaults. Empty means the icon shows without a link until one is published. */
+/** Bundled defaults. An empty value means no link: the footer hides that icon, except Facebook, which still shows. */
 export const SOCIAL_DEFAULTS: Readonly<Record<SocialKey, string>> = {
   instagram: "https://www.instagram.com/climaterefugeepavilion/",
+  facebook: "",
   linkedin: "https://www.linkedin.com/company/climaterefugeepavilion/",
   x: "https://x.com/TheCRPavilion",
   youtube: "",
   tiktok: "",
   discord: "",
 };
+
+/** True when the footer should show this network's icon even if it has no link. */
+export function keepSocialIconWithoutLink(key: string): boolean {
+  return key === "facebook";
+}
 
 export const SOCIAL_LINK_MAX = 2048;
 
@@ -23,7 +29,7 @@ export type SocialLinkCheck =
   | { readonly ok: false; readonly reason: "too-long" | "not-https" | "not-a-link" };
 
 /**
- * Empty (or only spaces) is allowed and means "show the icon without a link". Anything else
+ * Empty (or only spaces) is allowed and means there is no link. Anything else
  * must be an absolute https:// address the URL parser accepts, with a real
  * host name and no user name or password in it. javascript:, data:, http:
  * and every other scheme are refused.

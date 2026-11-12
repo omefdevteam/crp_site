@@ -1,4 +1,5 @@
 import type { CatalogId } from "@/lib/copy/catalog";
+import { keepSocialIconWithoutLink } from "@/lib/copy/social";
 
 // Plain names for the copy editor. Staff see these; the dotted key is kept as a
 // tooltip only. A list position in a key is written as "#" here and shown 1-based
@@ -360,6 +361,7 @@ const APP_EMAIL: Readonly<Record<string, string>> = {
 
 const SOCIAL_NAMES: Readonly<Record<string, string>> = {
   instagram: "Instagram",
+  facebook: "Facebook",
   linkedin: "LinkedIn",
   x: "X",
   youtube: "YouTube",
@@ -383,7 +385,10 @@ export function copyHelp(catalog: CatalogId, key: string): string | null {
   if (catalog !== "social") return null;
   const name = SOCIAL_NAMES[key];
   if (!name) return null;
-  return `Paste the full address of our ${name} page, starting with https://. It is used in every language. Leave it empty to show the ${name} icon in the footer without a link.`;
+  const empty = keepSocialIconWithoutLink(key)
+    ? `Leave it empty to show the ${name} icon in the footer without a link.`
+    : `Leave it empty to hide the ${name} icon in the footer.`;
+  return `Paste the full address of our ${name} page, starting with https://. It is used in every language. ${empty}`;
 }
 
 // Heading of the version-history panel. A single-value section (social links)
