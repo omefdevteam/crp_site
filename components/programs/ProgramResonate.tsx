@@ -18,11 +18,11 @@ function QuestionCard({
 }) {
   return (
     <div
-      className={`relative flex h-[254px] items-center justify-center overflow-hidden rounded-[64px] p-6 desk:aspect-square desk:h-auto desk:p-8 ${className}`}
+      className={`relative flex min-h-[254px] items-center justify-center overflow-hidden rounded-[64px] p-6 desk:aspect-square desk:h-auto desk:min-h-0 desk:p-8 ${className}`}
     >
       {blob}
       <p
-        className={`relative w-full text-[24px] font-normal leading-none tracking-[-0.96px] desk:w-[252px] desk:tracking-[-1.28px] desk:text-[32px] ${textClass}`}
+        className={`relative w-full text-[22px] font-normal leading-[1.15] tracking-[-0.88px] desk:w-[252px] desk:text-[32px] desk:leading-none desk:tracking-[-1.28px] ${textClass}`}
       >
         {children}
       </p>
@@ -42,7 +42,7 @@ export function ProgramResonate() {
       <div className="flex flex-col">
         {/* Row 1 */}
         <div className="grid grid-cols-2">
-          <div className="relative flex h-[254px] items-center justify-center overflow-hidden rounded-[64px] bg-black p-6 desk:aspect-square desk:h-auto desk:p-8">
+          <div className="relative flex min-h-[254px] items-center justify-center overflow-hidden rounded-[64px] bg-black p-6 desk:aspect-square desk:h-auto desk:min-h-0 desk:p-8">
             <FigmaImg
               src={programPhotos.earth}
               alt=""
@@ -57,7 +57,7 @@ export function ProgramResonate() {
               height={261}
               className="pointer-events-none absolute bottom-[-166px] left-1/2 h-[261px] w-[259px] -translate-x-1/2 object-bottom"
             />
-            <p className="relative w-full text-[24px] font-normal leading-none tracking-[-0.96px] text-white desk:w-[252px] desk:tracking-[-1.28px] desk:text-[32px]">
+            <p className="relative w-full text-[22px] font-normal leading-[1.15] tracking-[-0.88px] text-white desk:w-[252px] desk:text-[32px] desk:leading-none desk:tracking-[-1.28px]">
               {resonate.age}
             </p>
           </div>
@@ -145,12 +145,12 @@ export function ProgramResonate() {
             {Array.from({ length: Math.ceil(resonate.interests.length / 3) }, (_, row) => (
               <div
                 key={resonate.interests.slice(row * 3, row * 3 + 3).join("-")}
-                className="flex h-14 w-full items-center gap-4 desk:gap-8"
+                className="flex min-h-14 w-full items-center gap-3 py-1 desk:h-14 desk:gap-8 desk:py-0"
               >
                 {resonate.interests.slice(row * 3, row * 3 + 3).map((label) => (
                   <p
                     key={label}
-                    className="min-w-px flex-1 text-[12px] font-semibold uppercase leading-[1.2] tracking-[0.96px] text-black/80"
+                    className="min-w-0 flex-1 text-[10px] font-semibold uppercase leading-[1.2] tracking-[0.24px] text-black/80 [overflow-wrap:break-word] hyphens-auto desk:text-[12px] desk:tracking-[0.96px] desk:[overflow-wrap:normal] desk:hyphens-none"
                   >
                     {label}
                   </p>

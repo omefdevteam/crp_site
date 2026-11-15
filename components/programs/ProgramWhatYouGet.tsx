@@ -165,7 +165,7 @@ function WhatYouGetCard({
           {card.title}
         </h3>
         <div
-          className={`flex max-w-[149px] flex-col text-[15px] font-normal leading-[1.2] tracking-[-0.6px] desk:max-w-[241px] desk:text-[20px] desk:tracking-[-0.8px] ${card.steps ? "gap-4 desk:gap-6" : "gap-2 desk:gap-3"} ${card.descriptionClass}`}
+          className={`flex max-w-[min(149px,calc(100%-196px))] flex-col text-[15px] font-normal leading-[1.2] tracking-[-0.6px] desk:max-w-[241px] desk:text-[20px] desk:tracking-[-0.8px] ${card.steps ? "gap-4 desk:gap-6" : "gap-2 desk:gap-3"} ${card.descriptionClass}`}
         >
           {lines.map((line) => (
             <p key={line}>{line}</p>

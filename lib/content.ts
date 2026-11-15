@@ -40,7 +40,7 @@ export const contentPosters: readonly ContentPosterItem[] = [
     kind: "chicken",
     image: "/images/home/chicken.png",
     size: "tall",
-    topic: "Adaption",
+    topic: "Adaptation",
   },
   {
     kind: "taste",
