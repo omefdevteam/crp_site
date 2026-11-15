@@ -6,6 +6,9 @@ import { adjacentDetailHrefs, parseRecordQuery } from "@/lib/admin/records";
 import { recordsHref } from "@/lib/admin/return";
 import { parseMessageId, loadMessage } from "@/lib/contact/messages";
 import { getDb } from "@/lib/db";
+import { RepeatsPanel } from "@/components/admin/RepeatsPanel";
+import { decideRepeatAction } from "@/app/admin/(console)/records/repeats/actions";
+import { canDecide, matchesFor } from "@/lib/duplicates/review";
 import { requireStaff } from "@/lib/staff/gate";
 import { updateMessage } from "./actions";
 
@@ -26,9 +29,11 @@ export default async function MessagePage({
   const db = getDb();
   const detail = await loadMessage(db, staff, messageId);
   if (!detail) notFound();
+  const repeats = await matchesFor(db, "messages", detail.id);
   const neighbors = await adjacentDetailHrefs(db, listQuery, { id: detail.id, createdAt: detail.createdAt }, staff);
   return (
     <MessageView
+      repeats={<RepeatsPanel matches={repeats} path={`/admin/records/messages/${detail.id}`} canDecide={canDecide(staff.role, "messages")} action={decideRepeatAction} />}
       key={detail.id}
       detail={detail}
       listHref={recordsHref(listQuery)}

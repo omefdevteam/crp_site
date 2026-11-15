@@ -1,4 +1,7 @@
 import { and, asc, count, desc, eq, inArray, isNull, or, sql, type SQL, type SQLWrapper } from "drizzle-orm";
+import { duplicateMatches, type DuplicateList } from "@/lib/db/schema";
+import { scanIfStale } from "@/lib/duplicates/scan";
+import { flagsFor, repeatCounts, repeatsInstalled, repeatsSeen, type RepeatCounts, type RepeatFlag } from "@/lib/duplicates/review";
 import { detailHref, recordsHref } from "@/lib/admin/return";
 import { weeklyIntake, type WeekCount } from "@/lib/admin/weeks";
 import { adjacentMessageIds, listMessages } from "@/lib/contact/messages";
@@ -62,8 +65,13 @@ export type RecordQuery = {
   readonly age: string;
   readonly queue: "" | QueueName;
   readonly attention: "" | "needs";
+  /** Repeat entries (applicants and partners): hide confirmed ones, only them, or only open suggestions. */
+  readonly repeats: "" | RepeatFilter;
   readonly page: number;
 };
+
+export const REPEAT_FILTERS = ["hide", "only", "open"] as const;
+export type RepeatFilter = (typeof REPEAT_FILTERS)[number];
 
 export type RecordRow = {
   readonly id: string;
@@ -71,6 +79,8 @@ export type RecordRow = {
   readonly cells: readonly string[];
   readonly version?: number;
   readonly reviewCycle?: number;
+  /** Set when this entry repeats an earlier one: confirmed, or waiting for a decision. */
+  readonly repeat?: RepeatFlag;
 };
 
 export type RecordPage = {
@@ -84,6 +94,8 @@ export type RecordPage = {
   readonly filters: RecordQuery;
   readonly statusOptions: readonly (readonly [string, string])[];
   readonly weeks: readonly WeekCount[];
+  /** Repeat counts for lists that have repeat checks; null before migration 0022. */
+  readonly repeats: RepeatCounts | null;
 };
 
 const TITLES: Record<RecordList, string> = {
@@ -206,6 +218,7 @@ function scopeQuery(scope: "" | QueueName | RecordQuery): RecordQuery {
     cycle: "",
     age: "",
     attention: "",
+    repeats: "",
     page: 1,
     queue: scope,
   };
@@ -272,6 +285,7 @@ export function parseRecordQuery(raw: Readonly<Record<string, unknown>>): Record
     age: clip(raw.age),
     queue: parseQueue(clip(raw.queue)),
     attention: clip(raw.attention) === "needs" ? "needs" : "",
+    repeats: oneOf(clip(raw.repeats), REPEAT_FILTERS) ?? "",
     page: pageOf(clip(raw.page)),
   };
 }
@@ -286,6 +300,7 @@ function auditOf(query: RecordQuery): Record<string, string> {
     ["age", query.age],
     ["queue", query.queue],
     ["attention", query.attention],
+    ["repeats", query.repeats],
   ];
   return Object.fromEntries(pairs.filter(([, value]) => value.length > 0));
 }
@@ -297,21 +312,35 @@ function whereOf(parts: readonly (SQL | undefined)[]): SQL | undefined {
 }
 
 export async function loadRecords(db: Db, query: RecordQuery, viewer: { readonly id: string; readonly role?: string }): Promise<RecordPage> {
-  const [listed, weeks] = await Promise.all([
+  const repeatList = repeatListOf(query.list);
+  // Settles repeatsSeen() before the list's WHERE is built, and checks the
+  // list for new repeats first (a no-op unless something new arrived), so
+  // the labels are current even between worker runs.
+  if (repeatList && (await repeatsInstalled(db))) {
+    try {
+      await scanIfStale(db, repeatList);
+    } catch (err) {
+      console.error("[repeats] scan skipped", err instanceof Error ? err.message : err);
+    }
+  }
+  const [listed, weeks, repeats] = await Promise.all([
     listRows(db, query, viewer, PAGE_SIZE, (query.page - 1) * PAGE_SIZE),
     weeklyIntake(db, query.list),
+    repeatList ? repeatCountsOrNull(db, repeatList) : null,
   ]);
+  const flags = repeatList && repeats ? await flagsFor(db, repeatList, listed.rows.map((row) => row.id)) : new Map<string, RepeatFlag>();
   return {
     list: query.list,
     title: TITLES[query.list],
     headers: SCREEN[query.list],
-    rows: listed.rows,
+    rows: listed.rows.map((row) => (flags.has(row.id) ? { ...row, repeat: flags.get(row.id) } : row)),
     total: listed.total,
     page: query.page,
     pageSize: PAGE_SIZE,
     filters: query,
     statusOptions: deskList(query.list),
     weeks,
+    repeats,
   };
 }
 
@@ -328,6 +357,7 @@ export async function exportList(
 ): Promise<{ readonly filename: string; readonly body: string } | null> {
   if (!can(actor.role, "records.export") || !can(actor.role, LIST_CAPABILITY[query.list])) return null;
   return db.transaction(async (tx) => {
+    await repeatsInstalled(tx);
     const sheet = await sheetOf(tx, query, actor);
     if (!sheet) return null;
     await recordEvent(tx, actor.id, {
@@ -586,6 +616,7 @@ function applicantWhere(query: RecordQuery, viewer: { readonly id: string }): SQ
       ? or(matches(applicants.fullName, query.q), matches(applicants.email, query.q), matches(applicants.nationality, query.q), matches(applicants.basedIn, query.q))
       : undefined,
     queueFilter(query, viewer),
+    repeatWhere("applicants", sql`${applicants.id}`, query.repeats),
   ]) ?? sql`true`;
 }
 
@@ -605,6 +636,9 @@ export async function adjacentDetailHrefs(
 ): Promise<{ readonly previous: string | null; readonly next: string | null }> {
   const path = detailPath(query.list);
   if (!path) return { previous: null, next: null };
+  // Settles repeatsSeen() so a ?repeats= filter is honoured on a fresh server
+  // instance too (the WHERE below is built synchronously).
+  if (query.repeats) await repeatsInstalled(db);
   if (query.list === "messages") {
     const ids = await adjacentMessageIds(db, { q: query.q, status: query.status }, current);
     return {
@@ -760,7 +794,8 @@ function applicantCsv(row: ApplicantSafe): readonly string[] {
 
 async function applicantSheet(db: Store, query: RecordQuery, viewer: { readonly id: string }): Promise<Sheet> {
   const rows = await selectApplicants(db, query, viewer, null, 0);
-  return { headers: APPLICANT_CSV, rows: rows.map(applicantCsv) };
+  const repeats = await repeatColumn(db, "applicants", rows.map((row) => row.id));
+  return { headers: [...APPLICANT_CSV, "repeat"], rows: rows.map((row) => [...applicantCsv(row), repeats.get(row.id) ?? ""]) };
 }
 
 function nominationWhere(query: RecordQuery): SQL | "empty" {
@@ -970,6 +1005,7 @@ function partnerWhere(query: RecordQuery): SQL | "empty" {
         )
       : undefined,
     desk,
+    repeatWhere("partners", sql`${partnerInquiries.id}`, query.repeats),
   ]) ?? sql`true`;
 }
 
@@ -1020,16 +1056,46 @@ async function partnerRows(db: Store, query: RecordQuery, viewer: { readonly rol
 
 async function partnerSheet(db: Store, query: RecordQuery): Promise<Sheet> {
   const rows = await selectPartners(db, query, null, 0);
+  const repeats = await repeatColumn(db, "partners", rows.map((row) => row.id));
   return {
     headers: [
       "name", "email", "phone", "organization", "designation", "support", "sponsorship", "message", "created_at",
-      "staff_status", "assignee_email",
+      "staff_status", "assignee_email", "repeat",
     ],
     rows: rows.map((row) => [
       row.name, row.email, textOf(row.phone), row.organization, row.designation, row.support, textOf(row.sponsorship), textOf(row.message), stamp(row.createdAt),
-      row.staffStatus, textOf(row.assigneeEmail),
+      row.staffStatus, textOf(row.assigneeEmail), repeats.get(row.id) ?? "",
     ]),
   };
+}
+
+// ---- Repeat entries ----
+
+export function repeatListOf(list: RecordList): DuplicateList | null {
+  return list === "applicants" || list === "partners" || list === "messages" ? list : null;
+}
+
+async function repeatCountsOrNull(db: Store, list: DuplicateList): Promise<RepeatCounts | null> {
+  return (await repeatsInstalled(db)) ? repeatCounts(db, list) : null;
+}
+
+// "hide": leave out entries confirmed as a repeat (one row per person).
+// "only": just those. "open": entries with a suggestion still to decide.
+function repeatWhere(list: DuplicateList, id: SQL, filter: "" | RepeatFilter): SQL | undefined {
+  // The filter is only offered once migration 0022 is in (see RecordsView);
+  // a hand-typed ?repeats= before then is ignored rather than failing the list.
+  if (!filter || !repeatsSeen()) return undefined;
+  const status = filter === "open" ? "suggested" : "confirmed";
+  const found = sql`exists (select 1 from ${duplicateMatches} where ${duplicateMatches.list} = ${list} and ${duplicateMatches.recordId} = ${id} and ${duplicateMatches.status} = ${status})`;
+  return filter === "hide" ? sql`not ${found}` : found;
+}
+
+async function repeatColumn(db: Store, list: DuplicateList, ids: readonly string[]): Promise<ReadonlyMap<string, RepeatFlag>> {
+  const all = new Map<string, RepeatFlag>();
+  for (let i = 0; i < ids.length; i += 1000) {
+    for (const [id, flag] of await flagsFor(db, list, ids.slice(i, i + 1000))) all.set(id, flag);
+  }
+  return all;
 }
 
 export function csvCell(value: string): string {

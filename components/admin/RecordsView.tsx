@@ -48,7 +48,7 @@ export function RecordsView({
       <h1 className="text-3xl font-semibold tracking-tight">Records</h1>
       <nav className="flex flex-wrap gap-2" aria-label="Lists">
         {lists.map((list) => (
-          <Button key={list} variant={list === data.list ? "solid" : "outline"} href={recordsHref({ ...data.filters, list, page: 1, q: "", status: "", track: "", language: "", cycle: "", age: "", queue: "", attention: "" })}>
+          <Button key={list} variant={list === data.list ? "solid" : "outline"} href={recordsHref({ ...data.filters, list, page: 1, q: "", status: "", track: "", language: "", cycle: "", age: "", queue: "", attention: "", repeats: "" })}>
             {LABELS[list]}
           </Button>
         ))}
@@ -64,9 +64,12 @@ export function RecordsView({
         {data.list === "applicants" ? <Choice label="Language" name="language" value={data.filters.language} options={appLanguage.enumValues.map((item) => [item, languageLabel(item)])} /> : null}
         {data.list === "applicants" ? <Filter label="Review round" name="cycle" value={data.filters.cycle} placeholder="1" /> : null}
         {data.list === "interest" ? <Choice label="Age" name="age" value={data.filters.age} options={ageGroup.enumValues.map((item) => [item, ageLabel(item)])} /> : null}
+        {data.repeats && (data.list === "applicants" || data.list === "partners") ? (
+          <Choice label="Repeats" name="repeats" value={data.filters.repeats} options={[["hide", "One per person"], ["open", "Possible repeats to check"], ["only", "Repeats only"]]} />
+        ) : null}
         <input type="hidden" name="queue" value={data.filters.queue} />
         <SubmitButton className={buttonClass("solid")} pendingLabel="Applying">Apply</SubmitButton>
-        {filtered ? <Button href={recordsHref({ ...data.filters, q: "", status: "", track: "", language: "", cycle: "", age: "", attention: "", page: 1 })} variant="ghost">Clear filters</Button> : null}
+        {filtered ? <Button href={recordsHref({ ...data.filters, q: "", status: "", track: "", language: "", cycle: "", age: "", attention: "", repeats: "", page: 1 })} variant="ghost">Clear filters</Button> : null}
       </form>
       {data.list === "applicants" ? (
         <nav className="flex flex-wrap gap-2" aria-label="Queues">
@@ -79,7 +82,18 @@ export function RecordsView({
       <section className={card}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">{data.title}</h2>
-          <p className="text-sm text-black/60">{data.total === 1 ? "1 result" : `${data.total} results`}</p>
+          <p className="text-sm text-black/60">
+            {data.total === 1 ? "1 result" : `${data.total} results`}
+            {data.repeats && data.repeats.repeats > 0 ? ` · ${data.repeats.repeats} confirmed ${data.repeats.repeats === 1 ? "repeat" : "repeats"} across all ${LABELS[data.list].toLowerCase()}` : ""}
+            {data.repeats && data.repeats.suggested > 0 && (data.list === "applicants" || data.list === "partners") ? (
+              <>
+                {" · "}
+                <a className="underline underline-offset-4" href={recordsHref({ ...data.filters, repeats: "open", page: 1 })}>
+                  {data.repeats.suggested} possible {data.repeats.suggested === 1 ? "repeat" : "repeats"} to check
+                </a>
+              </>
+            ) : null}
+          </p>
         </div>
         {data.list === "applicants" && canConfirm ? <BulkQueue headers={data.headers} rows={data.rows} /> : data.rows.length === 0 ? (
           <p className="mt-3 text-sm text-black/60">{filtered ? "Nothing matches these filters." : `No ${LABELS[data.list].toLowerCase()} yet.`}</p>
@@ -102,6 +116,7 @@ export function RecordsView({
             <input type="hidden" name="age" value={data.filters.age} />
             <input type="hidden" name="queue" value={data.filters.queue} />
             <input type="hidden" name="attention" value={data.filters.attention} />
+            <input type="hidden" name="repeats" value={data.filters.repeats} />
             <SubmitButton className={buttonClass(canConfirm ? "outline" : "primary")} pendingLabel="Preparing">Download spreadsheet</SubmitButton>
           </form>
         ) : null}

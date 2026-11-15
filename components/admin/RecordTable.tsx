@@ -6,7 +6,17 @@ export type RecordTableRow = {
   readonly id: string;
   readonly href: string | null;
   readonly cells: readonly string[];
+  /** Repeats an earlier entry: confirmed, or waiting for a decision. */
+  readonly repeat?: "suggested" | "confirmed";
 };
+
+function RepeatTag({ repeat }: { repeat: "suggested" | "confirmed" }) {
+  return (
+    <span className={`relative z-0 ml-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${repeat === "confirmed" ? "bg-black/10 text-black" : "bg-[#fff1e2] text-[#8a4a00]"}`}>
+      {repeat === "confirmed" ? "Repeat" : "Possible repeat"}
+    </span>
+  );
+}
 
 export function RecordTable({
   list,
@@ -38,6 +48,7 @@ export function RecordTable({
                   <td key={`${row.id}-${index}`} className="border-t border-black/10 py-3 pr-4">
                     {index === 0 && row.href ? <RowLink href={row.href} name={name} /> : null}
                     <span className="relative z-0"><RecordCell list={list} header={headers[index] ?? ""} value={cell} /></span>
+                    {index === 0 && row.repeat ? <RepeatTag repeat={row.repeat} /> : null}
                   </td>
                 ))}
               </tr>

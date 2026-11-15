@@ -1,4 +1,5 @@
 import { count, desc, sql } from "drizzle-orm";
+import { repeatCounts, repeatsInstalled, type RepeatCounts } from "@/lib/duplicates/review";
 import { countNewMessages } from "@/lib/contact/messages";
 import {
   applicants,
@@ -63,6 +64,8 @@ export type Dashboard = {
   nominationDesk: DeskSummary;
   partnerWorkflow: DeskSummary;
   newMessages: number;
+  /** Repeat entries per list the role can read; null before migration 0022. */
+  repeats?: { applicants: RepeatCounts | null; partners: RepeatCounts | null; messages: RepeatCounts | null };
 };
 
 function num(value: unknown): number {
@@ -103,6 +106,13 @@ function emptyDesk(desk: "nomination" | "partner"): DeskSummary {
 // Only the sections the role may open are queried; the rest stay empty and hidden.
 export async function loadDashboard(db: Db, role: string): Promise<Dashboard> {
   const access = dashboardAccess(role);
+  const installed = await repeatsInstalled(db);
+  const countsIf = (allowed: boolean, list: "applicants" | "partners" | "messages") => (installed && allowed ? repeatCounts(db, list) : Promise.resolve(null));
+  const [applicantRepeats, partnerRepeats, messageRepeats] = await Promise.all([
+    countsIf(access.applicants, "applicants"),
+    countsIf(access.partners, "partners"),
+    countsIf(access.messages, "messages"),
+  ]);
   return db.transaction(async (tx) => {
     const statusRows = access.applicants
       ? await tx.select({ key: applicants.status, count: count() }).from(applicants).groupBy(applicants.status)
@@ -190,6 +200,7 @@ export async function loadDashboard(db: Db, role: string): Promise<Dashboard> {
       nominationDesk,
       partnerWorkflow,
       newMessages,
+      repeats: { applicants: applicantRepeats, partners: partnerRepeats, messages: messageRepeats },
     };
   });
 }

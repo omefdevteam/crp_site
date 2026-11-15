@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { DecisionPanel } from "@/components/admin/DecisionPanel";
 import { DocumentReveal, PrivateMedia } from "@/components/admin/PrivateMedia";
 import { EmailLine } from "@/components/admin/EmailLine";
@@ -21,6 +22,7 @@ export function ApplicantReviewView({
   viewerId,
   noteId,
   decisionId,
+  repeats,
 }: {
   review: ApplicantReview;
   listQuery: RecordQuery;
@@ -31,6 +33,8 @@ export function ApplicantReviewView({
   viewerId: string;
   noteId: string;
   decisionId: string;
+  /** Possible repeat entries, shown under the header. */
+  repeats?: ReactNode;
 }) {
   const cycle = cycleLabel(review.reviewCycle);
   return (
@@ -53,6 +57,7 @@ export function ApplicantReviewView({
           </>
         )}
       />
+      {repeats}
       <div className="grid items-start gap-6 desk:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="order-2 grid gap-6 desk:order-1">
           <section className="grid gap-4 desk:grid-cols-2">
