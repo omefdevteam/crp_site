@@ -22,6 +22,7 @@ import type { Pin } from "@/lib/pins";
 import { ABOUT_GLOBE_WAIT_IMAGES } from "../platform/globe-defer";
 import { PlatformGlobe } from "../platform/PlatformGlobe";
 import { MOBILE_GLOBE_YAW, useIsMobile } from "@/lib/useIsMobile";
+import { displayMiddots } from "@/lib/displayMiddots";
 
 function FitWidth({
   designWidth,
@@ -284,6 +285,46 @@ function TeamCard({
   );
 }
 
+
+/** Shrink a wrapping mobile team ticket until its longest word fits the card. */
+function useWrapTicketPx(role: string) {
+  const cardRef = useRef<HTMLElement | null>(null);
+  const [px, setPx] = useState(12);
+
+  useLayoutEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const fit = () => {
+      const textMax = Math.max(24, el.clientWidth - (19.125 - 2) * 2 - 8 * 2);
+      const family = getComputedStyle(el).fontFamily;
+      const ctx = document.createElement("canvas").getContext("2d");
+      if (!ctx) return;
+      const words = role.toUpperCase().split(/\s+/);
+      const widthAt = (text: string, size: number) => {
+        ctx.font = `600 ${size}px ${family}`;
+        return ctx.measureText(text).width + Math.max(0, text.length - 1) * size * 0.04;
+      };
+      const longest = words.reduce((best, word) => (word.length > best.length ? word : best), "");
+      let size = 12;
+      while (size > 7 && widthAt(longest, size) > textMax) size -= 0.25;
+      setPx(size);
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(el);
+    let cancel = false;
+    void document.fonts.ready.then(() => {
+      if (!cancel) fit();
+    }).catch(() => undefined);
+    return () => {
+      cancel = true;
+      observer.disconnect();
+    };
+  }, [role]);
+
+  return { cardRef, px };
+}
+
 function MobileTeamCard({
   member,
   onOpen,
@@ -291,8 +332,12 @@ function MobileTeamCard({
   member: TeamMember;
   onOpen: () => void;
 }) {
+  const { cardRef, px: ticketPx } = useWrapTicketPx(member.role);
   return (
     <button
+      ref={(node) => {
+        cardRef.current = node;
+      }}
       type="button"
       onClick={onOpen}
       aria-label={`${member.name}. ${member.role}`}
@@ -312,7 +357,7 @@ function MobileTeamCard({
           {member.name}
         </p>
       </div>
-      <TicketTab placement="top" ink wrap label={member.role} />
+      <TicketTab placement="top" ink wrap label={member.role} labelPx={ticketPx} />
     </button>
   );
 }
@@ -417,7 +462,7 @@ function MobileWorkCards({ cards }: { cards: readonly WorkCardCopy[] }) {
   const card =
     "relative flex h-[254px] min-w-0 flex-1 flex-col items-center justify-center gap-6 overflow-hidden rounded-[64px] p-6";
   const label = "relative z-10 w-full text-[14px] font-semibold uppercase leading-[0.9] tracking-[1.12px] text-black";
-  const title = "relative z-10 w-full text-[24px] leading-none tracking-[-0.96px]";
+  const title = "relative z-10 w-full text-[18px] leading-[1.15] tracking-[-0.72px] [overflow-wrap:break-word] hyphens-auto";
   return (
     <div className="flex w-full flex-col desk:hidden">
       <div className="flex w-full">
@@ -648,7 +693,7 @@ export function AboutPage() {
             className={`${trail.className} fit-text relative z-10 w-full max-w-[min(421px,calc(100vw-24px))] shrink-0 text-center uppercase leading-[0.9] tracking-[3.6px] [--fit-max:90px] [--fit-room:min(421px,calc(100vw-48px))] [--fit-track-px:3.6px] desk:h-auto desk:w-auto desk:max-w-none desk:tracking-[5.2px] desk:[--fit-max:clamp(64px,14vw,130px)] desk:[--fit-room:min(1072px,100vw-128px)] desk:[--fit-track-px:5.2px]`}
             style={fitVars(a.heroTitle, "trail", { upper: true })}
           >
-            {a.heroTitle}
+            {displayMiddots(a.heroTitle)}
           </h1>
           {/* Mobile: reserve the 407x430 Figma globe slot; the globe itself is absolutely positioned over it. */}
           <div aria-hidden className="h-[430px] w-full shrink-0 desk:hidden" />

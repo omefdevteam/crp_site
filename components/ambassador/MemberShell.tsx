@@ -3,16 +3,16 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { outfit } from "@/lib/fonts";
 
-// The frame every Ambassador page shares: the site header and footer around a
-// cream page, so the space reads as part of the public site.
+// The frame every Ambassador page shares: the site header (light style) and
+// footer around a cream page, so the space reads as part of the public site.
 export function MemberShell({ children }: { children: ReactNode }) {
   return (
     <div className={`${outfit.className} relative flex flex-1 flex-col bg-cream`}>
-      <div className="bg-black" data-nav-tone="dark">
-        <Header />
-        <div className="h-[104px] desk:h-[120px]" aria-hidden />
-      </div>
-      <main className="flex-1 px-4 py-10 desk:px-8 desk:py-16">{children}</main>
+      {/* Light header on the cream page, as on Privacy: dark logo, nav and menu button. */}
+      <Header />
+      <div className="h-[104px] desk:h-[120px]" aria-hidden />
+      {/* Bottom padding = the gap plus the footer's rounded top, which overlaps the page by 64px (desktop 96px). */}
+      <main className="flex-1 px-4 pb-[104px] pt-10 desk:px-8 desk:pb-[160px] desk:pt-16">{children}</main>
       <Footer pillSpace={false} />
     </div>
   );

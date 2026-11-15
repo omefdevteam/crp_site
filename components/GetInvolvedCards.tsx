@@ -119,14 +119,14 @@ function YouthActions({ onNavigate }: { onNavigate?: () => void }) {
         <Link
           href="/nominate"
           onClick={onNavigate}
-          className="flex h-12 flex-1 items-center justify-center rounded-full bg-white px-4 text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.04em] text-black transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] desk:h-20 desk:text-[20px]"
+          className="flex h-auto min-h-12 flex-1 items-center justify-center rounded-full bg-white px-3 py-2 text-[12px] font-semibold uppercase leading-[1.15] tracking-[0.04em] text-black transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] desk:h-20 desk:min-h-20 desk:px-4 desk:py-0 desk:text-[20px] desk:leading-[0.9]"
         >
           {copy.involved.nominate}
         </Link>
         <Link
           href="/apply"
           onClick={onNavigate}
-          className="gradient-brand flex h-12 flex-1 items-center justify-center rounded-full px-4 text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.04em] text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] desk:h-20 desk:text-[20px]"
+          className="gradient-brand flex h-auto min-h-12 flex-1 items-center justify-center rounded-full px-3 py-2 text-[12px] font-semibold uppercase leading-[1.15] tracking-[0.04em] text-white transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.02] active:scale-[0.98] desk:h-20 desk:min-h-20 desk:px-4 desk:py-0 desk:text-[20px] desk:leading-[0.9]"
         >
           {copy.involved.apply}
         </Link>
@@ -143,7 +143,7 @@ type InvolvedCardProps = {
 };
 
 const TITLE_SIZE = "text-[clamp(24px,3.4vw,40px)]";
-const COMPACT_TITLE_SIZE = "whitespace-nowrap text-[20px] tracking-[-0.8px] desk:whitespace-normal desk:text-[clamp(24px,3.4vw,40px)] desk:tracking-[-0.04em]";
+const COMPACT_TITLE_SIZE = "text-[20px] leading-[1.05] tracking-[-0.8px] desk:text-[clamp(24px,3.4vw,40px)] desk:leading-[0.9] desk:tracking-[-0.04em]";
 
 function YouthContent({ onNavigate, compact = false }: { onNavigate?: () => void; compact?: boolean }) {
   const copy = useCopy();
@@ -172,7 +172,7 @@ function YouthContent({ onNavigate, compact = false }: { onNavigate?: () => void
       {/* No date ticket: the Oct 14 - Nov 16 window is over. involved.programDates stays in the copy for reuse. */}
 
       <div className="absolute inset-0 flex items-center justify-center px-8 text-center">
-        <p className={`${compact ? `max-w-none desk:max-w-[12ch] ${COMPACT_TITLE_SIZE}` : `max-w-[12ch] ${TITLE_SIZE}`} leading-[0.9] tracking-[-0.04em] text-white [text-shadow:0_1px_16px_rgba(0,0,0,0.35)]`}>
+        <p className={`${compact ? `max-w-none desk:max-w-[12ch] ${COMPACT_TITLE_SIZE}` : `max-w-[12ch] ${TITLE_SIZE} leading-[0.9] tracking-[-0.04em]`} text-white [text-shadow:0_1px_16px_rgba(0,0,0,0.35)]`}>
           {copy.involved.youth}
         </p>
       </div>

@@ -11,6 +11,7 @@ import { TicketTab } from "../TicketTab";
 import { BAR, LABEL } from "../programs/ProgramApplyBar";
 import { ApplyFooter, ApplyHeader } from "./ApplyChrome";
 import { useConsent } from "../cookies/ConsentProvider";
+import { displayMiddots } from "@/lib/displayMiddots";
 
 const ART = "/images/apply/ambassadorship";
 
@@ -124,21 +125,23 @@ function ProgramCard({
       )}
       {tag ? (
         <p
-          className={`relative text-[12px] font-semibold uppercase leading-[1.2] tracking-[0.96px] desk:text-[16px] desk:tracking-[1.28px] ${tagTone}`}
+          className={`relative text-[11px] font-semibold uppercase leading-[1.2] tracking-[0.4px] [overflow-wrap:anywhere] desk:text-[16px] desk:tracking-[1.28px] desk:[overflow-wrap:normal] ${tagTone}`}
         >
           {tag}
         </p>
       ) : null}
       {/* Desktop titles may run into the right padding, as Figma's fixed 222-229px title boxes do. */}
-      <p className="relative text-[20px] leading-[0.9] tracking-[-0.8px] text-white desk:-mr-6 desk:text-[32px] desk:tracking-[-1.28px] [overflow-wrap:anywhere]">
-        {/* Inclusive forms ("Ambassadeur·rice") may break after the middle dot on narrow cards. */}
-        {title.split("·").map((part, i) => (
-          <Fragment key={`${part}-${i}`}>
-            {i > 0 ? "·" : null}
-            {i > 0 ? <wbr /> : null}
-            {part}
-          </Fragment>
-        ))}
+      <p className="relative text-[13px] leading-[1.1] tracking-[-0.4px] text-white desk:-mr-6 desk:text-[32px] desk:leading-[0.9] desk:tracking-[-1.28px]">
+        {/* Keep inclusive forms ("Ambassadeur·rice") together; wrap at spaces so the title does not become "Ambassadeur / rice 101". */}
+        {title.split(/(\s+)/).map((part, i) =>
+          part.includes("·") ? (
+            <span key={`${part}-${i}`} className="whitespace-nowrap">
+              {part}
+            </span>
+          ) : (
+            <Fragment key={`${part}-${i}`}>{part}</Fragment>
+          ),
+        )}
       </p>
       {program.soon ? (
         <TicketTab
@@ -234,7 +237,7 @@ export function AmbassadorshipLanding({ intent }: { intent: "apply" | "nominate"
                 className={`${trail.className} w-full text-[82.08px] uppercase leading-[0.9] tracking-[-3.28px] mix-blend-overlay [overflow-wrap:anywhere] desk:fit-text desk:text-center desk:[--fit-max:130px] desk:[--fit-room:min(1072px,100vw-128px)] desk:[--fit-track-px:-5.2px] desk:tracking-[-5.2px] desk:[overflow-wrap:normal]`}
                 style={fitVars(a.title, "trail", { upper: true })}
               >
-                {a.title}
+                {displayMiddots(a.title)}
               </h1>
               <p className="absolute left-0 top-[144px] w-[246px] text-[20px] leading-none tracking-[-0.8px] desk:left-16 desk:top-[calc(50%-11.5px)] desk:w-auto desk:max-w-[1072px] desk:text-[24px] desk:leading-[0.9] desk:tracking-[-0.96px]">
                 {a.subtitle}
@@ -278,7 +281,17 @@ export function AmbassadorshipLanding({ intent }: { intent: "apply" | "nominate"
                   <ul className="grid grid-cols-2 desk:hidden">
                     {a.journey.map((step) => (
                       <li key={step} className="flex min-h-[147px] items-end rounded-[24px] bg-black p-6">
-                        <p className="min-w-0 text-[15px] leading-[1.2] tracking-[-0.6px] text-white">{step}</p>
+                        <p className="min-w-0 text-[12px] leading-[1.3] tracking-[-0.36px] text-white">
+                          {step.split(/(\s+)/).map((part, i) =>
+                            part.includes("·") ? (
+                              <span key={`${part}-${i}`} className="whitespace-nowrap">
+                                {part}
+                              </span>
+                            ) : (
+                              <Fragment key={`${part}-${i}`}>{part}</Fragment>
+                            ),
+                          )}
+                        </p>
                       </li>
                     ))}
                   </ul>

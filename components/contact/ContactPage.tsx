@@ -242,10 +242,10 @@ export function ContactPage() {
   return (
     <section className="overflow-x-hidden bg-cream px-3 pb-3 pt-[68px] desk:px-16 desk:py-[88px]">
       <div className="mx-auto flex w-full min-w-0 max-w-[1072px] flex-col overflow-hidden rounded-[88px] bg-white px-6 py-8 desk:h-[629px] desk:min-h-0 desk:flex-row desk:items-end desk:rounded-[154px] desk:px-10 desk:py-16">
-        <div className="mb-[-19px] flex flex-col desk:mb-0 desk:h-[501px] desk:w-[558px] desk:shrink-0 desk:-mr-[109px]">
+        <div className="mb-4 flex flex-col desk:mb-0 desk:h-[501px] desk:w-[558px] desk:shrink-0 desk:-mr-[109px]">
           <h1
             ref={titleRef}
-            className={`${trail.className} fit-text uppercase leading-[0.9] tracking-[2.56px] text-black [--fit-max:64px] [--fit-room:calc(100vw_-_72px)] [--fit-track-px:2.56px] desk:flex-1 desk:tracking-[5.2px] desk:[--fit-max:clamp(56px,12vw,130px)] desk:[--fit-room:558px] desk:[--fit-track-px:5.2px]`}
+            className={`${trail.className} fit-text uppercase leading-[0.9] tracking-[2.56px] text-black [--fit-max:64px] [--fit-room:calc(100vw_-_72px)] [--fit-track-px:2.56px] desk:w-[425px] desk:flex-1 desk:tracking-[5.2px] desk:[--fit-max:clamp(56px,12vw,130px)] desk:[--fit-room:425px] desk:[--fit-track-px:5.2px]`}
             style={fitVars(c.title, "trail", { upper: true })}
           >
             {c.title}
@@ -263,7 +263,7 @@ export function ContactPage() {
         <form
           noValidate
           onSubmit={onSubmit}
-          className="relative z-10 flex w-full flex-col gap-2 desk:h-[420px] desk:flex-1 desk:items-end desk:justify-center"
+          className="relative z-10 flex w-full flex-col gap-2 desk:h-[420px] desk:min-w-0 desk:flex-1 desk:items-end desk:justify-center"
         >
           <input
             name={HONEYPOT_FIELD}
@@ -312,7 +312,7 @@ export function ContactPage() {
               {...invalidProps("email")}
               className={`${FIELD_SM} desk:min-w-0 desk:flex-1 desk:w-auto ${fieldInvalid("email") ? FIELD_INVALID : ""}`}
             />
-            <div className={`${PILL} ${PILL_TYPE} flex h-[61px] items-center gap-4 rounded-[48px] pl-4 pr-10 desk:h-[63px] desk:min-w-0 desk:flex-1 desk:w-auto desk:pr-6 ${fieldInvalid("phone") ? FIELD_INVALID : ""}`}>
+            <div className={`${PILL} ${PILL_TYPE} flex h-[61px] items-center gap-4 rounded-[48px] pl-4 pr-10 desk:h-[63px] desk:min-w-0 desk:flex-[1.2_1_0%] desk:w-auto desk:pr-6 ${fieldInvalid("phone") ? FIELD_INVALID : ""}`}>
               <CountryDropdown compact={!desk} variant="inline" value={dial} onChange={setDial} />
               <input
                 required

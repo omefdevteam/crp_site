@@ -36,20 +36,35 @@ function ReachOutLink({
   );
 }
 
+// Phones: the label may use the whole tile minus 6px a side, so the longest
+// one ("RESOURCES", "RESSOURCES") stays inside its tile at 360. Desktop keeps
+// its 16px labels unchanged.
+function wayLabelRoom(el: HTMLElement): number {
+  if (window.matchMedia("(min-width: 900px)").matches) return Infinity;
+  const tile = el.parentElement;
+  if (!tile) return el.clientWidth;
+  const style = getComputedStyle(tile);
+  return tile.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+}
+
 function WayTile({
   label,
+  labels,
   className,
   glow,
   glowClass,
 }: {
   label: string;
+  /** Every label in the row: the tiles share one label size, set by the longest. */
+  labels: readonly string[];
   className: string;
   glow?: string;
   glowClass?: string;
 }) {
+  const labelRef = useFitText<HTMLParagraphElement>(labels.join("\n"), wayLabelRoom, "partner-ways");
   return (
     <div
-      className={`relative flex aspect-square min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[32px] p-8 ${className}`}
+      className={`relative flex aspect-square min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[32px] px-1.5 py-8 [container-type:inline-size] desk:p-8 ${className}`}
     >
       {glow ? (
         <div aria-hidden className={`pointer-events-none absolute ${glowClass}`}>
@@ -57,7 +72,11 @@ function WayTile({
           <img alt="" src={glow} className="absolute max-w-none" style={{ inset: "-36% -31%" }} />
         </div>
       ) : null}
-      <p className="relative text-center text-[13.5px] font-semibold uppercase leading-[0.9] tracking-[0.54px] desk:text-[16px] desk:tracking-[1.28px]">
+      <p
+        ref={labelRef}
+        className="fit-text relative text-center font-semibold uppercase leading-[0.9] tracking-[0.54px] [--fit-max:13.5px] [--fit-room:100cqi] [--fit-track-px:0.54px] desk:tracking-[1.28px] desk:[--fit-max:16px] desk:[--fit-room:100000px] desk:[--fit-track-px:1.28px]"
+        style={fitVars(labels, "outfit", { upper: true })}
+      >
         {label}
       </p>
     </div>
@@ -322,8 +341,9 @@ export function PartnerPage() {
           </p>
           <div className="flex w-full">
             <div className="flex aspect-[600/300] min-w-0 flex-1">
-              <WayTile label={p.ways[0]} className="bg-black text-white" />
+              <WayTile labels={p.ways} label={p.ways[0]} className="bg-black text-white" />
               <WayTile
+                labels={p.ways}
                 label={p.ways[1]}
                 className="bg-lime text-black"
                 glow={partnerImages.wayVenues}
@@ -332,12 +352,14 @@ export function PartnerPage() {
             </div>
             <div className="flex aspect-[600/300] min-w-0 flex-1">
               <WayTile
+                labels={p.ways}
                 label={p.ways[2]}
                 className="bg-magenta text-black"
                 glow={partnerImages.wayPerks}
                 glowClass="left-[-72px] top-[-187px] h-[258.83px] w-[294px]"
               />
               <WayTile
+                labels={p.ways}
                 label={p.ways[3]}
                 className="bg-orange text-black"
                 glow={partnerImages.wayResources}
@@ -345,10 +367,10 @@ export function PartnerPage() {
               />
             </div>
           </div>
-          <p className="w-full text-[20px] leading-none tracking-[-0.8px] text-black desk:text-[32px] desk:tracking-[-1.28px]">
+          <p className="w-full px-6 text-[20px] leading-none tracking-[-0.8px] text-black desk:px-0 desk:text-[32px] desk:tracking-[-1.28px]">
             {p.waysBody}
           </p>
-          <div className="relative flex h-[390px] w-full flex-col justify-center gap-6 overflow-hidden rounded-[64px] bg-white p-8 desk:aspect-square desk:h-auto desk:p-16">
+          <div className="relative flex min-h-[390px] w-full flex-col justify-center gap-6 overflow-hidden rounded-[64px] bg-white p-8 desk:aspect-square desk:min-h-0 desk:p-16">
             <div aria-hidden className="pointer-events-none absolute left-[42px] top-[-166px] h-[317px] w-[348px] desk:left-[-32px] desk:top-[-392px] desk:h-[634px] desk:w-[696px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

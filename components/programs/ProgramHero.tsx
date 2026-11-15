@@ -4,6 +4,7 @@ import { programIcons, programPhotos } from "@/lib/program-assets";
 import { useCopy } from "../LanguageProvider";
 import { FigmaImg } from "./FigmaImg";
 import { ProgramsHeader } from "./ProgramsHeader";
+import { displayMiddots } from "@/lib/displayMiddots";
 
 /** Three 632px-wide youth photos in a 1896px band, centered and clipped to the viewport. */
 const PHOTOS: readonly {
@@ -83,7 +84,7 @@ export function ProgramHero() {
             {copy.programs.title.split("\n").map((line, i) => (
               <span key={line}>
                 {i > 0 ? <br /> : null}
-                {line}
+                {displayMiddots(line)}
               </span>
             ))}
           </h1>
