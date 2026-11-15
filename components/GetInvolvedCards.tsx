@@ -7,7 +7,6 @@ import Image from "next/image";
 import Link from "@/components/LocaleLink";
 import { usePointerOrigin } from "@/lib/usePointerOrigin";
 import { useCopy, useLanguage } from "./LanguageProvider";
-import { TicketTab } from "./TicketTab";
 import { Turnstile, TURNSTILE_SITE_KEY } from "./Turnstile";
 import { submitWaitlist } from "@/lib/actions";
 import { useCaptureSubmission } from "./useCaptureSubmission";
@@ -170,12 +169,7 @@ function YouthContent({ onNavigate, compact = false }: { onNavigate?: () => void
         <div className="absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/45" />
       </div>
 
-      <TicketTab
-        placement="top"
-        size="lg"
-        label={copy.involved.programDates}
-        className="!-top-[4px]"
-      />
+      {/* No date ticket: the Oct 14 - Nov 16 window is over. involved.programDates stays in the copy for reuse. */}
 
       <div className="absolute inset-0 flex items-center justify-center px-8 text-center">
         <p className={`${compact ? `max-w-none desk:max-w-[12ch] ${COMPACT_TITLE_SIZE}` : `max-w-[12ch] ${TITLE_SIZE}`} leading-[0.9] tracking-[-0.04em] text-white [text-shadow:0_1px_16px_rgba(0,0,0,0.35)]`}>
