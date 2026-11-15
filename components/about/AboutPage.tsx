@@ -632,7 +632,8 @@ export function AboutPage() {
 
   return (
     <div className="overflow-x-hidden bg-cream">
-      <section className="relative flex h-[855px] items-start justify-center overflow-hidden px-3 pb-3 pt-[123px] desk:h-auto desk:min-h-[805px] desk:items-center desk:px-16 desk:pb-[96px] desk:pt-[120px]">
+      {/* Mobile: min-h, not h. The 855px Figma frame only fits a 4-line body under the two-line title and globe slot; longer wraps (narrow phones, FR/ES/PT) must grow the section instead of being clipped. */}
+      <section className="relative flex min-h-[855px] items-start justify-center overflow-hidden px-3 pb-3 pt-[123px] desk:h-auto desk:min-h-[805px] desk:items-center desk:px-16 desk:pb-[96px] desk:pt-[120px]">
         <Image
           src={aboutImages.heroBg}
           alt=""
