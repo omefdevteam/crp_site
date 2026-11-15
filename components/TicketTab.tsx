@@ -64,9 +64,13 @@ export function TicketTab({
       : "h-[19px] w-[19px]";
 
   const chip = wrap
-    ? `min-h-[32.625px] min-w-0 px-[8px] py-[6px] text-[12px] tracking-[0.04em] bg-current ${
-        isTop ? "rounded-b-[13.5px]" : "rounded-t-[13.5px]"
-      }`
+    ? isLarge
+      ? `min-h-[33px] min-w-0 px-[18px] py-[6px] text-[13px] tracking-[0.96px] bg-current ${
+          isTop ? "rounded-b-[13.5px] desk:rounded-b-[27px]" : "rounded-t-[13.5px] desk:rounded-t-[27px]"
+        } desk:min-h-[65.25px] desk:px-[36px] desk:py-[10px] desk:text-[24px]`
+      : `min-h-[32.625px] min-w-0 px-[8px] py-[6px] text-[12px] tracking-[0.04em] bg-current ${
+          isTop ? "rounded-b-[13.5px]" : "rounded-t-[13.5px]"
+        }`
     : isLarge
     ? isTop
       ? "h-[33px] px-[18px] text-[13.5px] rounded-b-[13.5px] tracking-[0.96px] bg-current desk:h-[65.25px] desk:px-[36px] desk:text-[24px] desk:rounded-b-[27px]"
@@ -124,12 +128,12 @@ export function TicketTab({
         />
         <Ear className={leftEar} />
         <span
-          className={`relative z-[1] items-center justify-center text-center font-semibold uppercase leading-[0.9] ${
+          className={`relative z-[1] items-center justify-center text-center font-semibold uppercase ${wrap ? "leading-[1.15]" : "leading-[0.9]"} ${
             capped ? "flex min-w-0" : "inline-flex"
           } ${chip} ${!wrap && (typeof label === "string" || capped) ? "whitespace-nowrap" : ""}`}
           style={labelPx === undefined ? undefined : { fontSize: labelPx }}
         >
-          <span className={`mix-blend-hard-light ${capped ? "min-w-0 truncate" : ""} ${labelTone}`}>
+          <span className={`mix-blend-hard-light ${capped && !wrap ? "min-w-0 truncate" : wrap ? "min-w-0" : ""} ${labelTone}`}>
             {label}
           </span>
         </span>

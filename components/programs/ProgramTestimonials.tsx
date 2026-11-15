@@ -20,7 +20,7 @@ function RoleTab({ role }: { role: string }) {
       role
     );
 
-  return <TicketTab placement="top" size="lg" label={label} />;
+  return <TicketTab placement="top" size="lg" wrap={lines.length > 1} label={label} />;
 }
 
 type TestimonialBase = {

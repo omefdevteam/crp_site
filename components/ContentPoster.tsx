@@ -28,7 +28,7 @@ export function ContentPoster({
       style={{ width: BASE_W, height: BASE_H }}
     >
       <Image src={image} alt="" fill sizes="380px" className="object-cover" />
-      <TicketTab placement="top" label={topic} />
+      <TicketTab placement="top" label={topic} {...(orientation === "window" ? { wrap: true, maxWidth: 175 } : {})} />
       {children}
       <TicketTab placement="bottom" label={comingSoon} />
     </article>
