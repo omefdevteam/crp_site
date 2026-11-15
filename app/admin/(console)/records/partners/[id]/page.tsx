@@ -6,6 +6,9 @@ import { adjacentDetailHrefs, parseRecordQuery } from "@/lib/admin/records";
 import { recordsHref } from "@/lib/admin/return";
 import { loadDetail } from "@/lib/desk/case";
 import { getDb } from "@/lib/db";
+import { RepeatsPanel } from "@/components/admin/RepeatsPanel";
+import { decideRepeatAction } from "@/app/admin/(console)/records/repeats/actions";
+import { canDecide, matchesFor } from "@/lib/duplicates/review";
 import { requireStaff } from "@/lib/staff/gate";
 import { addPartnerNote, assignPartner, movePartner } from "./actions";
 
@@ -24,9 +27,11 @@ export default async function PartnerDeskPage({
   const db = getDb();
   const detail = await loadDetail(db, staff, "partner", id);
   if (!detail) notFound();
+  const repeats = await matchesFor(db, "partners", detail.recordId);
   const neighbors = await adjacentDetailHrefs(db, listQuery, { id: detail.recordId, createdAt: detail.createdAt }, staff);
   return (
     <DeskView
+      repeats={<RepeatsPanel matches={repeats} path={`/admin/records/partners/${detail.recordId}`} canDecide={canDecide(staff.role, "partners")} action={decideRepeatAction} />}
       detail={detail}
       listHref={recordsHref(listQuery)}
       backLabel="Back to partners"

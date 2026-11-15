@@ -129,6 +129,11 @@ export function activityLabel(kind: string, detail: Record<string, unknown>): st
     const created = textOf(detail, "created") || "0";
     return `Opened ${created} Ambassador ${created === "1" ? "account" : "accounts"} for earlier acceptances`;
   }
+  if (kind === "duplicate.decided") {
+    const what = ({ applicants: "an application", partners: "a partner inquiry", messages: "a message" } as Record<string, string>)[textOf(detail, "list")] ?? "an entry";
+    const to = textOf(detail, "to");
+    return to === "confirmed" ? `Marked ${what} as a repeat` : to === "dismissed" ? `Marked ${what} as not a repeat` : `Reopened a repeat check on ${what}`;
+  }
   if (kind === "story.reviewed") {
     const verb = textOf(detail, "verb");
     return verb === "approve" ? "Approved a story for the globe" : verb === "takedown" ? "Took a story off the globe" : "Sent a story back for changes";

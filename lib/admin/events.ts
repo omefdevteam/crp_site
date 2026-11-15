@@ -35,6 +35,7 @@ export type AdminEvent =
   | { readonly kind: "logo.added" | "logo.replaced" | "logo.removed"; readonly logoGroup: string; readonly logoName: string }
   | { readonly kind: "logo.updated"; readonly logoGroup: string; readonly logoName: string; readonly previousName: string }
   | { readonly kind: "ambassadors.backfilled"; readonly created: number }
+  | { readonly kind: "duplicate.decided"; readonly list: string; readonly recordId: string; readonly originalId: string; readonly from: string; readonly to: string }
   | { readonly kind: "story.reviewed"; readonly storyId: string; readonly verb: "approve" | "reject" | "takedown"; readonly from: string; readonly to: string }
   | { readonly kind: "story.moved"; readonly storyId: string; readonly from: string; readonly to: string }
   | { readonly kind: "logo.moved"; readonly logoGroup: string; readonly logoName: string; readonly direction: "up" | "down" };
