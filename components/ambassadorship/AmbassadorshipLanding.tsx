@@ -11,6 +11,7 @@ import { TicketTab } from "../TicketTab";
 import { BAR, LABEL } from "../programs/ProgramApplyBar";
 import { ApplyFooter, ApplyHeader } from "./ApplyChrome";
 import { useConsent } from "../cookies/ConsentProvider";
+import { displayMiddots } from "@/lib/displayMiddots";
 
 const ART = "/images/apply/ambassadorship";
 
@@ -236,7 +237,7 @@ export function AmbassadorshipLanding({ intent }: { intent: "apply" | "nominate"
                 className={`${trail.className} w-full text-[82.08px] uppercase leading-[0.9] tracking-[-3.28px] mix-blend-overlay [overflow-wrap:anywhere] desk:fit-text desk:text-center desk:[--fit-max:130px] desk:[--fit-room:min(1072px,100vw-128px)] desk:[--fit-track-px:-5.2px] desk:tracking-[-5.2px] desk:[overflow-wrap:normal]`}
                 style={fitVars(a.title, "trail", { upper: true })}
               >
-                {a.title}
+                {displayMiddots(a.title)}
               </h1>
               <p className="absolute left-0 top-[144px] w-[246px] text-[20px] leading-none tracking-[-0.8px] desk:left-16 desk:top-[calc(50%-11.5px)] desk:w-auto desk:max-w-[1072px] desk:text-[24px] desk:leading-[0.9] desk:tracking-[-0.96px]">
                 {a.subtitle}
