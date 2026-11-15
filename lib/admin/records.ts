@@ -636,6 +636,9 @@ export async function adjacentDetailHrefs(
 ): Promise<{ readonly previous: string | null; readonly next: string | null }> {
   const path = detailPath(query.list);
   if (!path) return { previous: null, next: null };
+  // Settles repeatsSeen() so a ?repeats= filter is honoured on a fresh server
+  // instance too (the WHERE below is built synchronously).
+  if (query.repeats) await repeatsInstalled(db);
   if (query.list === "messages") {
     const ids = await adjacentMessageIds(db, { q: query.q, status: query.status }, current);
     return {

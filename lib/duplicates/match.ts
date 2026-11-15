@@ -50,6 +50,9 @@ const WINDOW_DAYS: Record<DuplicateList, number | null> = { applicants: null, pa
 const DOUBLE_SUBMIT_MS = 10 * 60 * 1000;
 // One entry is compared with at most this many earlier ones.
 const PER_RECORD_MAX = 5;
+// And looks at no more than this many earlier entries sharing a key, so one
+// shared placeholder phone or address cannot make the scan quadratic.
+const PER_RECORD_LOOK = 50;
 
 export function fold(value: string): string {
   return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -150,10 +153,12 @@ export function findPairs(list: DuplicateList, entries: readonly Entry[]): Pair[
 
     const found: Pair[] = [];
     // Nearest first, so the cap keeps the most recent earlier attempts.
-    for (const earlier of [...candidates.values()].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())) {
+    const nearest = [...candidates.values()].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime() || b.id.localeCompare(a.id)).slice(0, PER_RECORD_LOOK);
+    for (const earlier of nearest) {
       if (found.length >= PER_RECORD_MAX) break;
       const gap = entry.createdAt.getTime() - earlier.createdAt.getTime();
-      if (windowMs !== null && gap > windowMs) continue;
+      // Nearest first: once one is outside the window, the rest are too.
+      if (windowMs !== null && gap > windowMs) break;
       const person = samePerson(mine, keys.get(earlier.id)!);
       if (person.length === 0) continue;
       const purpose = samePurpose(list, entry, earlier);

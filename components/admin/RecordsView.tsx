@@ -85,7 +85,7 @@ export function RecordsView({
           <p className="text-sm text-black/60">
             {data.total === 1 ? "1 result" : `${data.total} results`}
             {data.repeats && data.repeats.repeats > 0 ? ` · ${data.repeats.repeats} confirmed ${data.repeats.repeats === 1 ? "repeat" : "repeats"} across all ${LABELS[data.list].toLowerCase()}` : ""}
-            {data.repeats && data.repeats.suggested > 0 ? (
+            {data.repeats && data.repeats.suggested > 0 && (data.list === "applicants" || data.list === "partners") ? (
               <>
                 {" · "}
                 <a className="underline underline-offset-4" href={recordsHref({ ...data.filters, repeats: "open", page: 1 })}>
