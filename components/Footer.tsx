@@ -51,16 +51,9 @@ const LINK =
 const TILE =
   "flex aspect-square min-w-0 max-w-[25%] flex-1 items-center justify-center rounded-[12px] bg-white desk:max-w-none desk:size-16 desk:flex-none";
 
-export function Footer({
-  pillSpace = true,
-}: {
-  /**
-   * Mobile only: reserve 64px under the copyright so the fixed GET INVOLVED pill
-   * never covers it. Pass false on pages that don't show the pill (Contact).
-   * Desktop padding is unchanged either way.
-   */
-  pillSpace?: boolean;
-} = {}) {
+// Room for the fixed GET INVOLVED pill is not reserved here: GetInvolvedPill
+// adds its own spacer wherever it is actually shown (see PillSpacer).
+export function Footer() {
   const copy = useCopy();
   const socials = footerSocials(useSocialLinks());
   const tr = useText();
@@ -71,9 +64,7 @@ export function Footer({
   return (
     <footer
       id="contact"
-      className={`relative z-10 -mt-16 rounded-t-[88px] bg-cream px-6 pt-6 ${
-        pillSpace ? "pb-[88px]" : "pb-6"
-      } desk:-mt-24 desk:rounded-t-[96px] desk:py-14`}
+      className="relative z-10 -mt-16 rounded-t-[88px] bg-cream px-6 pb-6 pt-6 desk:-mt-24 desk:rounded-t-[96px] desk:py-14"
     >
       <div className="mx-auto flex max-w-[1152px] flex-col items-center gap-[58px] desk:gap-14">
         <div className="flex w-full flex-col items-center gap-[58px] desk:flex-row">

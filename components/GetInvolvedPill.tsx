@@ -102,6 +102,29 @@ export function GetInvolvedTab({ className = "" }: { className?: string }) {
   );
 }
 
+/** Height of the docked tab (GetInvolvedTab's 60px bar). */
+const PILL_HEIGHT_PX = 60;
+/** Gap kept between the last line of the page and the top of the pill. */
+const PILL_CLEARANCE_PX = 12;
+
+/**
+ * Phones: in-flow room at the very end of the page, as tall as the fixed pill
+ * plus a small gap and the home-indicator inset, so the last content (footer,
+ * cards) always scrolls clear of the pill. It renders with the pill itself, so
+ * every page that shows the pill gets it and pages without one don't. Desktop
+ * already leaves room in its footer padding, so the spacer is phone-only.
+ */
+function PillSpacer() {
+  return (
+    <div
+      aria-hidden
+      data-pill-spacer
+      className="shrink-0 bg-cream desk:hidden"
+      style={{ height: `calc(${PILL_HEIGHT_PX + PILL_CLEARANCE_PX}px + env(safe-area-inset-bottom, 0px))` }}
+    />
+  );
+}
+
 // Fixed copy of the tab: hides while #join is on screen, then rises back up.
 export function GetInvolvedPill() {
   const ref = useRef<HTMLDivElement>(null);
@@ -159,6 +182,7 @@ export function GetInvolvedPill() {
 
   return (
     <>
+      <PillSpacer />
       <div
         ref={ref}
         data-testid="get-involved-pill"

@@ -13,7 +13,7 @@ export function MemberShell({ children }: { children: ReactNode }) {
       <div className="h-[104px] desk:h-[120px]" aria-hidden />
       {/* Bottom padding = the gap plus the footer's rounded top, which overlaps the page by 64px (desktop 96px). */}
       <main className="flex-1 px-4 pb-[104px] pt-10 desk:px-8 desk:pb-[160px] desk:pt-16">{children}</main>
-      <Footer pillSpace={false} />
+      <Footer />
     </div>
   );
 }

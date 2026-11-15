@@ -30,7 +30,7 @@ export default async function ContactRoute({ params }: LangParams) {
           <Sponsors />
         </div>
       </main>
-      <Footer pillSpace={false} />
+      <Footer />
       {/* Mobile Figma has no floating pill on Contact; it covered the EMAIL/PHONE tiles. */}
       <div className="max-desk:hidden">
         <GetInvolvedPill />

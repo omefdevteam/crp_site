@@ -21,7 +21,7 @@ export default async function PrivacyRoute({ params }: LangParams) {
         <main className="flex-1">
           <PrivacyPage />
         </main>
-        <Footer pillSpace={false} />
+        <Footer />
       </div>
     </>
   );
