@@ -715,3 +715,37 @@ export const storyEvents = pgTable("story_events", {
 
 export type Ambassador = typeof ambassadors.$inferSelect;
 export type Story = typeof stories.$inferSelect;
+
+// Repeat entries in applicants, partner inquiries and messages. See
+// drizzle/0022_duplicate_matches.sql for the rules and lib/duplicates for the
+// scan. Not foreign keys: a match points into one of three tables by `list`.
+export const duplicateLists = ["applicants", "partners", "messages"] as const;
+export type DuplicateList = (typeof duplicateLists)[number];
+export const duplicateStatuses = ["suggested", "confirmed", "dismissed"] as const;
+export type DuplicateStatus = (typeof duplicateStatuses)[number];
+
+export const duplicateMatches = pgTable("duplicate_matches", {
+  id: id(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+  list: text("list").$type<DuplicateList>().notNull(),
+  recordId: uuid("record_id").notNull(),
+  originalId: uuid("original_id").notNull(),
+  reasons: jsonb("reasons").$type<string[]>().notNull(),
+  status: text("status").$type<DuplicateStatus>().notNull().default("suggested"),
+  automatic: boolean("automatic").notNull().default(false),
+  decidedBy: uuid("decided_by").references(() => users.id, { onDelete: "set null" }),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+}, (t) => [
+  uniqueIndex("duplicate_matches_pair_key").on(t.list, t.recordId, t.originalId),
+  index("duplicate_matches_original_idx").on(t.list, t.originalId),
+  index("duplicate_matches_open_idx").on(t.list, t.status),
+]);
+
+export const duplicateScans = pgTable("duplicate_scans", {
+  list: text("list").$type<DuplicateList>().primaryKey(),
+  scannedAt: timestamp("scanned_at", { withTimezone: true }).notNull(),
+  newestSeen: timestamp("newest_seen", { withTimezone: true }),
+});
+
+export type DuplicateMatch = typeof duplicateMatches.$inferSelect;

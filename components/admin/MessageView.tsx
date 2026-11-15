@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { useActionState, useState } from "react";
 import { AdminSelect } from "@/components/admin/AdminSelect";
 import { buttonClass } from "@/components/admin/Button";
@@ -45,6 +47,7 @@ export function MessageView({
   next,
   noteId,
   action,
+  repeats,
 }: {
   detail: MessageDetail;
   listHref: string;
@@ -52,6 +55,8 @@ export function MessageView({
   next: string | null;
   noteId: string;
   action: MessageAction;
+  /** Possible repeat entries, shown under the header. */
+  repeats?: ReactNode;
 }) {
   const options = detail.assignee && !detail.assignees.some((person) => person.id === detail.assignee?.id)
     ? [...detail.assignees, detail.assignee]
@@ -75,6 +80,7 @@ export function MessageView({
         next={next}
         meta={<p className="text-sm font-semibold">{detail.statusLabel}</p>}
       />
+      {repeats}
       <section className={card}>
         <h2 className="text-lg font-semibold">Details</h2>
         <dl className="mt-4 grid gap-4 desk:grid-cols-2">

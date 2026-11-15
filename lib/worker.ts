@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import { scanAllIfStale } from "@/lib/duplicates/scan";
 import { applicants, getDb, identityDocuments, type Db } from "@/lib/db";
 import { loadEmailSources } from "@/lib/copy/read";
 import { identityEmail } from "@/lib/emails";
@@ -134,6 +135,12 @@ export async function tick(limit = 25) {
     await purgeExpiredSignIns(db);
   } catch (err) {
     console.error("[worker] staff purge skipped", err instanceof Error ? err.message : err);
+  }
+  // Repeat entries: rescans a list only after something new arrived.
+  try {
+    await scanAllIfStale(db);
+  } catch (err) {
+    console.error("[worker] duplicate scan skipped", err instanceof Error ? err.message : err);
   }
   let mediaRetention: RetentionReport = { mode: "error", answers: 0, documents: 0 };
   try {

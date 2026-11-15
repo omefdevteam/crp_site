@@ -42,7 +42,10 @@ export function DashboardView({ data, weeks }: { data: Dashboard; weeks: readonl
       {access.applicants ? <section className={card}>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lg font-semibold">Applicants</h2>
-          <p className="text-sm text-black/60">{data.applicantTotal} in total</p>
+          <p className="text-sm text-black/60">
+            {data.applicantTotal} in total
+            {data.repeats?.applicants && data.repeats?.applicants.repeats > 0 ? ` · ${data.applicantTotal - data.repeats?.applicants.repeats} people (${data.repeats?.applicants.repeats} confirmed ${data.repeats?.applicants.repeats === 1 ? "repeat" : "repeats"})` : ""}
+          </p>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-3 desk:grid-cols-4">
           {data.pipeline.map((row) => (
@@ -78,6 +81,9 @@ export function DashboardView({ data, weeks }: { data: Dashboard; weeks: readonl
         {access.partners ? <article className={card}>
           <h2 className="text-lg font-semibold">Partner inquiries in total</h2>
           <p className="mt-2 text-3xl font-semibold">{data.partners.total}</p>
+          {data.repeats?.partners && data.repeats?.partners.repeats > 0 ? (
+            <p className="mt-1 text-sm text-black/60">{data.partners.total - data.repeats?.partners.repeats} after leaving out {data.repeats?.partners.repeats} confirmed {data.repeats?.partners.repeats === 1 ? "repeat" : "repeats"}</p>
+          ) : null}
           <Button className="mt-4" href="/admin/records?list=partners" variant="outline">Open list</Button>
         </article> : null}
       </section> : null}
@@ -97,6 +103,13 @@ export function attentionItems(data: Dashboard): readonly { label: string; count
     access.messages ? { label: "New messages", count: data.newMessages, href: messagesListHref(NEW_MESSAGE_STATUS) } : null,
     access.nominations ? { label: "Nominations to follow up", count: data.nominationDesk.needsAttention, href: `/admin/records?list=${data.nominationDesk.list}&attention=needs` } : null,
     access.partners ? { label: "Partner inquiries to follow up", count: data.partnerWorkflow.needsAttention, href: `/admin/records?list=${data.partnerWorkflow.list}&attention=needs` } : null,
+    // Shown only once repeat checks are switched on and something is waiting.
+    data.repeats?.applicants && data.repeats?.applicants.suggested > 0
+      ? { label: "Possible repeat applications to check", count: data.repeats?.applicants.suggested, href: "/admin/records?list=applicants&repeats=open" }
+      : null,
+    data.repeats?.partners && data.repeats?.partners.suggested > 0
+      ? { label: "Possible repeat partner inquiries", count: data.repeats?.partners.suggested, href: "/admin/records?list=partners&repeats=open" }
+      : null,
   ].filter((item) => item !== null);
 }
 

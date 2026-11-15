@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { ApplicantReviewView } from "@/components/admin/ApplicantReviewView";
 import { loadApplicant, loadReviewers, parseRecordQuery } from "@/lib/admin/records";
 import { getDb } from "@/lib/db";
+import { RepeatsPanel } from "@/components/admin/RepeatsPanel";
+import { decideRepeatAction } from "@/app/admin/(console)/records/repeats/actions";
+import { canDecide, matchesFor } from "@/lib/duplicates/review";
 import { requireStaff } from "@/lib/staff/gate";
 import { can } from "@/lib/staff/roles";
 import { parseUserId } from "@/lib/staff/users";
@@ -25,9 +28,11 @@ export default async function ApplicantPage({
   const db = getDb();
   const review = await loadApplicant(db, parsed, staff, listQuery);
   if (!review) notFound();
+  const repeats = await matchesFor(db, "applicants", parsed);
   const reviewers = can(staff.role, "reviews.assign") ? await loadReviewers(db) : [];
   return (
     <ApplicantReviewView
+      repeats={<RepeatsPanel matches={repeats} path={`/admin/records/applicants/${parsed}`} canDecide={canDecide(staff.role, "applicants")} action={decideRepeatAction} />}
       review={review}
       listQuery={listQuery}
       canWrite={can(staff.role, "reviews.write")}

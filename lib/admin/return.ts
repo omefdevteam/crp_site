@@ -9,6 +9,8 @@ export type ListReturn = {
   readonly age: string;
   readonly queue: string;
   readonly attention: string;
+  /** Repeat entries: "hide", "only" or "open" (waiting for a decision). */
+  readonly repeats?: string;
   readonly page: number;
 };
 
@@ -23,6 +25,7 @@ export function recordsHref(query: ListReturn): string {
   if (query.age) params.set("age", query.age);
   if (query.queue) params.set("queue", query.queue);
   if (query.attention) params.set("attention", query.attention);
+  if (query.repeats) params.set("repeats", query.repeats);
   if (query.page > 1) params.set("page", String(query.page));
   return `/admin/records?${params.toString()}`;
 }
@@ -37,11 +40,12 @@ export function detailHref(pathname: string, query: ListReturn): string {
   if (query.age) params.set("age", query.age);
   if (query.queue) params.set("queue", query.queue);
   if (query.attention) params.set("attention", query.attention);
+  if (query.repeats) params.set("repeats", query.repeats);
   if (query.page > 1) params.set("page", String(query.page));
   const search = params.toString();
   return search ? `${pathname}?${search}` : pathname;
 }
 
 export function filtersAreOpen(query: ListReturn): boolean {
-  return Boolean(query.q || query.status || query.track || query.language || query.cycle || query.age || query.queue || query.attention);
+  return Boolean(query.q || query.status || query.track || query.language || query.cycle || query.age || query.queue || query.attention || query.repeats);
 }
