@@ -5,6 +5,7 @@ import { programIcons } from "@/lib/program-assets";
 import { useCopy } from "../LanguageProvider";
 import { ApplicationProcessPopup } from "./ApplicationProcessPopup";
 import { FigmaImg } from "./FigmaImg";
+import { displayMiddots } from "@/lib/displayMiddots";
 
 export function ProgramApplicationBand() {
   const copy = useCopy();
@@ -14,7 +15,7 @@ export function ProgramApplicationBand() {
     <section className="w-full">
       <div className="flex flex-col items-center gap-8 bg-black px-0 py-16 desk:rounded-[105px] desk:px-8 desk:py-[120px]">
         <p className="w-full max-w-[632px] px-6 text-[32px] font-normal leading-none tracking-[-1.28px] text-white desk:px-0">
-          {copy.programs.applyBand.body}
+          {displayMiddots(copy.programs.applyBand.body)}
         </p>
 
         <button
