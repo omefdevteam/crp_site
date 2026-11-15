@@ -150,6 +150,42 @@ function OptionRow({
   );
 }
 
+const VALUE_PX = 20;
+const VALUE_MIN_PX = 16;
+
+/**
+ * Shrinks the chosen value (20px) until it fits the field on one line, down to
+ * 16px; past that it truncates as before. Longer translations of a single
+ * option ("L'ensemble de l'organisation") then read in full at the same field
+ * height; a long list of several picks still ends in an ellipsis.
+ */
+function useFitValue(value: string) {
+  const ref = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    const box = el?.parentElement;
+    if (!el || !box) return;
+    const fit = () => {
+      el.style.fontSize = "";
+      el.style.letterSpacing = "";
+      if (!el.clientWidth || el.scrollWidth <= el.clientWidth) return;
+      const px = Math.max(VALUE_MIN_PX, Math.floor(VALUE_PX * (el.clientWidth / el.scrollWidth) * 10) / 10);
+      el.style.fontSize = `${px}px`;
+      el.style.letterSpacing = `${(-0.04 * px).toFixed(2)}px`;
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(box);
+    let live = true;
+    void document.fonts?.ready.then(() => live && fit());
+    return () => {
+      live = false;
+      observer.disconnect();
+    };
+  }, [value]);
+  return ref;
+}
+
 function FieldButton({
   label,
   value,
@@ -163,6 +199,7 @@ function FieldButton({
   onClick: () => void;
   buttonRef: RefObject<HTMLButtonElement | null>;
 }) {
+  const valueRef = useFitValue(value);
   return (
     <button
       ref={buttonRef}
@@ -175,7 +212,7 @@ function FieldButton({
       {value ? (
         <span className="flex min-w-0 flex-1 flex-col justify-center pr-3">
           <span className="text-[10px] font-semibold uppercase leading-[0.9] tracking-[0.4px] text-black/48 mix-blend-hard-light">{label}</span>
-          <span className="truncate text-[20px] font-normal leading-[1.2] tracking-[-0.8px] text-black">{value}</span>
+          <span ref={valueRef} className="truncate text-[20px] font-normal leading-[1.2] tracking-[-0.8px] text-black">{value}</span>
         </span>
       ) : (
         <span className="min-w-0 flex-1 truncate pr-3 text-[14px] font-semibold uppercase leading-[0.9] tracking-[0.56px] text-black/48 mix-blend-hard-light">
