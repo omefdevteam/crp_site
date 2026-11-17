@@ -6,7 +6,6 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { Pin, PinGroup } from "@/lib/pins";
 import { GlobeShell } from "./GlobeShell";
-import { useIsMobile } from "@/lib/useIsMobile";
 import {
   GLOBE_DEFER_MS,
   GLOBE_NEAR_MARGIN,
@@ -111,11 +110,10 @@ export function PlatformGlobe({
 }: PlatformGlobeProps) {
   // The static underlay renders immediately; the Three.js chunk + texture only
   // load once the globe's frame scrolls near (and the page's key images settle).
-  // On phones the static image stays, so About does not pay the 3D main-thread cost.
-  const isMobile = useIsMobile();
+  // Phones get the live globe too: it spins, shows pins and drags left-right only.
   const frameRef = useRef<HTMLDivElement>(null);
   const near = useNearViewport(frameRef);
-  const deferReady = useGlobeReady(imageKeys) && near && !isMobile;
+  const deferReady = useGlobeReady(imageKeys) && near;
   const [live, setLive] = useState(false);
 
   // Reset when the globe un-defers (adjusting state during render, not in an effect).
