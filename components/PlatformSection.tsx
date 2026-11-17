@@ -354,6 +354,7 @@ export function PlatformSection({ globe = EMPTY_GLOBE }: { globe?: GlobeData }) 
                 visibleGroups={visibleGroups}
                 emphasis={mode === "manual" ? activeGroup : null}
                 initialYaw={globeYaw}
+                liveOnMobile
                 pins={shownPins}
                 selectable={selectable}
                 labels={labels}

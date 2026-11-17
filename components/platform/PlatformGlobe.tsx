@@ -29,6 +29,12 @@ export type PlatformGlobeProps = {
   onSelect?: (pin: Pin) => void;
   selectable?: ReadonlySet<string>;
   labels?: Readonly<Record<string, string>>;
+  /**
+   * Load the live 3D globe on phones too. Off by default so About's hero keeps
+   * its static image; the home Platform globe turns it on so it spins, shows
+   * its pins and can be dragged sideways.
+   */
+  liveOnMobile?: boolean;
 };
 
 function useGlobeReady(imageKeys: readonly string[]): boolean {
@@ -108,14 +114,16 @@ export function PlatformGlobe({
   onSelect,
   selectable,
   labels,
+  liveOnMobile = false,
 }: PlatformGlobeProps) {
   // The static underlay renders immediately; the Three.js chunk + texture only
   // load once the globe's frame scrolls near (and the page's key images settle).
-  // On phones the static image stays, so About does not pay the 3D main-thread cost.
+  // On phones the static image stays unless liveOnMobile is set, so About does
+  // not pay the 3D main-thread cost while the home globe still spins.
   const isMobile = useIsMobile();
   const frameRef = useRef<HTMLDivElement>(null);
   const near = useNearViewport(frameRef);
-  const deferReady = useGlobeReady(imageKeys) && near && !isMobile;
+  const deferReady = useGlobeReady(imageKeys) && near && (liveOnMobile || !isMobile);
   const [live, setLive] = useState(false);
 
   // Reset when the globe un-defers (adjusting state during render, not in an effect).
