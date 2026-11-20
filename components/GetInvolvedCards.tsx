@@ -18,7 +18,7 @@ const SECTION_SIZE =
 // scrolls. shrink-0 stops the column flex squeezing the overflow-hidden Partner
 // card below its aspect-square height. Desktop keeps the default shrink.
 const POPUP_SHELL =
-  "mx-auto w-full max-w-[536px] shrink-0 rounded-[88px] desk:mx-0 desk:aspect-auto desk:h-full desk:max-h-[536px] desk:min-w-0 desk:max-w-none desk:flex-1 desk:shrink desk:rounded-[154px]";
+  "mx-auto w-full max-w-[536px] shrink-0 rounded-[88px] desk:mx-0 desk:aspect-auto desk:h-[min(536px,calc(100dvh-331px))] desk:min-w-0 desk:max-w-none desk:flex-1 desk:shrink desk:rounded-[154px]";
 
 const REVEAL =
   "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none";
