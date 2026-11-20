@@ -39,16 +39,18 @@ function Caret({ up }: { up: boolean }) {
   );
 }
 
-// "Your superpower" (Figma 124:382): one of the apply form's 18 skills, optional.
-function SuperpowerField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+// "Your superpower" (Figma 124:382): any of the apply form's 18 skills, as
+// checkboxes so people can pick more than one. Optional.
+function SuperpowerField({ value, onChange }: { value: readonly string[]; onChange: (v: string[]) => void }) {
   const tr = useText();
   const { locale } = useLanguage();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [box, setBox] = useState<{ top: number; left: number; width: number; maxHeight: number } | null>(null);
   const label = tr("Your superpower");
-  const picked = APPLY_SKILLS.find((s) => s.en === value);
-  const pickedLabel = picked ? (picked[locale as "en"] ?? picked.en) : "";
+  const pickedLabel = APPLY_SKILLS.filter((s) => value.includes(s.en))
+    .map((s) => s[locale as "en"] ?? s.en)
+    .join(", ");
 
   useLayoutEffect(() => {
     const anchor = triggerRef.current;
@@ -97,7 +99,7 @@ function SuperpowerField({ value, onChange }: { value: string; onChange: (v: str
         aria-expanded={open}
         aria-label={label}
         onClick={() => setOpen((o) => !o)}
-        className={`${FIELD} ${FIELD_LG} min-w-0 flex-1 gap-6 pl-6 pr-8 text-left transition-colors ${open ? "bg-cream" : ""}`}
+        className={`${FIELD} ${FIELD_LG} w-full min-w-0 shrink-0 gap-6 desk:w-auto desk:flex-1 pl-6 pr-8 text-left transition-colors ${open ? "bg-cream" : ""}`}
       >
         <span className="flex min-w-0 flex-1 flex-col justify-center">
           {pickedLabel ? (
@@ -116,26 +118,34 @@ function SuperpowerField({ value, onChange }: { value: string; onChange: (v: str
             <div
               data-superpower-menu
               role="listbox"
+              aria-multiselectable
               aria-label={label}
               style={{ top: box.top, left: box.left, width: box.width, maxHeight: box.maxHeight }}
               className="fixed z-[80] flex flex-col overflow-y-auto overscroll-contain rounded-[24px] border border-black/12 bg-white px-[18px] py-1.5"
             >
               {APPLY_SKILLS.map((skill) => {
-                const selected = skill.en === value;
+                const selected = value.includes(skill.en);
                 return (
                   <button
                     key={skill.id}
                     type="button"
                     role="option"
                     aria-selected={selected}
-                    onClick={() => {
-                      onChange(selected ? "" : skill.en);
-                      setOpen(false);
-                    }}
-                    className={`relative flex min-h-12 w-full shrink-0 items-center rounded-[18px] px-3 text-left text-[16px] leading-[1.1] tracking-[-0.64px] text-black transition-colors hover:bg-[rgba(244,241,234,0.64)] desk:min-h-14 desk:text-[20px] desk:tracking-[-0.8px] ${
+                    onClick={() => onChange(selected ? value.filter((v) => v !== skill.en) : [...value, skill.en])}
+                    className={`relative flex min-h-12 gap-3 w-full shrink-0 items-center rounded-[18px] px-3 text-left text-[16px] leading-[1.1] tracking-[-0.64px] text-black transition-colors hover:bg-[rgba(244,241,234,0.64)] desk:min-h-14 desk:text-[20px] desk:tracking-[-0.8px] ${
                       selected ? "bg-[rgba(244,241,234,0.64)]" : ""
                     }`}
                   >
+                    <span
+                      aria-hidden
+                      className={`flex size-5 shrink-0 items-center justify-center rounded-[6px] border ${selected ? "border-black bg-black text-white" : "border-black/32 bg-white"}`}
+                    >
+                      {selected ? (
+                        <svg viewBox="0 0 12 12" className="size-3" fill="none">
+                          <path d="M2.5 6.2 5 8.5l4.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      ) : null}
+                    </span>
                     {skill[locale as "en"] ?? skill.en}
                   </button>
                 );
@@ -158,7 +168,7 @@ export function WaitlistForm({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [dob, setDob] = useState("");
-  const [superpower, setSuperpower] = useState("");
+  const [superpower, setSuperpower] = useState<string[]>([]);
   const [subject, setSubject] = useState("");
   const [organization, setOrganization] = useState("");
   const [token, setToken] = useState<string | null>(null);
@@ -180,7 +190,7 @@ export function WaitlistForm({ onClose }: { onClose: () => void }) {
         email: email.trim(),
         name: name.trim(),
         dob,
-        ...(superpower ? { superpower } : {}),
+        ...(superpower.length ? { superpower } : {}),
         subject: subject.trim(),
         ...(organization.trim() ? { organization: organization.trim() } : {}),
         source: "homepage_waitlist",
