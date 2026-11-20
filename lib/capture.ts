@@ -26,6 +26,12 @@ const localeInput = z.enum(locales).catch("en");
 export const waitlistInput = z.object({
   email: emailInput,
   name: z.string().trim().min(1).optional(),
+  // Waitlist page (Figma 124:227). Optional here so older queued sign-ups still parse;
+  // the page itself requires name, date of birth and subject.
+  dob: dateInput.optional(),
+  superpower: z.string().refine(isSkillLabel, "unknown skill").optional(),
+  subject: z.string().trim().min(1).max(200).optional(),
+  organization: z.string().trim().min(1).max(200).optional(),
   source: z.string().max(120).optional(),
   locale: localeInput,
 });

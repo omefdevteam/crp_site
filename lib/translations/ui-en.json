@@ -294,5 +294,13 @@
   "Ambassador": "Ambassador",
   "By {name}": "By {name}",
   "On the globe": "On the globe",
-  "See {count} on the globe": "See {count} on the globe"
+  "See {count} on the globe": "See {count} on the globe",
+  "*Name": "*Name",
+  "*Email": "*Email",
+  "Your superpower": "Your superpower",
+  "*Subject": "*Subject",
+  "Join": "Join",
+  "Back to home": "Back to home",
+  "We’ve signed you up for our waitlist.": "We’ve signed you up for our waitlist.",
+  "Stay tuned for our latest updates.": "Stay tuned for our latest updates."
 }
