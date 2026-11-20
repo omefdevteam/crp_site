@@ -17,7 +17,7 @@ import { useText } from "@/lib/ui-text";
 /** Legal (index 1) also gets a "Cookie preferences" button that reopens the consent panel. */
 const SECTION_HREFS = [
   ["/", "/about", "/programs"],
-  ["/privacy", "#"],
+  ["/privacy", "/terms"],
   ["/contact", "/partner", "/#join"],
 ] as const;
 
@@ -79,7 +79,7 @@ export function Footer() {
                   <h3 className={HEADING}>{section.title}</h3>
                   <ul className="grid grid-cols-2 gap-3 desk:grid-cols-1">
                     {section.links.map((label, linkIndex) => {
-                      const href = SECTION_HREFS[sectionIndex]?.[linkIndex] ?? "#";
+                      const href: string = SECTION_HREFS[sectionIndex]?.[linkIndex] ?? "#";
                       return (
                         <li key={label} className="min-w-0">
                           {href === "#" ? (

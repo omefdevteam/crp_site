@@ -30,7 +30,8 @@ test('every public page has its own canonical, reciprocal alternatives and trans
   const meta=pageMetadata({locale,messages:messages[locale]},page);
   assert.equal(meta.alternates.canonical,SITE_URL+localePath(path,locale));
   assert.equal(meta.robots.index,true);
-  assert.equal(meta.title,messages[locale].meta[page].title);
+  // The English-only Terms page keeps its metadata in code, not in the translated catalogue.
+  assert.equal(meta.title,page==='terms'?'Terms of use — Climate Refugee Pavilion':messages[locale].meta[page].title);
   assert.equal(meta.openGraph.url,meta.alternates.canonical);
   for(const other of locales)assert.equal(meta.alternates.languages[other],SITE_URL+localePath(path,other));
   assert.equal(meta.alternates.languages['x-default'],SITE_URL+localePath(path,'en'));
