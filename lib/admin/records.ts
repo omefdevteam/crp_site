@@ -81,6 +81,8 @@ export type RecordRow = {
   readonly reviewCycle?: number;
   /** Set when this entry repeats an earlier one: confirmed, or waiting for a decision. */
   readonly repeat?: RepeatFlag;
+  /** Extra fields shown when staff expand the row. */
+  readonly details?: readonly { readonly label: string; readonly value: string }[];
 };
 
 export type RecordPage = {
@@ -984,6 +986,13 @@ async function waitlistRows(db: Store, query: RecordQuery, limit: number, offset
       id: row.id,
       href: null,
       cells: [textOf(row.name), row.email, textOf(row.subject), textOf(row.superpower), row.status, stamp(row.createdAt)],
+      details: [
+        { label: "Date of birth", value: textOf(row.dob) },
+        { label: "Superpower", value: textOf(row.superpower) },
+        { label: "Subject", value: textOf(row.subject) },
+        { label: "Organization", value: textOf(row.organization) },
+        { label: "Signed up from", value: textOf(row.source) },
+      ],
     })),
   };
 }

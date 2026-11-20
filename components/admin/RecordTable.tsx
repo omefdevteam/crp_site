@@ -8,6 +8,8 @@ export type RecordTableRow = {
   readonly cells: readonly string[];
   /** Repeats an earlier entry: confirmed, or waiting for a decision. */
   readonly repeat?: "suggested" | "confirmed";
+  /** Extra fields shown when staff expand the row. */
+  readonly details?: readonly { readonly label: string; readonly value: string }[];
 };
 
 function RepeatTag({ repeat }: { repeat: "suggested" | "confirmed" }) {
@@ -49,6 +51,19 @@ export function RecordTable({
                     {index === 0 && row.href ? <RowLink href={row.href} name={name} /> : null}
                     <span className="relative z-0"><RecordCell list={list} header={headers[index] ?? ""} value={cell} /></span>
                     {index === 0 && row.repeat ? <RepeatTag repeat={row.repeat} /> : null}
+                    {index === 0 && row.details?.length ? (
+                      <details className="relative z-0 mt-1">
+                        <summary className="cursor-pointer text-xs font-semibold text-black/60">Show details</summary>
+                        <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+                          {row.details.map((item) => (
+                            <div key={item.label} className="contents">
+                              <dt className="text-black/60">{item.label}</dt>
+                              <dd>{item.value || "Not given"}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </details>
+                    ) : null}
                   </td>
                 ))}
               </tr>

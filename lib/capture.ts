@@ -29,7 +29,11 @@ export const waitlistInput = z.object({
   // Waitlist page (Figma 124:227). Optional here so older queued sign-ups still parse;
   // the page itself requires name, date of birth and subject.
   dob: dateInput.optional(),
-  superpower: z.string().refine(isSkillLabel, "unknown skill").optional(),
+  // One or more of the apply skills; stored as one comma-separated line.
+  superpower: z
+    .union([z.string().refine(isSkillLabel, "unknown skill").transform((v) => [v]), z.array(z.string().refine(isSkillLabel, "unknown skill")).min(1).max(18)])
+    .transform((v) => [...new Set(v)].join(", "))
+    .optional(),
   subject: z.string().trim().min(1).max(200).optional(),
   organization: z.string().trim().min(1).max(200).optional(),
   source: z.string().max(120).optional(),
