@@ -93,7 +93,7 @@ function ContactRow({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={icon} alt="" width={16} height={16} className="size-4" />
       </span>
-      <p className="text-[14px] font-semibold uppercase tracking-[1.12px] text-black/64">
+      <p className="text-[14px] font-semibold uppercase tracking-[1.12px] text-black/64 whitespace-pre-line">
         {label}
       </p>
     </div>
