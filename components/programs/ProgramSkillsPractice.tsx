@@ -34,6 +34,12 @@ const FIT: Readonly<Record<LogoFit, { circle: string; img: string }>> = {
   inside: { circle: "bg-white", img: "absolute inset-[14%] size-[72%] object-contain" },
 };
 
+/** Public toggle for the partner and funder logo circles on /programs.
+ * Off: those two rows show their text only (no circles, no reserved space).
+ * To show them again, set this back to true. Logo data and the admin
+ * Logos editor are untouched either way. */
+export const SHOW_PROGRAM_PARTNER_FUNDER_LOGOS = false;
+
 function Circles({ logos }: { logos: readonly ShownLogo[] }) {
   return (
     <span className="flex shrink-0 items-center">
@@ -59,7 +65,7 @@ const visuals = (logos: SiteLogos): readonly ReactNode[] => [
   <IconChip key="mic" src={programIcons.microphone} fill={MIC_FILL} round />,
   <IconChip key="tree" src={programIcons.treeStructure} fill={TREE_FILL} round={false} />,
   <FigmaImg key="star" src={practice.star} alt="" width={88} height={88} className="size-16 shrink-0 desk:size-[88px]" />,
-  <Circles key="partners" logos={logos["programs.partners"]} />,
+  SHOW_PROGRAM_PARTNER_FUNDER_LOGOS ? <Circles key="partners" logos={logos["programs.partners"]} /> : null,
   <FigmaImg
     key="recruit"
     src={practice.recruit}
@@ -68,7 +74,7 @@ const visuals = (logos: SiteLogos): readonly ReactNode[] => [
     height={88}
     className="h-16 w-[66px] shrink-0 desk:h-[88px] desk:w-[91px]"
   />,
-  <Circles key="funders" logos={logos["programs.funders"]} />,
+  SHOW_PROGRAM_PARTNER_FUNDER_LOGOS ? <Circles key="funders" logos={logos["programs.funders"]} /> : null,
 ];
 
 /** Partner and funder logos come from Website text → Logos (built-in logos until staff change them).
