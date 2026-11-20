@@ -99,7 +99,7 @@ function SuperpowerField({ value, onChange }: { value: readonly string[]; onChan
         aria-expanded={open}
         aria-label={label}
         onClick={() => setOpen((o) => !o)}
-        className={`${FIELD} ${FIELD_LG} min-w-0 flex-1 gap-6 pl-6 pr-8 text-left transition-colors ${open ? "bg-cream" : ""}`}
+        className={`${FIELD} ${FIELD_LG} w-full min-w-0 shrink-0 gap-6 desk:w-auto desk:flex-1 pl-6 pr-8 text-left transition-colors ${open ? "bg-cream" : ""}`}
       >
         <span className="flex min-w-0 flex-1 flex-col justify-center">
           {pickedLabel ? (
