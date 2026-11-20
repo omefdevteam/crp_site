@@ -3,14 +3,19 @@ import { publicSiteCopy } from "@/lib/copy/read";
 import type { Messages } from "@/lib/messages";
 import { locales, localePath, type Locale } from "@/lib/locale";
 export const SITE_URL = "https://www.climaterefugeepavilion.org";
-export const pagePaths = { home: "/", about: "/about", programs: "/programs", partner: "/partner", contact: "/contact", apply: "/apply", nominate: "/nominate", privacy: "/privacy" } as const;
+export const pagePaths = { home: "/", about: "/about", programs: "/programs", partner: "/partner", contact: "/contact", apply: "/apply", nominate: "/nominate", privacy: "/privacy", terms: "/terms" } as const;
+// The legal text is English only, so the Terms page metadata is not part of the translated catalogue.
+const TERMS_META = { title: "Terms of use — Climate Refugee Pavilion", description: "The terms that apply to your use of the Climate Refugee Pavilion website." };
+function metaOf(messages: Messages, page: PageKey): { title: string; description: string } {
+  return page === "terms" ? TERMS_META : messages.meta[page];
+}
 export type PageKey = keyof typeof pagePaths;
 export function languageAlternates(path: string) {
   return Object.fromEntries([...locales.map((locale) => [locale, SITE_URL + localePath(path, locale)]), ["x-default", SITE_URL + localePath(path, "en")]]);
 }
 export function pageMetadata(input: { locale: Locale; messages: Messages }, page: PageKey): Metadata {
   const { locale, messages } = input;
-  const meta = messages.meta[page];
+  const meta = metaOf(messages, page);
   const canonical = SITE_URL + localePath(pagePaths[page], locale);
   const ogLocales = { en: "en_US", fr: "fr_FR", es: "es_ES", pt: "pt_PT" };
   return {
@@ -24,7 +29,7 @@ export function pageMetadata(input: { locale: Locale; messages: Messages }, page
 export function structuredData(input: { locale: Locale; messages: Messages }, page: PageKey) {
   const { locale, messages } = input;
   const url = SITE_URL + localePath(pagePaths[page], locale);
-  const meta = messages.meta[page];
+  const meta = metaOf(messages, page);
   return { "@context": "https://schema.org", "@graph": [
     { "@type": "Organization", "@id": `${SITE_URL}/#organization`, name: "Climate Refugee Pavilion", url: SITE_URL, logo: `${SITE_URL}/icon.png` },
     { "@type": "WebSite", "@id": `${SITE_URL}/#website`, url: SITE_URL, name: "Climate Refugee Pavilion", inLanguage: [...locales], publisher: { "@id": `${SITE_URL}/#organization` } },

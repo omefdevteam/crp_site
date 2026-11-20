@@ -136,11 +136,11 @@
   },
   "contactPage": {
     "title": "Contactez-nous",
-    "email": "name@example.com",
+    "email": "media@climaterefugeepavilion.com",
     "emailLabel": "E-mail",
     "addressLabel": "Adresse",
     "phoneLabel": "Téléphone",
-    "address": "Adresse du bureau",
+    "address": "Climate Refugee Initiative, London, Great Britain & Zimbabwe",
     "phone": "Téléphone",
     "name": "*Nom",
     "organization": "Organisation",
@@ -574,7 +574,7 @@
   },
   "privacyPage": {
     "title": "Privacy policy",
-    "updated": "LAST UPDATED: [INSERT DATE]",
+    "updated": "LAST UPDATED: 29TH SEPTEMBER 2026",
     "heading": "Heading 1",
     "subhead": "Sub-header",
     "paragraphs": [
