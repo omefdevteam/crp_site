@@ -174,8 +174,8 @@ function ProgramsBlock({ className }: { className: string }) {
       <h2 className="text-center text-[12px] font-semibold uppercase leading-[1.2] tracking-[0.96px] text-white [text-shadow:0_0_4px_rgba(0,0,0,0.25)] desk:text-[16px] desk:tracking-[1.28px]">
         {a.programsHeading}
       </h2>
-      {/* Phones: a row that scrolls out to the screen edge (Figma lets it run off the frame). */}
-      <div className="no-scrollbar -mr-12 flex overflow-x-auto pr-12 desk:mr-0 desk:overflow-visible desk:pr-0">
+      {/* Phones: a row that scrolls out to both screen edges (Figma lets it run off the frame). -mx-12 cancels the page px-6 plus the glass panel px-6; px-12 puts the first card back in line with the content at rest. */}
+      <div className="no-scrollbar -mx-12 flex overflow-x-auto px-12 desk:mx-0 desk:overflow-visible desk:px-0">
         {a.programs.map((program, i) => (
           <ProgramCard key={program.title} index={i} tag={program.tag} title={program.title} comingSoon={a.comingSoon} />
         ))}
