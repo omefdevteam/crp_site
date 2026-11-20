@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { PartnerCard, YouthAmbassadorCard } from "./GetInvolvedCards";
+import { PartnerCard, WaitlistPopupCard, YouthAmbassadorCard } from "./GetInvolvedCards";
+import { WaitlistForm } from "./WaitlistForm";
 import { useCopy } from "./LanguageProvider";
 
 function CloseIcon() {
@@ -27,6 +28,10 @@ export function GetInvolvedPopup({ open, onClose }: GetInvolvedPopupProps) {
   const copy = useCopy();
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  // The waitlist page outlives the popup: picking that card closes the popup
+  // and opens the page over the site.
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const waitlist = waitlistOpen ? <WaitlistForm source="get_involved_waitlist" onClose={() => setWaitlistOpen(false)} /> : null;
 
   useEffect(() => {
     if (!open) return;
@@ -44,7 +49,7 @@ export function GetInvolvedPopup({ open, onClose }: GetInvolvedPopupProps) {
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open) return waitlist;
 
   return createPortal(
     <div className="fixed inset-0 z-[60] flex items-end justify-center">
@@ -59,9 +64,9 @@ export function GetInvolvedPopup({ open, onClose }: GetInvolvedPopupProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 flex h-[80dvh] max-h-[80dvh] w-full flex-col gap-8 overflow-y-auto rounded-tl-[64px] rounded-tr-[64px] bg-black px-5 py-10 text-white desk:gap-[48px] desk:overflow-hidden desk:rounded-tl-[154px] desk:rounded-tr-[154px] desk:px-[64px] desk:py-[96px]"
+        className="relative z-10 flex h-[80dvh] max-h-[80dvh] w-full desk:h-auto desk:max-h-none flex-col gap-8 overflow-y-auto rounded-tl-[64px] rounded-tr-[64px] bg-black px-5 py-10 text-white desk:gap-[48px] desk:overflow-hidden desk:rounded-tl-[154px] desk:rounded-tr-[154px] desk:px-[64px] desk:py-[96px]"
       >
-        <div className="relative flex h-auto w-full shrink-0 items-start justify-end desk:h-[43px] desk:pr-[32px]">
+        <div className="relative flex h-auto w-full shrink-0 items-start justify-end desk:h-[43px] desk:pr-[32px] desk:mx-auto desk:max-w-[1072px]">
           <h2
             id={titleId}
             className="absolute inset-x-0 top-0 text-center text-[32px] font-normal leading-[0.9] tracking-[-0.04em] desk:text-[48px] desk:tracking-[-1.92px]"
@@ -79,9 +84,15 @@ export function GetInvolvedPopup({ open, onClose }: GetInvolvedPopupProps) {
           </button>
         </div>
 
-        <div className="flex min-h-0 w-full flex-none flex-col items-stretch gap-4 desk:flex-1 desk:flex-row desk:items-center desk:justify-center desk:gap-0">
+        <div className="flex min-h-0 w-full flex-none flex-col items-stretch gap-4 desk:flex-row desk:mx-auto desk:max-w-[1072px] desk:justify-center desk:gap-0">
           <YouthAmbassadorCard surface="popup" onNavigate={onClose} />
           <PartnerCard surface="popup" onNavigate={onClose} />
+          <WaitlistPopupCard
+            onOpen={() => {
+              setWaitlistOpen(true);
+              onClose();
+            }}
+          />
         </div>
       </div>
     </div>,

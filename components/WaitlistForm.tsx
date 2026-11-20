@@ -160,7 +160,7 @@ function SuperpowerField({ value, onChange }: { value: readonly string[]; onChan
 
 // Waitlist page (Figma 124:227) and its thank-you screen (Figma 124:393), opened
 // from the homepage "Join the waitlist" button. Built from the apply form's parts.
-export function WaitlistForm({ onClose }: { onClose: () => void }) {
+export function WaitlistForm({ onClose, source = "homepage_waitlist" }: { onClose: () => void; source?: string }) {
   const tr = useText();
   const copy = useCopy();
   const { locale } = useLanguage();
@@ -193,7 +193,7 @@ export function WaitlistForm({ onClose }: { onClose: () => void }) {
         ...(superpower.length ? { superpower } : {}),
         subject: subject.trim(),
         ...(organization.trim() ? { organization: organization.trim() } : {}),
-        source: "homepage_waitlist",
+        source,
         locale,
         turnstileToken: token,
       }),

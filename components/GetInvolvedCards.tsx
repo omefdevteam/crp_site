@@ -1,7 +1,6 @@
 "use client";
 
-import { type FormEvent, type ReactNode, useRef, useState } from "react";
-import { useCssScaleFallback } from "@/lib/cssScale";
+import { type FormEvent, useState } from "react";
 import { motion, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "@/components/LocaleLink";
@@ -11,9 +10,6 @@ import { Turnstile, TURNSTILE_SITE_KEY } from "./Turnstile";
 import { submitWaitlist } from "@/lib/actions";
 import { useCaptureSubmission } from "./useCaptureSubmission";
 
-/** Figma card edge length — internals are authored at this size. */
-const DESIGN = 536;
-
 const CARD = "group relative aspect-square overflow-hidden";
 const CARD_SHELL = "group relative aspect-square";
 const SECTION_SIZE =
@@ -22,65 +18,10 @@ const SECTION_SIZE =
 // scrolls. shrink-0 stops the column flex squeezing the overflow-hidden Partner
 // card below its aspect-square height. Desktop keeps the default shrink.
 const POPUP_SHELL =
-  "mx-auto w-full max-w-[536px] shrink-0 desk:shrink desk:mx-0 desk:h-full desk:max-h-[536px] desk:w-auto desk:max-w-[min(536px,50%)]";
+  "mx-auto w-full max-w-[536px] shrink-0 rounded-[88px] desk:mx-0 desk:aspect-auto desk:h-[min(536px,calc(100dvh-331px))] desk:min-w-0 desk:max-w-none desk:flex-1 desk:shrink desk:rounded-[154px]";
 
 const REVEAL =
   "duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none";
-
-/**
- * Outer box fills available space; inner stays at the 536² Figma layout and
- * scales uniformly so radius, ticket, type, and CTAs shrink together.
- * The scale is min(1, outer width / 536), worked out in CSS: an absolute layer
- * the size of the outer is a container, and tan(atan2(100cqw, 536px)) turns
- * its width into a plain number. So the card is already the right size on the
- * frame the popup opens (a JS-measured scale painted at 1× first).
- */
-function ScaledDesignCard({
-  className = "",
-  overflowVisible = false,
-  children,
-}: {
-  className?: string;
-  overflowVisible?: boolean;
-  children: ReactNode;
-}) {
-  const layerRef = useRef<HTMLDivElement>(null);
-  const innerRef = useRef<HTMLDivElement>(null);
-  // Without CSS trig/container units, set the same min(1, width / 536) in JS before paint.
-  useCssScaleFallback(
-    () => layerRef.current,
-    () => {
-      const layer = layerRef.current;
-      const inner = innerRef.current;
-      if (!layer || !inner) return;
-      const w = layer.clientWidth;
-      if (w > 0) inner.style.transform = `scale(${Math.min(1, w / DESIGN)})`;
-    },
-  );
-
-  return (
-    <div className={`relative aspect-square ${className}`}>
-      <div
-        ref={layerRef}
-        className="absolute inset-0 [container-type:inline-size]"
-      >
-        <div
-          ref={innerRef}
-          className={`absolute left-0 top-0 ${overflowVisible ? "overflow-visible" : "overflow-hidden"}`}
-          style={{
-            width: DESIGN,
-            height: DESIGN,
-            transform: `scale(min(1, tan(atan2(100cqw, ${DESIGN}px))))`,
-            transformOrigin: "top left",
-            borderRadius: 154,
-          }}
-        >
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function ArrowCircle({ large = false }: { large?: boolean }) {
   return (
@@ -189,9 +130,9 @@ export function YouthAmbassadorCard({
 }: InvolvedCardProps) {
   if (surface === "popup") {
     return (
-      <ScaledDesignCard className={`${CARD_SHELL} ${POPUP_SHELL}`} overflowVisible>
+      <div className={`${CARD} ${POPUP_SHELL}`}>
         <YouthContent onNavigate={onNavigate} />
-      </ScaledDesignCard>
+      </div>
     );
   }
 
@@ -279,9 +220,9 @@ export function PartnerCard({
 }) {
   if (surface === "popup") {
     return (
-      <ScaledDesignCard className={`group ${CARD} ${POPUP_SHELL}`}>
+      <div className={`${CARD} ${POPUP_SHELL}`}>
         <PartnerContent onNavigate={onNavigate} />
-      </ScaledDesignCard>
+      </div>
     );
   }
 
@@ -293,6 +234,27 @@ export function PartnerCard({
     >
       <PartnerContent onNavigate={onNavigate} compact={compact} contact={contact} />
     </div>
+  );
+}
+
+/** Get involved popup (Figma 1:903): third card, opens the waitlist page. */
+export function WaitlistPopupCard({ onOpen }: { onOpen: () => void }) {
+  const copy = useCopy();
+  return (
+    <button type="button" onClick={onOpen} aria-haspopup="dialog" className={`${CARD} ${POPUP_SHELL} block text-left`}>
+      <span className="absolute inset-0 overflow-hidden rounded-[inherit]">
+        <Image src="/images/waitlist.jpg" alt={copy.waitlist.photoAlt} fill sizes="(min-width: 900px) 360px, 90vw" className="object-cover" />
+        <span className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/30" />
+      </span>
+      <span className="absolute inset-0 flex items-center justify-center px-8 text-center">
+        <span className={`${TITLE_SIZE} leading-[0.9] tracking-[-0.04em] text-white [text-shadow:0_1px_16px_rgba(0,0,0,0.35)]`}>
+          {copy.waitlist.title}
+        </span>
+      </span>
+      <span className="absolute inset-x-0 bottom-8 flex justify-center transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105 desk:bottom-10">
+        <ArrowCircle />
+      </span>
+    </button>
   );
 }
 
