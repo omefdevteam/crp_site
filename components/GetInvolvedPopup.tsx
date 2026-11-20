@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { PartnerCard, YouthAmbassadorCard } from "./GetInvolvedCards";
+import { PartnerCard, WaitlistPopupCard, YouthAmbassadorCard } from "./GetInvolvedCards";
+import { WaitlistForm } from "./WaitlistForm";
 import { useCopy } from "./LanguageProvider";
 
 function CloseIcon() {
@@ -27,6 +28,10 @@ export function GetInvolvedPopup({ open, onClose }: GetInvolvedPopupProps) {
   const copy = useCopy();
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  // The waitlist page outlives the popup: picking that card closes the popup
+  // and opens the page over the site.
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
+  const waitlist = waitlistOpen ? <WaitlistForm source="get_involved_waitlist" onClose={() => setWaitlistOpen(false)} /> : null;
 
   useEffect(() => {
     if (!open) return;
@@ -44,7 +49,7 @@ export function GetInvolvedPopup({ open, onClose }: GetInvolvedPopupProps) {
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open) return waitlist;
 
   return createPortal(
     <div className="fixed inset-0 z-[60] flex items-end justify-center">
@@ -82,6 +87,12 @@ export function GetInvolvedPopup({ open, onClose }: GetInvolvedPopupProps) {
         <div className="flex min-h-0 w-full flex-none flex-col items-stretch gap-4 desk:flex-1 desk:flex-row desk:items-center desk:justify-center desk:gap-0">
           <YouthAmbassadorCard surface="popup" onNavigate={onClose} />
           <PartnerCard surface="popup" onNavigate={onClose} />
+          <WaitlistPopupCard
+            onOpen={() => {
+              setWaitlistOpen(true);
+              onClose();
+            }}
+          />
         </div>
       </div>
     </div>,
