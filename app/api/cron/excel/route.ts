@@ -10,7 +10,7 @@ export const maxDuration = 120;
 
 type OpenedWorkbook = { workbook: ReviewWorkbook; close: () => Promise<void> };
 
-// Vercel Cron calls this every 10 minutes. A complete Graph config edits the
+// Vercel Cron calls this every 15 minutes. A complete Graph config edits the
 // SharePoint workbook. Google Sheets remains the fallback. Neither pair set is
 // a skip, not a failed deploy.
 export async function GET(req: NextRequest) {

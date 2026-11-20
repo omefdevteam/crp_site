@@ -294,5 +294,13 @@
   "Ambassador": "Embajador/a",
   "By {name}": "Por {name}",
   "On the globe": "En el globo",
-  "See {count} on the globe": "Ver {count} en el globo"
+  "See {count} on the globe": "Ver {count} en el globo",
+  "*Name": "*NOMBRE",
+  "*Email": "*CORREO ELECTRÓNICO",
+  "Your superpower": "Tu superpoder",
+  "*Subject": "*Asunto",
+  "Join": "Unirme",
+  "Back to home": "Volver al inicio",
+  "We’ve signed you up for our waitlist.": "Te hemos apuntado a nuestra lista de espera.",
+  "Stay tuned for our latest updates.": "Mantente atento a nuestras novedades."
 }
