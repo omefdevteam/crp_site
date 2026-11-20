@@ -122,6 +122,12 @@ export const handlers: Record<JobKind, JobHandler> = {
   },
 };
 
+// Runs whatever is due right now, without the housekeeping. Called right after
+// a request queues work, so emails and identity steps don't wait for the cron.
+export async function drainJobs(limit = 25) {
+  return runDueJobs(handlers, limit, getDb());
+}
+
 // One cron tick: retry anything due, sweep for orphaned webhook events, and
 // drop expired housekeeping rows.
 export async function tick(limit = 25) {

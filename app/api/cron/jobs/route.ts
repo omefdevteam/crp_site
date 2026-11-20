@@ -6,7 +6,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// The background worker. Vercel Cron calls this every minute with the CRON_SECRET
+// The background worker backstop. New jobs run right after the request that
+// queued them (lib/jobs.ts kickWorker); Vercel Cron calls this every 15 minutes with the CRON_SECRET
 // bearer token; it can also be run by hand (or from the ops screen) to drain the
 // queue immediately.
 export async function GET(req: NextRequest) {

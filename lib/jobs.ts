@@ -1,11 +1,16 @@
 import { randomUUID } from "crypto";
 import { and, asc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
+import { after } from "next/server";
 import { getDb, jobs, type Db, type Store, type JobPayload } from "@/lib/db";
 
 // Durable background work. A job is inserted in the same transaction as the
 // record it belongs to (an applicant and its confirmation email commit together
 // or not at all) and is then attempted by the cron worker until it succeeds,
 // with exponential backoff, or until it is parked as `failed` for the team.
+//
+// New jobs are run straight away, right after the response that queued them
+// (see kickWorker). The cron only runs every 15 minutes as a backstop for
+// retries and housekeeping, so the database can sleep between visitors.
 export type JobKind = "email" | "identity_session" | "webhook" | "identity_documents" | "videoask_media";
 export type Job = typeof jobs.$inferSelect;
 
@@ -52,7 +57,33 @@ export async function enqueue(tx: Store, input: EnqueueInput): Promise<boolean> 
     })
     .onConflictDoNothing({ target: jobs.dedupeKey })
     .returning({ id: jobs.id });
+  if (inserted.length > 0 && (input.availableAt ?? new Date()).getTime() <= Date.now()) kickWorker();
   return inserted.length > 0;
+}
+
+// Runs due jobs once the current request has responded (after its transaction
+// has committed). One drain per instance at a time; anything it misses, such as
+// a retry with backoff, is picked up by the 15-minute cron. Outside a request
+// (scripts, tests) `after` throws and the cron handles the job instead.
+let draining = false;
+export function kickWorker(): void {
+  if (draining) return;
+  try {
+    after(async () => {
+      if (draining) return;
+      draining = true;
+      try {
+        const { drainJobs } = await import("@/lib/worker");
+        await drainJobs();
+      } catch (err) {
+        console.error("[jobs] immediate run failed; the cron will retry", err instanceof Error ? err.message : err);
+      } finally {
+        draining = false;
+      }
+    });
+  } catch {
+    // Not inside a request: leave it to the cron.
+  }
 }
 
 export async function enqueueEmail(

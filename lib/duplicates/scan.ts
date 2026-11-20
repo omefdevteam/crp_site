@@ -75,7 +75,7 @@ export async function scanList(db: Db, list: DuplicateList, now = new Date()): P
 }
 
 // Rescans a list only when something new has arrived since the last scan, or
-// once a day. The worker calls this every minute, so the usual cost is two
+// once a day. The worker calls this every 15 minutes, so the usual cost is two
 // tiny reads.
 export async function scanIfStale(db: Db, list: DuplicateList, now = new Date()): Promise<ScanResult> {
   const [[state], newest] = await Promise.all([
