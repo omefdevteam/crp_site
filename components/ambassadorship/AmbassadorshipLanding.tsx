@@ -104,7 +104,7 @@ function ProgramCard({
   const tagTone = index === 3 ? "text-lime desk:text-white" : "text-lime";
   return (
     <div
-      className={`relative flex size-[147px] shrink-0 flex-col overflow-clip rounded-[24px] p-3 desk:aspect-square desk:size-auto desk:min-w-0 desk:flex-1 desk:rounded-[64px] desk:p-8 ${
+      className={`relative flex min-h-[147px] w-[147px] shrink-0 flex-col overflow-clip rounded-[24px] p-3 desk:aspect-square desk:min-h-0 desk:w-auto desk:min-w-0 desk:flex-1 desk:rounded-[64px] desk:p-8 ${
         first ? "justify-between" : "justify-end gap-6"
       }`}
     >
