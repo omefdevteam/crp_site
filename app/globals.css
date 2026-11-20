@@ -254,13 +254,8 @@ body {
   margin-top: -100dvh;
 }
 .apply-frame-content {
-  --apply-frame-r: 88px;
   min-height: 100vh;
   min-height: 100dvh;
-  /* Phones: the sticky frame's cream corners sit over the bottom --apply-frame-r
-     of the section once it reaches the end. Reserve that strip (plus a gap) so the
-     last content, the program cards, can scroll fully above the corners. */
-  padding-bottom: calc(var(--apply-frame-r) + 1.5rem);
 }
 .apply-frame-corner {
   display: block;
@@ -284,8 +279,5 @@ body {
 @media (min-width: 900px) {
   .apply-frame {
     --apply-frame-r: 154px;
-  }
-  .apply-frame-content {
-    padding-bottom: 0;
   }
 }
