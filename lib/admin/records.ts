@@ -130,7 +130,7 @@ const SCREEN: Record<RecordList, readonly string[]> = {
   applicants: ["Name", "Email", "Track", "Language", "Status", "Assigned to", "Review round", "Received"],
   nominations: ["Nominated by", "Nominee", "Email", "Track", "Status", "Assigned to", "Received"],
   interest: ["Name", "Email", "Age", "Track", "Received"],
-  waitlist: ["Name", "Email", "Status", "Received"],
+  waitlist: ["Name", "Email", "Subject", "Superpower", "Status", "Received"],
   partners: ["Name", "Email", "Organization", "Support", "Status", "Assigned to", "Received"],
   messages: MESSAGE_LIST_HEADERS,
 };
@@ -954,6 +954,10 @@ function waitlistSelect() {
     createdAt: waitlist.createdAt,
     email: waitlist.email,
     name: waitlist.name,
+    dob: waitlist.dob,
+    superpower: waitlist.superpower,
+    subject: waitlist.subject,
+    organization: waitlist.organization,
     source: waitlist.source,
     status: waitlist.status,
   };
@@ -979,7 +983,7 @@ async function waitlistRows(db: Store, query: RecordQuery, limit: number, offset
     rows: rows.map((row) => ({
       id: row.id,
       href: null,
-      cells: [textOf(row.name), row.email, row.status, stamp(row.createdAt)],
+      cells: [textOf(row.name), row.email, textOf(row.subject), textOf(row.superpower), row.status, stamp(row.createdAt)],
     })),
   };
 }
@@ -987,8 +991,8 @@ async function waitlistRows(db: Store, query: RecordQuery, limit: number, offset
 async function waitlistSheet(db: Store, query: RecordQuery): Promise<Sheet> {
   const rows = await selectWaitlist(db, query, null, 0);
   return {
-    headers: ["name", "email", "source", "status", "created_at"],
-    rows: rows.map((row) => [textOf(row.name), row.email, textOf(row.source), row.status, stamp(row.createdAt)]),
+    headers: ["name", "email", "dob", "superpower", "subject", "organization", "source", "status", "created_at"],
+    rows: rows.map((row) => [textOf(row.name), row.email, textOf(row.dob), textOf(row.superpower), textOf(row.subject), textOf(row.organization), textOf(row.source), row.status, stamp(row.createdAt)]),
   };
 }
 
