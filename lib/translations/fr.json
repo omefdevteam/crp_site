@@ -25,7 +25,7 @@
     "prevTestimonial": "Témoignage précédent",
     "nextTestimonial": "Témoignage suivant",
     "platformGroups": "Groupes de la plateforme",
-    "youthAmbassadorCard": "Manifester mon intérêt pour le programme des jeunes ambassadeurs, 19 à 26 ans",
+    "youthAmbassadorCard": "Manifester mon intérêt pour le programme des ambassadeurs, 19 à 26 ans",
     "expressInterest": "Manifester mon intérêt",
     "closeExpressInterest": "Fermer le formulaire de manifestation d’intérêt",
     "closeTeamMember": "Fermer la fiche du membre",
@@ -232,7 +232,7 @@
   "involved": {
     "title": "S'impliquer",
     "tab": "S'impliquer",
-    "youth": "Programme des jeunes ambassadeurs",
+    "youth": "Programme des ambassadeurs",
     "youthAlt": "Un groupe de jeunes qui sourient",
     "nominate": "Proposer une candidature",
     "apply": "Postuler",
@@ -589,7 +589,7 @@
       "description": "Comprendre la mobilité climatique et relier les expériences locales à l’action mondiale. Découvrez le Climate Refugee Pavilion à Antalya et en ligne."
     },
     "programs": {
-      "title": "Programme des jeunes ambassadeurs — Climate Refugee Pavilion",
+      "title": "Programme des ambassadeurs — Climate Refugee Pavilion",
       "description": "Un programme entièrement pris en charge pour les 19–26 ans, afin de représenter leurs communautés à la COP31 à Antalya, en Turquie."
     },
     "about": {
@@ -601,12 +601,12 @@
       "description": "Soutenez le Climate Refugee Pavilion — financez des programmes d'ambassadeurs, des histoires, ou rejoignez-nous comme intervenant·e."
     },
     "apply": {
-      "title": "Programme des jeunes ambassadeurs",
-      "description": "Postulez au programme des jeunes ambassadeurs du Climate Refugee Pavilion à Antalya, ou manifestez votre intérêt pour d'autres tranches d'âge."
+      "title": "Programme des ambassadeurs",
+      "description": "Postulez au programme des ambassadeurs du Climate Refugee Pavilion à Antalya, ou manifestez votre intérêt pour d'autres tranches d'âge."
     },
     "nominate": {
-      "title": "Proposer une candidature — Programme des jeunes ambassadeurs",
-      "description": "Proposez une personne de 19 à 26 ans pour le programme des jeunes ambassadeurs du Climate Refugee Pavilion à Antalya."
+      "title": "Proposer une candidature — Programme des ambassadeurs",
+      "description": "Proposez une personne de 19 à 26 ans pour le programme des ambassadeurs du Climate Refugee Pavilion à Antalya."
     },
     "contact": {
       "title": "Contactez-nous — Climate Refugee Pavilion",
