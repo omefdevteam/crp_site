@@ -6,7 +6,7 @@ export type ApplicationLocale = (typeof applicationLocales)[number];
 export const defaultLocale: Locale = "en";
 export const LOCALE_COOKIE = "crp-locale";
 export const nativeLanguageNames: Record<Locale, string> = { en: "English", fr: "Français", es: "Español", pt: "Português" };
-export const publicPaths = ["/", "/about", "/programs", "/partner", "/partner/reach-out", "/contact", "/apply", "/nominate", "/privacy"] as const;
+export const publicPaths = ["/", "/about", "/programs", "/partner", "/partner/reach-out", "/contact", "/apply", "/nominate", "/privacy", "/terms"] as const;
 // The Ambassador space. Not public (no sitemap, no index, no bare-path redirect
 // list), but it lives under the locale prefix, so the language switch works there.
 export const MEMBER_PREFIX = "/ambassador";

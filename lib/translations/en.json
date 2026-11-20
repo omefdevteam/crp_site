@@ -25,7 +25,7 @@
     "prevTestimonial": "Previous testimonial",
     "nextTestimonial": "Next testimonial",
     "platformGroups": "Platform groups",
-    "youthAmbassadorCard": "Express interest in the Youth Ambassador Program, ages 19-26",
+    "youthAmbassadorCard": "Express interest in the Ambassador Program, ages 19-26",
     "expressInterest": "Express interest",
     "closeExpressInterest": "Close express interest",
     "closeTeamMember": "Close team member",
@@ -136,8 +136,8 @@
   },
   "contactPage": {
     "title": "Contact us",
-    "email": "name@example.com",
-    "address": "Office address",
+    "email": "media@climaterefugeepavilion.com",
+    "address": "Climate Refugee Initiative, London,\nGreat Britain & Zimbabwe",
     "phone": "Phone",
     "emailLabel": "Email",
     "addressLabel": "Address",
@@ -232,7 +232,7 @@
   "involved": {
     "title": "Get involved",
     "tab": "Get involved",
-    "youth": "Youth Ambassador Program",
+    "youth": "Ambassador Program",
     "youthAlt": "Group of smiling young people",
     "nominate": "Nominate",
     "apply": "Apply",
@@ -574,7 +574,7 @@
   },
   "privacyPage": {
     "title": "Privacy policy",
-    "updated": "LAST UPDATED: [INSERT DATE]",
+    "updated": "LAST UPDATED: 29TH SEPTEMBER 2026",
     "heading": "Heading 1",
     "subhead": "Sub-header",
     "paragraphs": [
@@ -589,7 +589,7 @@
       "description": "Making climate mobility impossible to ignore. Climate literacy at COP31, Antalya and online."
     },
     "programs": {
-      "title": "Youth Ambassador Program — Climate Refugee Pavilion",
+      "title": "Ambassador Program — Climate Refugee Pavilion",
       "description": "A fully sponsored program for 19–26 year olds to represent their communities at COP31 in Antalya, Türkiye."
     },
     "about": {
@@ -601,12 +601,12 @@
       "description": "Support the Climate Refugee Pavilion — fund ambassador programs, storylines, or join us as a speaker."
     },
     "apply": {
-      "title": "Youth Ambassador Program",
-      "description": "Apply for the Climate Refugee Pavilion Youth Ambassador Program in Antalya, or express interest in other age groups."
+      "title": "Ambassador Program",
+      "description": "Apply for the Climate Refugee Pavilion Ambassador Program in Antalya, or express interest in other age groups."
     },
     "nominate": {
-      "title": "Youth Ambassador Program Nomination",
-      "description": "Nominate a 19–26 year old for the Climate Refugee Pavilion Youth Ambassador Program in Antalya."
+      "title": "Ambassador Program Nomination",
+      "description": "Nominate a 19–26 year old for the Climate Refugee Pavilion Ambassador Program in Antalya."
     },
     "contact": {
       "title": "Contact us — Climate Refugee Pavilion",

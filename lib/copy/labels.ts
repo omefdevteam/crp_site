@@ -53,7 +53,7 @@ const PAGE: Readonly<Record<string, string>> = {
   "a11y.prevTestimonial": "Previous quote button",
   "a11y.nextTestimonial": "Next quote button",
   "a11y.platformGroups": "Platform groups list",
-  "a11y.youthAmbassadorCard": "Youth Ambassador card",
+  "a11y.youthAmbassadorCard": "Ambassador card",
   "a11y.expressInterest": "Express interest button",
   "a11y.closeExpressInterest": "Close Express interest",
   "a11y.closeTeamMember": "Close team member",
@@ -184,7 +184,7 @@ const PAGE: Readonly<Record<string, string>> = {
 
   "involved.title": "Title",
   "involved.tab": "Tab",
-  "involved.youth": "Youth program name",
+  "involved.youth": "Ambassador program name",
   "involved.youthAlt": "Youth photo description (for screen readers)",
   "involved.nominate": "Nominate button",
   "involved.apply": "Apply button",
